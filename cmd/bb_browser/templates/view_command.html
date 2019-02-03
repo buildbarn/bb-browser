@@ -1,0 +1,38 @@
+<table class="table" style="table-layout: fixed">
+	<tr>
+		<th style="width: 25%">Arguments:</th>
+		<td class="text-monospace" style="width: 75%; overflow-x: scroll">
+			<div style="padding-left: 2em; text-indent: -2em">
+				{{$firstArgument := true}}
+				{{range .Arguments}}
+					{{if $firstArgument}}
+						<b>{{shellquote .}}</b>
+					{{else}}
+						{{shellquote .}}
+					{{end}}
+					{{$firstArgument = false}}
+				{{end}}
+			</div>
+		</td>
+	</tr>
+	<tr>
+		<th style="width: 25%">Environment variables:</th>
+		<td class="text-monospace" style="width: 75%; overflow-x: scroll">
+			{{range .EnvironmentVariables}}
+				<b>{{.Name}}</b>={{shellquote .Value}}<br/>
+			{{end}}
+		</td>
+	</tr>
+	<tr>
+		<th style="style: 25%">Working directory:</th>
+		<td class="text-monospace" style="width: 75%">{{if .WorkingDirectory}}{{.WorkingDirectory}}{{else}}.{{end}}</td>
+	</tr>
+	<tr>
+		<th style="width: 25%">Platform properties:</th>
+		<td style="width: 75%">
+			{{range .Platform.Properties}}
+				<b>{{.Name}}</b> = {{.Value}}<br/>
+			{{end}}
+		</td>
+	</tr>
+</table>

@@ -1,0 +1,115 @@
+{{$instance := .Instance}}
+
+{{if .ActionResult}}
+	{{if eq .ActionResult.ExitCode 0}}
+		{{template "header.html" "success"}}
+	{{else}}
+		{{template "header.html" "danger"}}
+	{{end}}
+{{else}}
+	{{template "header.html" "secondary"}}
+{{end}}
+
+<h1 class="my-4">Action</h1>
+
+{{if .Action}}
+<table class="table" style="table-layout: fixed">
+	<tr>
+		<th style="width: 25%">Timeout:</th>
+		<td style="width: 75%">{{if .Action.Timeout}}{{.Action.Timeout.Seconds}} seconds{{else}}∞{{end}}</td>
+	</tr>
+	<tr>
+		<th style="width: 25%">Do not cache:</th>
+		<td style="width: 75%">{{if .Action.DoNotCache}}yes{{else}}no{{end}}</td>
+	</tr>
+</table>
+{{else}}
+This action could not be found.
+{{end}}
+
+<h2 class="my-4">Command{{if .Action}}<sup><a href="/command/{{$instance}}/{{.Action.CommandDigest.Hash}}/{{.Action.CommandDigest.SizeBytes}}/">*</a></sup>{{end}}</h2>
+
+{{if .Command}}
+{{template "view_command.html" .Command}}
+{{else}}
+The command of this action could not be found.
+{{end}}
+
+<h2 class="my-4">Result</h2>
+
+{{if .ActionResult}}
+<table class="table" style="table-layout: fixed">
+	<tr>
+		<th style="width: 25%">Exit code:</th>
+		<td style="width: 75%">
+			{{.ActionResult.ExitCode}}
+			{{if eq .ActionResult.ExitCode 0}}
+				<span class="text-success">(Success)</span>
+			{{else}}
+				<span class="text-danger">(Failure)</span>
+			{{end}}
+		</td>
+	</tr>
+	{{template "view_log.html" .StdoutInfo}}
+	{{template "view_log.html" .StderrInfo}}
+</table>
+{{else}}
+The action result of this action could not be found.
+{{end}}
+
+<h2 class="my-4">Input files{{if .Action}}<sup><a href="/directory/{{$instance}}/{{.Action.InputRootDigest.Hash}}/{{.Action.InputRootDigest.SizeBytes}}/">*</a></sup>{{end}}</h2>
+
+{{if .InputRoot}}
+{{template "view_directory.html" .InputRoot}}
+{{else}}
+The input root of this action could not be found.
+{{end}}
+
+<h2 class="my-4">Output files</h2>
+
+<table class="table">
+	<thead>
+		<tr>
+			<th scope="col">Mode</th>
+			<th scope="col">Size</th>
+			<th scope="col" style="width: 100%">Filename</th>
+		</tr>
+	</thead>
+	{{range .OutputDirectories}}
+		<tr class="text-monospace">
+			<td>drwxr‑xr‑x</td>
+			<td style="text-align: right">{{.TreeDigest.SizeBytes}}</td>
+			<td style="width: 100%"><a class="text-success" href="/tree/{{$instance}}/{{.TreeDigest.Hash}}/{{.TreeDigest.SizeBytes}}/">{{.Path}}</a>/</td>
+		</tr>
+	{{end}}
+	{{range .OutputSymlinks}}
+		<tr class="text-monospace">
+			<td>lrwxrwxrwx</td>
+			<td></td>
+			<td style="width: 100%"><span class="text-success">{{.Path}}</span> -&gt; {{.Target}}</td>
+		</tr>
+	{{end}}
+	{{range .OutputFiles}}
+		<tr class="text-monospace">
+			<td>‑rw{{if .IsExecutable}}x{{else}}‑{{end}}r‑{{if .IsExecutable}}x{{else}}‑{{end}}r‑{{if .IsExecutable}}x{{else}}‑{{end}}</td>
+			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
+			<td style="width: 100%"><a class="text-success" href="/file/{{$instance}}/{{.Digest.Hash}}/{{.Digest.SizeBytes}}/{{basename .Path}}">{{.Path}}</a></td>
+		</tr>
+	{{end}}
+	{{range .MissingDirectories}}
+		<tr class="text-monospace">
+			<td>drwxr‑xr‑x</td>
+			<td></td>
+			<td style="width: 100%"><s class="text-danger">{{.}}</s>/</td>
+		</tr>
+	{{end}}
+	{{range .MissingFiles}}
+		<tr class="text-monospace">
+			<td>‑rw‑r‑‑r‑‑</td>
+			<td></td>
+			<td style="width: 100%"><s class="text-danger">{{.}}</s></td>
+		</tr>
+	{{end}}
+</table>
+
+{{template "footer.html"}}

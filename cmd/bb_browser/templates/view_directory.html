@@ -1,0 +1,34 @@
+{{$instance := .Digest.GetInstance}}
+
+<table class="table">
+	<thead>
+		<tr>
+			<th scope="col">Mode</th>
+			<th scope="col">Size</th>
+			<th scope="col" style="width: 100%">Filename</th>
+		</tr>
+	</thead>
+	{{range .Directory.Directories}}
+		<tr class="text-monospace">
+			<td>drwxr‑xr‑x</td>
+			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
+			<td style="width: 100%"><a href="/directory/{{$instance}}/{{.Digest.Hash}}/{{.Digest.SizeBytes}}/">{{.Name}}</a>/</td>
+		</tr>
+	{{end}}
+	{{range .Directory.Symlinks}}
+		<tr class="text-monospace">
+			<td>lrwxrwxrwx</td>
+			<td></td>
+			<td style="width: 100%">{{.Name}} -&gt; {{.Target}}</td>
+		</tr>
+	{{end}}
+	{{range .Directory.Files}}
+		<tr class="text-monospace">
+			<td>‑r‑{{if .IsExecutable}}x{{else}}‑{{end}}r‑{{if .IsExecutable}}x{{else}}‑{{end}}r‑{{if .IsExecutable}}x{{else}}‑{{end}}</td>
+			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
+			<td style="width: 100%"><a href="/file/{{$instance}}/{{.Digest.Hash}}/{{.Digest.SizeBytes}}/{{.Name}}">{{.Name}}</a></td>
+		</tr>
+	{{end}}
+</table>
+
+<a class="btn btn-primary" href="/directory/{{.Digest.GetInstance}}/{{.Digest.GetHashString}}/{{.Digest.GetSizeBytes}}/?format=tar" role="button">Download as tarball</a>
