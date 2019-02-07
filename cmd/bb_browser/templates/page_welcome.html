@@ -1,0 +1,50 @@
+{{template "header.html" "success"}}
+
+<h1 class="my-4">Welcome!</h1>
+
+<p>This page allows you to display objects stored in the Content
+Addressable Storage (CAS) and Action Cache (AC) as defined by the
+<a href="https://github.com/bazelbuild/remote-apis">Remote Execution
+API</a>. Objects in these data stores have hard to guess identifiers and
+the Remote Execution API provides no functions for iterating over them.
+One may therefore only access this service in a meaningful way by
+visiting automatically generated URLs pointing to this page. Tools that
+are part of Buildbarn will generate these URLs where applicable.</p>
+
+<p>This service supports the following URL schemes:</p>
+
+<ul>
+	<li>
+		<p><span class="text-monospace">/action/${instance}/${hash}/${size}/</span><br/>
+		Displays information about an Action and its associated Command
+		stored in the CAS. If available, displays information about the
+		Action's associated ActionResult stored in the AC.</p>
+	</li>
+	<li>
+		<p><span class="text-monospace">/command/${instance}/${hash}/${size}/</span><br/>
+		Displays information about a Command stored in the CAS.</p>
+	</li>
+	<li>
+		<p><span class="text-monospace">/directory/${instance}/${hash}/${size}/</span><br/>
+		Displays information about a Directory (input directory) stored in
+		the CAS.</p>
+	</li>
+	<li>
+		<p><span class="text-monospace">/file/${instance}/${hash}/${size}/${filename}</span><br/>
+		Serves a file stored in the CAS.</p>
+	</li>
+	<li>
+		<p><span class="text-monospace">/tree/${instance}/${hash}/${size}/${subdirectory}</span><br/>
+		Displays information about a Tree (output directory tree) stored in
+		the CAS.</p>
+	</li>
+	<li>
+		<p><span class="text-monospace">/uncached_action_result/${instance}/${hash}/${size}/</span><br/>
+		Extension: displays information about an ActionResult that was not
+		permitted to be stored in the AC, but was stored in the CAS instead.
+		Buildbarn stores ActionResult messages for failed build actions in
+		the CAS.</p>
+	</li>
+</ul>
+
+{{template "footer.html"}}
