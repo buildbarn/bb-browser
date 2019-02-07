@@ -130,7 +130,17 @@ func (s *BrowserService) handleUncachedActionResult(w http.ResponseWriter, req *
 	s.handleActionCommon(w, req, actionDigest, uncachedActionResult.ActionResult)
 }
 
-func (s *BrowserService) getLogInfo(ctx context.Context, name string, instance string, logDigest *remoteexecution.Digest) (*logInfo, error) {
+func (s *BrowserService) getLogInfo(ctx context.Context, name string, instance string, logDigest *remoteexecution.Digest, rawLogBody []byte) (*logInfo, error) {
+	if len(rawLogBody) > 0 {
+		// Log body is small enough to be provided inline.
+		return &logInfo{
+			Name:     name,
+			Instance: instance,
+			Digest:   logDigest,
+			HTML:     template.HTML(terminal.Render(rawLogBody)),
+		}, nil
+	}
+
 	if logDigest == nil {
 		return nil, nil
 	}
@@ -208,14 +218,13 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 		actionInfo.OutputSymlinks = actionResult.OutputFileSymlinks
 		actionInfo.OutputFiles = actionResult.OutputFiles
 
-		// TODO(edsch): Should we support Std{out,err}Raw as well? Buildbarn doesn't generate them.
 		var err error
-		actionInfo.StdoutInfo, err = s.getLogInfo(ctx, "Standard output", instance, actionResult.StdoutDigest)
+		actionInfo.StdoutInfo, err = s.getLogInfo(ctx, "Standard output", instance, actionResult.StdoutDigest, actionResult.StdoutRaw)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		actionInfo.StderrInfo, err = s.getLogInfo(ctx, "Standard error", instance, actionResult.StderrDigest)
+		actionInfo.StderrInfo, err = s.getLogInfo(ctx, "Standard error", instance, actionResult.StderrDigest, actionResult.StderrRaw)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
