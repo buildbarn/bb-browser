@@ -27,12 +27,14 @@
 		<th style="style: 25%">Working directory:</th>
 		<td class="text-monospace" style="width: 75%">{{if .WorkingDirectory}}{{.WorkingDirectory}}{{else}}.{{end}}</td>
 	</tr>
-	<tr>
-		<th style="width: 25%">Platform properties:</th>
-		<td style="width: 75%">
-			{{range .Platform.Properties}}
-				<b>{{.Name}}</b> = {{.Value}}<br/>
-			{{end}}
-		</td>
-	</tr>
+	{{if .Platform}}
+		<tr>
+			<th style="width: 25%">Platform properties:</th>
+			<td style="width: 75%">
+				{{range .Platform.Properties}}
+					<b>{{.Name}}</b> = {{.Value}}<br/>
+				{{end}}
+			</td>
+		</tr>
+	{{end}}
 </table>
