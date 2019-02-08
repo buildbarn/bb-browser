@@ -549,5 +549,4 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 			log.Print(err)
 		}
 	}
-
 }
