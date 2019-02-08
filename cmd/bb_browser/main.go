@@ -38,7 +38,7 @@ func main() {
 		},
 	}).ParseGlob("templates/*")
 	if err != nil {
-		panic(err)
+		log.Fatal("Failed to parse templates: ", err)
 	}
 
 	router := mux.NewRouter()
