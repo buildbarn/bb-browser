@@ -20,18 +20,18 @@ be able to make optimal use of Buildbarn Browser:
   of the CAS and AC. Buildbarn Browser can therefore only show
   information for objects for which the digest is known. It is therefore
   preferable that build services and clients generate links pointing to
-  Bazel Buildbarn. Buildbarn's workers attach links to Buildbarn Browser
-  to RPC responses and log file entries.
+  Bazel Buildbarn. Buildbarn's workers attach such links to RPC
+  responses and log file entries.
 
 - **Storing results for build actions that should not be cached.**
 
   Results for certain build actions, such as ones that fail, may not be
   stored in the AC. This is unfortunate, as these are typically the most
-  interesting ones to inspect using Buildbarn Browser. To still provide
-  access to these results, Buildbarn's workers write such results into
-  the CAS using [a custom message](https://github.com/buildbarn/bb-storage/blob/master/pkg/proto/cas/cas.proto).
+  interesting ones to inspect. To still provide access to these results,
+  Buildbarn's workers write such results into the CAS using
+  [a custom message](https://github.com/buildbarn/bb-storage/blob/master/pkg/proto/cas/cas.proto).
   Buildbarn Browser is capable of displaying these action results in
-  additition to the ones stored in the AC.
+  additition to cached ones stored in the AC.
 
 We invite other implementations of the Remote Execution API to implement
 such features as well.
