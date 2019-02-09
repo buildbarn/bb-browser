@@ -25,11 +25,13 @@ be able to make optimal use of Buildbarn Browser:
 
 - **Storing results for build actions that should not be cached.**
 
-  Certain build actions, such as ones that fail, may not be stored in
-  the AC. This is unfortunate, as these are typically the most
+  Results for certain build actions, such as ones that fail, may not be
+  stored in the AC. This is unfortunate, as these are typically the most
   interesting ones to inspect using Buildbarn Browser. To still provide
   access to these results, Buildbarn's workers write such results into
   the CAS using [a custom message](https://github.com/buildbarn/bb-storage/blob/master/pkg/proto/cas/cas.proto).
+  Buildbarn Browser is capable of displaying these action results in
+  additition to the ones stored in the AC.
 
 We invite other implementations of the Remote Execution API to implement
 such features as well.
