@@ -34,8 +34,10 @@ be able to make optimal use of Buildbarn Browser:
   additition to cached ones stored in the AC.
 
 We invite other implementations of the Remote Execution API to implement
-such features as well.
+such features as well. At the time of writing, the developers of
+[BuildGrid](https://gitlab.com/BuildGrid) are also considering adding
+these features.
 
-## Using Buildbarn Browser
+## Setting up Buildbarn Browser
 
 TODO
