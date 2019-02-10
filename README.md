@@ -54,7 +54,7 @@ Tagging ... as bazel/cmd/bb_browser:bb_browser_container
 This container image can then be launched using Docker as follows:
 
 ```
-$ $ cat config/blobstore.conf
+$ cat config/blobstore.conf
 content_addressable_storage {
   grpc {
     endpoint: "bb-storage:8980"
