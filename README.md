@@ -78,3 +78,6 @@ above, it's been configured to simply forward storage access requests to
 gRPC service `bb-storage:8980`.  Please refer to
 [the configuration file's schema](https://github.com/buildbarn/bb-storage/blob/master/pkg/proto/blobstore/blobstore.proto)
 for more information on how storage access may be configured.
+
+Prebuilt container images of bb-browser may be found on
+[Docker Hub](https://hub.docker.com/r/buildbarn/bb-browser).
