@@ -40,4 +40,40 @@ these features.
 
 ## Setting up Buildbarn Browser
 
-TODO
+Run the following command to build Buildbarn Browser from source, create
+container image and push it into the Docker daemon running on the
+current system:
+
+
+```
+$ bazel run //cmd/bb_browser:bb_browser_container
+...
+Tagging ... as bazel/cmd/bb_browser:bb_browser_container
+```
+
+This container image can then be launched using Docker as follows:
+
+```
+$ $ cat config/blobstore.conf
+content_addressable_storage {
+  grpc {
+    endpoint: "bb-storage:8980"
+  }
+}
+action_cache {
+  grpc {
+    endpoint: "bb-storage:8980"
+  }
+}
+$ docker run \
+      -p 80:80 \
+      -v $(pwd)/config:/config \
+      bazel/cmd/bb_browser:bb_browser_container
+```
+
+Buildbarn Browser uses the same storage layer as
+[Buildbarn Storage](https://github.com/buildbarn/bb-storage). In the
+example above, it's been configured to simply forward storage access
+requests to `bb-storage:8980`. Please refer to
+[the configuration file's schema](https://github.com/buildbarn/bb-storage/blob/master/pkg/proto/blobstore/blobstore.proto)
+for more information on how storage access may be configured.
