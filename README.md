@@ -20,7 +20,7 @@ be able to make optimal use of Buildbarn Browser:
   of the CAS and AC. Buildbarn Browser can therefore only show
   information for objects for which the digest is known. It is therefore
   preferable that build services and clients generate links pointing to
-  Bazel Buildbarn. Buildbarn's workers attach such links to RPC
+  Buildbarn Browser. Buildbarn's workers attach such links to RPC
   responses and log file entries.
 
 - **Storing results for build actions that should not be cached.**
