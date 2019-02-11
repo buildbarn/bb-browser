@@ -35,8 +35,9 @@ be able to make optimal use of Buildbarn Browser:
 
 We invite other implementations of the Remote Execution API to implement
 such features as well. At the time of writing, the developers of
-[BuildGrid](https://gitlab.com/BuildGrid) are also considering adding
-these features.
+[BuildGrid](https://gitlab.com/BuildGrid) are also working on adding
+these features ([#157](https://gitlab.com/BuildGrid/buildgrid/issues/157),
+[#158](https://gitlab.com/BuildGrid/buildgrid/issues/158)).
 
 ## Setting up Buildbarn Browser
 
