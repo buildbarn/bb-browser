@@ -19,8 +19,9 @@ import (
 
 func main() {
 	var (
-		blobstoreConfig  = flag.String("blobstore-config", "/config/blobstore.conf", "Configuration for blob storage")
-		webListenAddress = flag.String("web.listen-address", ":80", "Port on which to expose metrics")
+		blobstoreConfig    = flag.String("blobstore-config", "/config/blobstore.conf", "Configuration for blob storage")
+		maximumMessageSize = flag.Int64("maximum-message-size", 16*1024*1024, "Maximum Protobuf message size to unmarshal")
+		webListenAddress   = flag.String("web.listen-address", ":80", "Port on which to expose metrics")
 	)
 	flag.Parse()
 
@@ -45,7 +46,9 @@ func main() {
 	router.Handle("/metrics", promhttp.Handler())
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 	NewBrowserService(
-		cas.NewBlobAccessContentAddressableStorage(contentAddressableStorageBlobAccess),
+		cas.NewBlobAccessContentAddressableStorage(
+			contentAddressableStorageBlobAccess,
+			*maximumMessageSize),
 		contentAddressableStorageBlobAccess,
 		ac.NewBlobAccessActionCache(actionCacheBlobAccess),
 		templates,
