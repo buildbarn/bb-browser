@@ -30,3 +30,9 @@ def bb_browser_go_dependencies():
         commit = "95032a82bc518f77982ea72343cc1ade730072f0",
         importpath = "github.com/kballard/go-shellquote",
     )
+
+    go_repository(
+        name = "com_github_davecgh_go_spew",
+        commit = "d8f796af33cc11cb798c1aaeb27a4ebc5099927d",
+        importpath = "github.com/davecgh/go-spew",
+    )
