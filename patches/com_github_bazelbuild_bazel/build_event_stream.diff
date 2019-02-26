@@ -1,0 +1,101 @@
+--- src/main/java/com/google/devtools/build/lib/buildeventstream/proto/BUILD
++++ src/main/java/com/google/devtools/build/lib/buildeventstream/proto/BUILD
+@@ -28,3 +28,20 @@
+         "//src/main/protobuf:invocation_policy_proto",
+     ],
+ )
++
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++go_proto_library(
++    name = "build_event_stream_go_proto",
++    importpath = "github.com/bazelbuild/bazel/src/main/java/com/google/devtools/build/lib/buildeventstream/proto",
++    proto = ":build_event_stream_proto",
++    deps = ["//src/main/protobuf:go_default_library"],
++)
++
++go_library(
++    name = "go_default_library",
++    embed = [":build_event_stream_go_proto"],
++    importpath = "github.com/bazelbuild/bazel/src/main/java/com/google/devtools/build/lib/buildeventstream/proto",
++    visibility = ["//visibility:public"],
++)
+--- src/main/java/com/google/devtools/build/lib/buildeventstream/proto/build_event_stream.proto
++++ src/main/java/com/google/devtools/build/lib/buildeventstream/proto/build_event_stream.proto
+@@ -18,6 +18,7 @@
+ 
+ option java_package = "com.google.devtools.build.lib.buildeventstream";
+ option java_outer_classname = "BuildEventStreamProtos";
++option go_package = "github.com/bazelbuild/bazel/src/main/java/com/google/devtools/build/lib/buildeventstream/proto";
+ 
+ import "src/main/protobuf/invocation_policy.proto";
+ import "src/main/protobuf/command_line.proto";
+--- src/main/protobuf/BUILD
++++ src/main/protobuf/BUILD
+@@ -191,3 +191,35 @@
+         ":remote_execution_log_java_proto_srcs",
+     ],
+ )
++
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++go_proto_library(
++    name = "command_line_go_proto",
++    importpath = "github.com/bazelbuild/bazel/src/main/protobuf",
++    proto = ":command_line_proto",
++)
++
++go_proto_library(
++    name = "invocation_policy_go_proto",
++    importpath = "github.com/bazelbuild/bazel/src/main/protobuf",
++    proto = ":invocation_policy_proto",
++)
++
++go_proto_library(
++    name = "option_filters_go_proto",
++    importpath = "github.com/bazelbuild/bazel/src/main/protobuf",
++    proto = ":option_filters_proto",
++)
++
++go_library(
++    name = "go_default_library",
++    embed = [
++        ":command_line_go_proto",
++        ":option_filters_go_proto",
++        ":invocation_policy_go_proto",
++    ],
++    importpath = "github.com/bazelbuild/bazel/src/main/protobuf",
++    visibility = ["//visibility:public"],
++)
+--- src/main/protobuf/command_line.proto
++++ src/main/protobuf/command_line.proto
+@@ -17,6 +17,7 @@
+ 
+ // option java_api_version = 2;
+ option java_package = "com.google.devtools.build.lib.runtime.proto";
++option go_package = "github.com/bazelbuild/bazel/src/main/protobuf";
+ 
+ import "src/main/protobuf/option_filters.proto";
+ 
+--- src/main/protobuf/invocation_policy.proto
++++ src/main/protobuf/invocation_policy.proto
+@@ -17,6 +17,7 @@
+ 
+ // option java_api_version = 2;
+ option java_package = "com.google.devtools.build.lib.runtime.proto";
++option go_package = "github.com/bazelbuild/bazel/src/main/protobuf";
+ 
+ // The --invocation_policy flag takes a base64-encoded binary-serialized or text
+ // formatted InvocationPolicy message.
+--- src/main/protobuf/option_filters.proto
++++ src/main/protobuf/option_filters.proto
+@@ -16,6 +16,7 @@
+ 
+ // option java_api_version = 2;
+ option java_package = "com.google.devtools.common.options.proto";
++option go_package = "github.com/bazelbuild/bazel/src/main/protobuf";
+ 
+ // IMPORTANT NOTE: These two enums must be kept in sync with their Java
+ // equivalents in src/main/java/com/google/devtools/common/options.

@@ -4,11 +4,11 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "bazel_toolchains",
-    sha256 = "ee854b5de299138c1f4a2edb5573d22b21d975acfc7aa938f36d30b49ef97498",
-    strip_prefix = "bazel-toolchains-37419a124bdb9af2fec5b99a973d359b6b899b61",
+    sha256 = "109a99384f9d08f9e75136d218ebaebc68cc810c56897aea2224c57932052d30",
+    strip_prefix = "bazel-toolchains-94d31935a2c94fe7e7c7379a0f3393e181928ff7",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/archive/37419a124bdb9af2fec5b99a973d359b6b899b61.tar.gz",
-        "https://github.com/bazelbuild/bazel-toolchains/archive/37419a124bdb9af2fec5b99a973d359b6b899b61.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/archive/94d31935a2c94fe7e7c7379a0f3393e181928ff7.tar.gz",
+        "https://github.com/bazelbuild/bazel-toolchains/archive/94d31935a2c94fe7e7c7379a0f3393e181928ff7.tar.gz",
     ],
 )
 
@@ -22,8 +22,8 @@ http_archive(
 http_archive(
     name = "io_bazel_rules_go",
     sha256 = "ee67651f3d5bab1c5dd7f071bc4566cf809745f23bb32ff26d0aa38ed878b261",
-    url = "https://github.com/bazelbuild/rules_go/archive/bb5873bebd9fe63a1789912c8561bcd5fba6f345.tar.gz",
     strip_prefix = "rules_go-bb5873bebd9fe63a1789912c8561bcd5fba6f345",
+    url = "https://github.com/bazelbuild/rules_go/archive/bb5873bebd9fe63a1789912c8561bcd5fba6f345.tar.gz",
 )
 
 http_archive(
@@ -32,11 +32,18 @@ http_archive(
     urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.16.0/bazel-gazelle-0.16.0.tar.gz"],
 )
 
+http_archive(
+    name = "com_github_bazelbuild_bazel",
+    patches = ["//:patches/com_github_bazelbuild_bazel/build_event_stream.diff"],
+    sha256 = "6860a226c8123770b122189636fb0c156c6e5c9027b5b245ac3b2315b7b55641",
+    urls = ["https://github.com/bazelbuild/bazel/releases/download/0.22.0/bazel-0.22.0-dist.zip"],
+)
+
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 git_repository(
     name = "com_github_buildbarn_bb_storage",
-    commit = "dc6d2d6bbf5d9e4c2a39ce9270aae1f1e1154f60",
+    commit = "afbc0eef9ad8065bb617df8682fe876e553f571b",
     remote = "https://github.com/buildbarn/bb-storage.git",
 )
 
@@ -44,7 +51,7 @@ load("@io_bazel_rules_docker//repositories:repositories.bzl", container_reposito
 
 container_repositories()
 
-load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 
 go_rules_dependencies()
 
