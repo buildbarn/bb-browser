@@ -11,8 +11,8 @@ remote execution works under the hood, especially when builds fail.
 Even though Buildbarn Browser was primarily developed to integrate with
 [other Buildbarn components](https://github.com/buildbarn/bb-remote-execution),
 it can in principle be used in combination with any service that
-implements the Remote Execution API. There are, however, two features
-that your build infrastructure should provide to be able to make optimal
+implements the Remote Execution API. There are, however, some features
+that your build infrastructure may provide to be able to make optimal
 use of Buildbarn Browser:
 
 - **Providing automatically generated links pointing to Buildbarn Browser.**
@@ -34,10 +34,20 @@ use of Buildbarn Browser:
   Buildbarn Browser is capable of displaying these action results in
   additition to cached ones stored in the AC.
 
+- **Storing Build Event Streams.**
+
+  Bazel has the ability to log build execution progress and output
+  through [the Build Event Protocol](https://docs.bazel.build/versions/master/build-event-protocol.html).
+  Logs can either be written to disk or be transmitted to a gRPC
+  service. [The Buildbarn Event Service](https://github.com/buildbarn/bb-event-service)
+  is a gRPC service that writes these logs directly into the CAS. Upon
+  completion, an AC entry is created to permit lookups of streams by
+  Bazel invocation ID.
+
 We invite other implementations of the Remote Execution API to implement
 such features as well. At the time of writing, the developers of
 [BuildGrid](https://gitlab.com/BuildGrid) are also working on adding
-these features (~~[#157](https://gitlab.com/BuildGrid/buildgrid/issues/157)~~,
+some of these features (~~[#157](https://gitlab.com/BuildGrid/buildgrid/issues/157)~~,
 [#158](https://gitlab.com/BuildGrid/buildgrid/issues/158)).
 
 ## Setting up Buildbarn Browser
@@ -45,7 +55,6 @@ these features (~~[#157](https://gitlab.com/BuildGrid/buildgrid/issues/157)~~,
 Run the following command to build Buildbarn Browser from source, create
 container image and push it into the Docker daemon running on the
 current system:
-
 
 ```
 $ bazel run //cmd/bb_browser:bb_browser_container

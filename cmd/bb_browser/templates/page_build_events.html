@@ -1,0 +1,114 @@
+{{if and .Started .Started.BuildFinished}}
+	{{if eq .Started.BuildFinished.Payload.ExitCode.Code 0}}
+		{{template "header.html" "success"}}
+	{{else}}
+		{{template "header.html" "danger"}}
+	{{end}}
+{{else}}
+	{{template "header.html" "secondary"}}
+{{end}}
+
+<h1 class="my-4">Build events</h1>
+
+{{if .Started}}
+
+<table class="table" style="table-layout: fixed">
+	<tr>
+		<th style="width: 25%">Invocation ID:</th>
+		<td class="text-monospace" style="width: 75%">{{.Started.Payload.Uuid}}</td>
+	</tr>
+	<tr>
+		<th style="width: 25%">Start time:</th>
+		<td style="width: 75%">{{.Started.Payload.StartTimeMillis | timestamp_millis_rfc3339}}</td>
+	</tr>
+	<tr>
+		<th style="width: 25%">Build tool version:</th>
+		<td style="width: 75%">{{.Started.Payload.BuildToolVersion}}</td>
+	</tr>
+	<tr>
+		<th style="width: 25%">Command:</th>
+		<td style="width: 75%">{{.Started.Payload.Command}}</td>
+	</tr>
+	<tr>
+		<th style="width: 25%">Workspace directory:</th>
+		<td class="text-monospace" style="width: 75%">{{.Started.Payload.WorkspaceDirectory}}</td>
+	</tr>
+	<tr>
+		<th style="width: 25%">Working directory:</th>
+		<td class="text-monospace" style="width: 75%">{{.Started.Payload.WorkingDirectory}}</td>
+	</tr>
+	<tr>
+		<th style="width: 25%">Server PID:</th>
+		<td style="width: 75%">{{.Started.Payload.ServerPid}}</td>
+	</tr>
+</table>
+
+{{$collapseID := 0}}
+
+{{$startedNode := .Started}}
+{{range .Started.Patterns}}
+	<h2 class="my-4">Targets {{.ID.Pattern}}</h2>
+
+	<div class="accordion">
+		{{range .TargetsConfigured}}
+			<div class="card">
+				<div class="
+					{{if .TargetCompleted}}
+						{{if .TargetCompleted.IsSuccess}}
+							bg-success
+						{{else}}
+							bg-danger
+						{{end}}
+					{{else}}
+						bg-secondary
+					{{end}} card-header py-2 text-white" data-toggle="collapse" data-target="#collapse-{{$collapseID}}" style="cursor: pointer">
+					{{.ID.Label}}
+				</div>
+				<div id="collapse-{{$collapseID}}" class="collapse">
+					<div class="card-body">
+						<h3>{{.Payload.TargetKind}}</h3>
+						...
+
+						{{if .TargetCompleted}}
+							{{range .TargetCompleted.Payload.OutputGroup}}
+								{{$files := $startedNode.GetFilesForNamedSets .FileSets}}
+								{{if $files}}
+									<h4>Output group "{{.Name}}"</h4>
+									<table class="table">
+										<thead>
+											<tr>
+												<th scope="col">Size</th>
+												<th scope="col" style="width: 100%">Filename</th>
+											</tr>
+										</thead>
+										{{range $files}}
+											<tr class="text-monospace">
+												{{$digest := . | build_event_file_to_digest}}
+												{{if $digest}}
+													<td style="text-align: right">{{$digest.GetSizeBytes}}</td>
+													<td style="width: 100%"><a href="/file/{{$digest.GetInstance}}/{{$digest.GetHashString}}/{{$digest.GetSizeBytes}}/{{.Name | basename}}">{{.Name}}</a></td>
+												{{else}}
+													<td></td>
+													<td style="width: 100%">{{.Name}}</td>
+												{{end}}
+											</tr>
+										{{end}}
+									</table>
+								{{end}}
+							{{end}}
+						{{end}}
+					</div>
+				</div>
+				{{$collapseID = inc $collapseID}}
+			</div>
+		{{end}}
+	</div>
+{{end}}
+
+{{else}}
+
+Build has not been started?
+
+{{end}}
+
+{{template "footer.html"}}

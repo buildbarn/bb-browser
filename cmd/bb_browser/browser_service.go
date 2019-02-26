@@ -4,6 +4,8 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"html/template"
@@ -16,7 +18,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	buildeventstream "github.com/bazelbuild/bazel/src/main/java/com/google/devtools/build/lib/buildeventstream/proto"
 	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
+	"github.com/buildbarn/bb-browser/pkg/buildevents"
 	"github.com/buildbarn/bb-storage/pkg/ac"
 	"github.com/buildbarn/bb-storage/pkg/blobstore"
 	"github.com/buildbarn/bb-storage/pkg/cas"
@@ -24,6 +28,7 @@ import (
 	"github.com/buildkite/terminal"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/mux"
+	"github.com/matttproud/golang_protobuf_extensions/pbutil"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -65,11 +70,12 @@ func NewBrowserService(contentAddressableStorage cas.ContentAddressableStorage, 
 	}
 	router.HandleFunc("/", s.handleWelcome)
 	router.HandleFunc("/action/{instance}/{hash}/{sizeBytes}/", s.handleAction)
-	router.HandleFunc("/uncached_action_result/{instance}/{hash}/{sizeBytes}/", s.handleUncachedActionResult)
+	router.HandleFunc("/build_events/{instance}/{invocationID}/", s.handleBuildEvents)
 	router.HandleFunc("/command/{instance}/{hash}/{sizeBytes}/", s.handleCommand)
 	router.HandleFunc("/directory/{instance}/{hash}/{sizeBytes}/", s.handleDirectory)
 	router.HandleFunc("/file/{instance}/{hash}/{sizeBytes}/{name}", s.handleFile)
 	router.HandleFunc("/tree/{instance}/{hash}/{sizeBytes}/{subdirectory:(?:.*/)?}", s.handleTree)
+	router.HandleFunc("/uncached_action_result/{instance}/{hash}/{sizeBytes}/", s.handleUncachedActionResult)
 	return s
 }
 
@@ -108,6 +114,75 @@ func (s *BrowserService) handleAction(w http.ResponseWriter, req *http.Request) 
 	}
 
 	s.handleActionCommon(w, req, digest, actionResult)
+}
+
+func (s *BrowserService) readBuildEventStream(ctx context.Context, parser *buildevents.StreamParser, digest *util.Digest) error {
+	_, r, err := s.contentAddressableStorageBlobAccess.Get(ctx, digest)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
+	for {
+		var event buildeventstream.BuildEvent
+		if _, err := pbutil.ReadDelimited(r, &event); err == io.EOF {
+			return nil
+		} else if err != nil {
+			return err
+		}
+		if err := parser.AddBuildEvent(&event); err != nil {
+			return err
+		}
+	}
+}
+
+func (s *BrowserService) handleBuildEvents(w http.ResponseWriter, req *http.Request) {
+	// Convert the invocation ID in the URL to a digest by hashing
+	// it, so that a fictive Action Cache entry can be accessed.
+	vars := mux.Vars(req)
+	hash := sha256.Sum256([]byte(vars["invocationID"]))
+	digest, err := util.NewDigest(
+		vars["instance"],
+		&remoteexecution.Digest{
+			Hash: hex.EncodeToString(hash[:]),
+		})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Look up the invocation ID in the Action Cache. The output
+	// files of this entry correspond to one or more blobs in the
+	// CAS that, when concatenated, represents a Build Event Stream.
+	ctx := req.Context()
+	actionResult, err := s.actionCache.GetActionResult(ctx, digest)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	parser := buildevents.NewStreamParser()
+	for _, file := range actionResult.OutputFiles {
+		fileDigest, err := digest.NewDerivedDigest(file.Digest)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if err := s.readBuildEventStream(ctx, parser, fileDigest); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	}
+	started, finished := parser.Finalize()
+
+	if err := s.templates.ExecuteTemplate(w, "page_build_events.html", struct {
+		Started  *buildevents.StartedNode
+		Finished bool
+	}{
+		Started:  started,
+		Finished: finished,
+	}); err != nil {
+		log.Print(err)
+	}
 }
 
 func (s *BrowserService) handleUncachedActionResult(w http.ResponseWriter, req *http.Request) {
