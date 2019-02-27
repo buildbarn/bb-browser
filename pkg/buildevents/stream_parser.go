@@ -12,7 +12,6 @@ import (
 )
 
 type node interface {
-	addAbortedNode(child *AbortedNode) error
 	addBuildFinishedNode(child *BuildFinishedNode) error
 	addBuildMetricsNode(child *BuildMetricsNode) error
 	addBuildToolLogsNode(child *BuildToolLogsNode) error
@@ -248,38 +247,50 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		newChild = n
 
 	case *buildeventstream.BuildEventId_TargetCompleted:
+		var n *TargetCompletedNode
 		switch payload := event.Payload.(type) {
 		case *buildeventstream.BuildEvent_Aborted:
-			n := &AbortedNode{
-				ID:      id.TargetCompleted,
-				Payload: payload.Aborted,
-			}
-			if err := parent.addAbortedNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"Aborted\" node with ID %#v", key)
+			n = &TargetCompletedNode{
+				ID: id.TargetCompleted,
+				Aborted: &TargetCompletedAborted{
+					Payload: payload.Aborted,
+				},
 			}
 			newChild = n
 		case *buildeventstream.BuildEvent_Completed:
-			n := &TargetCompletedNode{
-				ID:      id.TargetCompleted,
-				Payload: payload.Completed,
+			n = &TargetCompletedNode{
+				ID: id.TargetCompleted,
+				Success: &TargetCompletedSuccess{
+					Payload: payload.Completed,
+				},
 			}
-			if err := parent.addTargetCompletedNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"TargetCompleted\" node with ID %#v", key)
-			}
-			newChild = n
 		default:
 			return status.Error(codes.InvalidArgument, "\"TargetCompleted\" build event has an incorrect payload type")
 		}
+		if err := parent.addTargetCompletedNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"TargetCompleted\" node with ID %#v", key)
+		}
+		newChild = n
 
 	case *buildeventstream.BuildEventId_TargetConfigured:
-		payload, ok := event.Payload.(*buildeventstream.BuildEvent_Configured)
-		if !ok {
+		var n *TargetConfiguredNode
+		switch payload := event.Payload.(type) {
+		case *buildeventstream.BuildEvent_Aborted:
+			n = &TargetConfiguredNode{
+				ID: id.TargetConfigured,
+				Aborted: &TargetConfiguredAborted{
+					Payload: payload.Aborted,
+				},
+			}
+		case *buildeventstream.BuildEvent_Configured:
+			n = &TargetConfiguredNode{
+				ID: id.TargetConfigured,
+				Success: &TargetConfiguredSuccess{
+					Payload: payload.Configured,
+				},
+			}
+		default:
 			return status.Error(codes.InvalidArgument, "\"TargetConfigured\" build event has an incorrect payload type")
-		}
-
-		n := &TargetConfiguredNode{
-			ID:      id.TargetConfigured,
-			Payload: payload.Configured,
 		}
 		if err := parent.addTargetConfiguredNode(n); err != nil {
 			return util.StatusWrapf(err, "Cannot add \"TargetConfigured\" node with ID %#v", key)

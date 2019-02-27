@@ -14,10 +14,6 @@ import (
 type defaultNode struct {
 }
 
-func (n *defaultNode) addAbortedNode(child *AbortedNode) error {
-	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
-}
-
 func (n *defaultNode) addBuildFinishedNode(child *BuildFinishedNode) error {
 	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
 }
@@ -101,23 +97,6 @@ func (n *rootNode) addStartedNode(child *StartedNode) error {
 		return status.Error(codes.InvalidArgument, "Value already set")
 	}
 	n.Started = child
-	return nil
-}
-
-// AbortedNode corresponds to a Build Event Protocol message with
-// BuildEventID kind `target_completed` and BuildEvent payload kind
-// `aborted`.
-type AbortedNode struct {
-	defaultNode
-
-	ID      *buildeventstream.BuildEventId_TargetCompletedId
-	Payload *buildeventstream.Aborted
-
-	UnconfiguredLabels []*UnconfiguredLabelNode
-}
-
-func (n *AbortedNode) addUnconfiguredLabelNode(child *UnconfiguredLabelNode) error {
-	n.UnconfiguredLabels = append(n.UnconfiguredLabels, child)
 	return nil
 }
 
@@ -401,76 +380,104 @@ type StructuredCommandLineNode struct {
 
 // TargetCompletedNode corresponds to a Build Event Protocol message
 // with BuildEventID kind `target_completed` and BuildEvent payload kind
-// `completed`.
+// `aborted` or `completed`.
 type TargetCompletedNode struct {
 	defaultNode
 
 	ID      *buildeventstream.BuildEventId_TargetCompletedId
+	Success *TargetCompletedSuccess
+	Aborted *TargetCompletedAborted
+}
+
+func (n *TargetCompletedNode) addTestResultNode(child *TestResultNode) error {
+	if n.Success == nil {
+		return status.Error(codes.InvalidArgument, "Cannot set value on target that did not complete successfully")
+	}
+	if n.Success.TestResult != nil {
+		return status.Error(codes.InvalidArgument, "Value already set")
+	}
+	n.Success.TestResult = child
+	return nil
+}
+
+func (n *TargetCompletedNode) addTestSummaryNode(child *TestSummaryNode) error {
+	if n.Success == nil {
+		return status.Error(codes.InvalidArgument, "Cannot set value on target that did not complete successfully")
+	}
+	if n.Success.TestSummary != nil {
+		return status.Error(codes.InvalidArgument, "Value already set")
+	}
+	n.Success.TestSummary = child
+	return nil
+}
+
+func (n *TargetCompletedNode) addUnconfiguredLabelNode(child *UnconfiguredLabelNode) error {
+	if n.Aborted == nil {
+		return status.Error(codes.InvalidArgument, "Cannot set value on target that completed successfully")
+	}
+	n.Aborted.UnconfiguredLabels = append(n.Aborted.UnconfiguredLabels, child)
+	return nil
+}
+
+type TargetCompletedSuccess struct {
 	Payload *buildeventstream.TargetComplete
 
 	TestResult  *TestResultNode
 	TestSummary *TestSummaryNode
 }
 
-func (n *TargetCompletedNode) addTestResultNode(child *TestResultNode) error {
-	if n.TestResult != nil {
-		return status.Error(codes.InvalidArgument, "Value already set")
-	}
-	n.TestResult = child
-	return nil
-}
+type TargetCompletedAborted struct {
+	Payload *buildeventstream.Aborted
 
-func (n *TargetCompletedNode) addTestSummaryNode(child *TestSummaryNode) error {
-	if n.TestSummary != nil {
-		return status.Error(codes.InvalidArgument, "Value already set")
-	}
-	n.TestSummary = child
-	return nil
+	UnconfiguredLabels []*UnconfiguredLabelNode
 }
 
 // IsSuccess returns whether the target completed successfully. In more
 // practical terms, whether it should be displayed as green or red.
 func (n *TargetCompletedNode) IsSuccess() bool {
-	return n.Payload.Success && (n.TestSummary == nil || n.TestSummary.Payload.OverallStatus == buildeventstream.TestStatus_PASSED)
+	return n.Success != nil && n.Success.Payload.Success && (n.Success.TestSummary == nil || n.Success.TestSummary.Payload.OverallStatus == buildeventstream.TestStatus_PASSED)
 }
 
 // TargetConfiguredNode corresponds to a Build Event Protocol message
 // with BuildEventID kind `target_configured` and BuildEvent payload
-// kind `configured`.
+// kind `aborted` or `configured`.
 type TargetConfiguredNode struct {
 	defaultNode
 
 	ID      *buildeventstream.BuildEventId_TargetConfiguredId
-	Payload *buildeventstream.TargetConfigured
-
-	Aborted         *AbortedNode
-	TargetCompleted *TargetCompletedNode
-}
-
-func (n *TargetConfiguredNode) addAbortedNode(child *AbortedNode) error {
-	if n.Aborted != nil {
-		return status.Error(codes.InvalidArgument, "Value already set")
-	}
-	n.Aborted = child
-	return nil
+	Success *TargetConfiguredSuccess
+	Aborted *TargetConfiguredAborted
 }
 
 func (n *TargetConfiguredNode) addTargetCompletedNode(child *TargetCompletedNode) error {
-	if n.TargetCompleted != nil {
+	if n.Success == nil {
+		return status.Error(codes.InvalidArgument, "Cannot set value on target that did not configure successfully")
+	}
+	if n.Success.TargetCompleted != nil {
 		return status.Error(codes.InvalidArgument, "Value already set")
 	}
-	n.TargetCompleted = child
+	n.Success.TargetCompleted = child
 	return nil
 }
 
 func (n *TargetConfiguredNode) getDisplayOrder() int {
-	if targetCompleted := n.TargetCompleted; targetCompleted != nil {
-		if !targetCompleted.IsSuccess() {
-			return 0
-		}
+	if n.Success == nil || n.Success.TargetCompleted == nil {
+		return 2
+	}
+	if n.Success.TargetCompleted.IsSuccess() {
 		return 1
 	}
-	return 2
+	return 0
+}
+
+type TargetConfiguredSuccess struct {
+	Payload *buildeventstream.TargetConfigured
+
+	TargetCompleted *TargetCompletedNode
+}
+
+type TargetConfiguredAborted struct {
+	Payload *buildeventstream.Aborted
 }
 
 // TestResultNode corresponds to a Build Event Protocol message with

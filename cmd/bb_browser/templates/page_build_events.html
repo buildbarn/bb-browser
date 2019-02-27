@@ -53,11 +53,15 @@
 		{{range .TargetsConfigured}}
 			<div class="card">
 				<div class="
-					{{if .TargetCompleted}}
-						{{if .TargetCompleted.IsSuccess}}
-							bg-success
+					{{if .Success}}
+						{{if .Success.TargetCompleted}}
+							{{if .Success.TargetCompleted.IsSuccess}}
+								bg-success
+							{{else}}
+								bg-danger
+							{{end}}
 						{{else}}
-							bg-danger
+							bg-secondary
 						{{end}}
 					{{else}}
 						bg-secondary
@@ -66,34 +70,36 @@
 				</div>
 				<div id="collapse-{{$collapseID}}" class="collapse">
 					<div class="card-body">
-						<h3>{{.Payload.TargetKind}}</h3>
-						...
-
-						{{if .TargetCompleted}}
-							{{range .TargetCompleted.Payload.OutputGroup}}
-								{{$files := $startedNode.GetFilesForNamedSets .FileSets}}
-								{{if $files}}
-									<h4>Output group "{{.Name}}"</h4>
-									<table class="table">
-										<thead>
-											<tr>
-												<th scope="col">Size</th>
-												<th scope="col" style="width: 100%">Filename</th>
-											</tr>
-										</thead>
-										{{range $files}}
-											<tr class="text-monospace">
-												{{$digest := . | build_event_file_to_digest}}
-												{{if $digest}}
-													<td style="text-align: right">{{$digest.GetSizeBytes}}</td>
-													<td style="width: 100%"><a href="/file/{{$digest.GetInstance}}/{{$digest.GetHashString}}/{{$digest.GetSizeBytes}}/{{.Name | basename}}">{{.Name}}</a></td>
-												{{else}}
-													<td></td>
-													<td style="width: 100%">{{.Name}}</td>
+						{{if .Success}}
+							<h3>{{.Success.Payload.TargetKind}}</h3>
+							{{if .Success.TargetCompleted}}
+								{{if .Success.TargetCompleted.Success}}
+									{{range .Success.TargetCompleted.Success.Payload.OutputGroup}}
+										{{$files := $startedNode.GetFilesForNamedSets .FileSets}}
+										{{if $files}}
+											<h4>Output group "{{.Name}}"</h4>
+											<table class="table">
+												<thead>
+													<tr>
+														<th scope="col">Size</th>
+														<th scope="col" style="width: 100%">Filename</th>
+													</tr>
+												</thead>
+												{{range $files}}
+													<tr class="text-monospace">
+														{{$digest := . | build_event_file_to_digest}}
+														{{if $digest}}
+															<td style="text-align: right">{{$digest.GetSizeBytes}}</td>
+															<td style="width: 100%"><a href="/file/{{$digest.GetInstance}}/{{$digest.GetHashString}}/{{$digest.GetSizeBytes}}/{{.Name | basename}}">{{.Name}}</a></td>
+														{{else}}
+															<td></td>
+															<td style="width: 100%">{{.Name}}</td>
+														{{end}}
+													</tr>
 												{{end}}
-											</tr>
+											</table>
 										{{end}}
-									</table>
+									{{end}}
 								{{end}}
 							{{end}}
 						{{end}}
