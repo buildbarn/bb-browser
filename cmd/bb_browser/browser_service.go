@@ -70,7 +70,7 @@ func NewBrowserService(contentAddressableStorage cas.ContentAddressableStorage, 
 	}
 	router.HandleFunc("/", s.handleWelcome)
 	router.HandleFunc("/action/{instance}/{hash}/{sizeBytes}/", s.handleAction)
-	router.HandleFunc("/build_events/{instance}/{invocationID}/", s.handleBuildEvents)
+	router.HandleFunc("/build_events/{instance}/{invocationID}", s.handleBuildEvents)
 	router.HandleFunc("/command/{instance}/{hash}/{sizeBytes}/", s.handleCommand)
 	router.HandleFunc("/directory/{instance}/{hash}/{sizeBytes}/", s.handleDirectory)
 	router.HandleFunc("/file/{instance}/{hash}/{sizeBytes}/{name}", s.handleFile)
