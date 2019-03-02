@@ -419,7 +419,7 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		if _, ok := p.parents[key]; ok {
 			return status.Errorf(codes.InvalidArgument, "Received two build events with ID %#v", key)
 		}
-		p.parents[proto.MarshalTextString(child)] = newChild
+		p.parents[key] = newChild
 	}
 
 	return nil
