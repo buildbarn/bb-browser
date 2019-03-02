@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"path"
 	"strconv"
 	"strings"
@@ -92,8 +93,7 @@ type directoryInfo struct {
 
 type logInfo struct {
 	Name     string
-	Instance string
-	Digest   *remoteexecution.Digest
+	Digest   *util.Digest
 	TooLarge bool
 	NotFound bool
 	HTML     template.HTML
@@ -174,12 +174,37 @@ func (s *BrowserService) handleBuildEvents(w http.ResponseWriter, req *http.Requ
 	}
 	started, finished := parser.Finalize()
 
+	// Convert stdout and stderr stored in ActionCompletedNodes to a
+	// format usable by the templates.
+	logsForActionsCompleted := map[*buildevents.ActionCompletedNode][]*logInfo{}
+	if started != nil {
+		for progress := started.Progress; progress != nil; progress = progress.Progress {
+			for _, actionCompleted := range progress.ActionsCompleted {
+				if stdout, err := s.getLogInfoFromActionCompleted(ctx, "Standard output", actionCompleted.Payload.Stdout); err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				} else if stdout != nil {
+					logsForActionsCompleted[actionCompleted] = append(logsForActionsCompleted[actionCompleted], stdout)
+				}
+
+				if stderr, err := s.getLogInfoFromActionCompleted(ctx, "Standard output", actionCompleted.Payload.Stderr); err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				} else if stderr != nil {
+					logsForActionsCompleted[actionCompleted] = append(logsForActionsCompleted[actionCompleted], stderr)
+				}
+			}
+		}
+	}
+
 	if err := s.templates.ExecuteTemplate(w, "page_build_events.html", struct {
-		Started  *buildevents.StartedNode
-		Finished bool
+		Started                 *buildevents.StartedNode
+		Finished                bool
+		LogsForActionsCompleted map[*buildevents.ActionCompletedNode][]*logInfo
 	}{
-		Started:  started,
-		Finished: finished,
+		Started:                 started,
+		Finished:                finished,
+		LogsForActionsCompleted: logsForActionsCompleted,
 	}); err != nil {
 		log.Print(err)
 	}
@@ -205,24 +230,69 @@ func (s *BrowserService) handleUncachedActionResult(w http.ResponseWriter, req *
 	s.handleActionCommon(w, req, actionDigest, uncachedActionResult.ActionResult)
 }
 
-func (s *BrowserService) getLogInfo(ctx context.Context, name string, instance string, logDigest *remoteexecution.Digest, rawLogBody []byte) (*logInfo, error) {
+func (s *BrowserService) getLogInfoFromActionResult(ctx context.Context, name string, instance string, logDigest *remoteexecution.Digest, rawLogBody []byte) (*logInfo, error) {
+	var digest *util.Digest
+	if logDigest != nil {
+		var err error
+		digest, err = util.NewDigest(instance, logDigest)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if len(rawLogBody) > 0 {
 		// Log body is small enough to be provided inline.
 		return &logInfo{
-			Name:     name,
-			Instance: instance,
-			Digest:   logDigest,
-			HTML:     template.HTML(terminal.Render(rawLogBody)),
+			Name:   name,
+			Digest: digest,
+			HTML:   template.HTML(terminal.Render(rawLogBody)),
 		}, nil
+	} else if digest != nil {
+		// Load the log from the Content Addressable Storage.
+		return s.getLogInfoForDigest(ctx, name, digest)
 	}
+	return nil, nil
+}
 
-	if logDigest == nil {
+func (s *BrowserService) getLogInfoFromActionCompleted(ctx context.Context, name string, file *buildeventstream.File) (*logInfo, error) {
+	if file == nil {
 		return nil, nil
 	}
-	digest, err := util.NewDigest(instance, logDigest)
-	if err != nil {
-		return nil, err
+	switch data := file.File.(type) {
+	case *buildeventstream.File_Uri:
+		// A pathname or URL is provided. Load the log from the
+		// Content Addressable Storage if it's in the form of a
+		// bytestream:// URL.
+		u, err := url.Parse(data.Uri)
+		if err != nil || u.Scheme != "bytestream" {
+			return &logInfo{
+				Name:     name,
+				NotFound: true,
+			}, nil
+		}
+		digest, err := util.NewDigestFromBytestreamPath(u.Path)
+		if err != nil {
+			return &logInfo{
+				Name:     name,
+				NotFound: true,
+			}, nil
+		}
+		return s.getLogInfoForDigest(ctx, name, digest)
+	case *buildeventstream.File_Contents:
+		// Log body is small enough to be provided inline.
+		return &logInfo{
+			Name: name,
+			HTML: template.HTML(data.Contents),
+		}, nil
+	default:
+		return &logInfo{
+			Name:     name,
+			NotFound: true,
+		}, nil
 	}
+}
+
+func (s *BrowserService) getLogInfoForDigest(ctx context.Context, name string, digest *util.Digest) (*logInfo, error) {
 	if size := digest.GetSizeBytes(); size == 0 {
 		// No log file present.
 		return nil, nil
@@ -230,8 +300,7 @@ func (s *BrowserService) getLogInfo(ctx context.Context, name string, instance s
 		// Log file too large to show inline.
 		return &logInfo{
 			Name:     name,
-			Instance: instance,
-			Digest:   logDigest,
+			Digest:   digest,
 			TooLarge: true,
 		}, nil
 	}
@@ -245,22 +314,19 @@ func (s *BrowserService) getLogInfo(ctx context.Context, name string, instance s
 	if err == nil {
 		// Log found. Convert ANSI escape sequences to HTML.
 		return &logInfo{
-			Name:     name,
-			Instance: instance,
-			Digest:   logDigest,
-			HTML:     template.HTML(terminal.Render(data)),
+			Name:   name,
+			Digest: digest,
+			HTML:   template.HTML(terminal.Render(data)),
 		}, nil
 	} else if status.Code(err) == codes.NotFound {
 		// Not found.
 		return &logInfo{
 			Name:     name,
-			Instance: instance,
-			Digest:   logDigest,
+			Digest:   digest,
 			NotFound: true,
 		}, nil
-	} else {
-		return nil, err
 	}
+	return nil, err
 }
 
 func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Request, digest *util.Digest, actionResult *remoteexecution.ActionResult) {
@@ -294,12 +360,12 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 		actionInfo.OutputFiles = actionResult.OutputFiles
 
 		var err error
-		actionInfo.StdoutInfo, err = s.getLogInfo(ctx, "Standard output", instance, actionResult.StdoutDigest, actionResult.StdoutRaw)
+		actionInfo.StdoutInfo, err = s.getLogInfoFromActionResult(ctx, "Standard output", instance, actionResult.StdoutDigest, actionResult.StdoutRaw)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		actionInfo.StderrInfo, err = s.getLogInfo(ctx, "Standard error", instance, actionResult.StderrDigest, actionResult.StderrRaw)
+		actionInfo.StderrInfo, err = s.getLogInfoFromActionResult(ctx, "Standard error", instance, actionResult.StderrDigest, actionResult.StderrRaw)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return

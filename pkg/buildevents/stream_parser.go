@@ -93,6 +93,7 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		if err := parent.addActionCompletedNode(n); err != nil {
 			return util.StatusWrapf(err, "Cannot add \"ActionCompleted\" node with ID %#v", key)
 		}
+		p.root.Started.actionsCompleted[n.ID.Label] = append(p.root.Started.actionsCompleted[n.ID.Label], n)
 		newChild = n
 
 	case *buildeventstream.BuildEventId_BuildFinished:
@@ -238,9 +239,10 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		}
 
 		n := &StartedNode{
-			ID:        id.Started,
-			Payload:   payload.Started,
-			namedSets: map[string]*buildeventstream.NamedSetOfFiles{},
+			ID:               id.Started,
+			Payload:          payload.Started,
+			actionsCompleted: map[string][]*ActionCompletedNode{},
+			namedSets:        map[string]*buildeventstream.NamedSetOfFiles{},
 		}
 		if err := parent.addStartedNode(n); err != nil {
 			return util.StatusWrapf(err, "Cannot add \"Started\" node with ID %#v", key)

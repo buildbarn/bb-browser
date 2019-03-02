@@ -10,6 +10,7 @@
 
 <h1 class="my-4">Build events</h1>
 
+{{$logsForActionsCompleted := .LogsForActionsCompleted}}
 {{with .Started}}
 
 <table class="table" style="table-layout: fixed">
@@ -59,6 +60,26 @@
 				</div>
 				<div id="collapse-{{$collapseID}}" class="collapse">
 					<div class="card-body">
+
+						{{range $startedNode.GetActionsCompletedForLabel .ID.Label}}
+							<h3 class="mb-4 mt-2">{{.Payload.Type}} "{{.ID.PrimaryOutput}}"</h3>
+							<table class="table" style="table-layout: fixed">
+								{{with .Payload.CommandLine}}{{template "view_arguments.html" .}}{{end}}
+								<tr>
+									<th style="width: 25%">Exit code:</th>
+									<td style="width: 75%">
+										{{.Payload.ExitCode}}
+										{{if .Payload.Success}}
+											<span class="badge badge-success">Success</span>
+										{{else}}
+											<span class="badge badge-danger">Failure</span>
+										{{end}}
+									</td>
+								</tr>
+								{{range index $logsForActionsCompleted .}}{{template "view_log.html" .}}{{end}}
+							</table>
+						{{end}}
+
 						{{with .Success}}
 							{{with .TargetCompleted}}
 								{{with .Success}}

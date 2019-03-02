@@ -322,7 +322,8 @@ type StartedNode struct {
 	UnstructuredCommandLines []*UnstructuredCommandLineNode
 	WorkspaceStatuses        []*WorkspaceStatusNode
 
-	namedSets map[string]*buildeventstream.NamedSetOfFiles
+	actionsCompleted map[string][]*ActionCompletedNode
+	namedSets        map[string]*buildeventstream.NamedSetOfFiles
 }
 
 func (n *StartedNode) addBuildFinishedNode(child *BuildFinishedNode) error {
@@ -371,6 +372,11 @@ func (n *StartedNode) addUnstructuredCommandLineNode(child *UnstructuredCommandL
 func (n *StartedNode) addWorkspaceStatusNode(child *WorkspaceStatusNode) error {
 	n.WorkspaceStatuses = append(n.WorkspaceStatuses, child)
 	return nil
+}
+
+// TODO(edsch): Should this also take the ConfigurationId into account?
+func (n *StartedNode) GetActionsCompletedForLabel(label string) []*ActionCompletedNode {
+	return n.actionsCompleted[label]
 }
 
 // GetFilesForNamedSets obtains the transitive closure of the set of
