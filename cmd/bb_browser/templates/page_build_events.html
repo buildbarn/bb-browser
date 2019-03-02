@@ -48,7 +48,12 @@
 
 {{$startedNode := .}}
 {{range .Patterns}}
-	<h2 class="my-4">Targets {{.ID.Pattern}}</h2>
+	<h2 class="my-4">
+		Targets
+		{{range .ID.Pattern}}
+			{{.}}
+		{{end}}
+	</h2>
 
 	<div class="accordion">
 		{{range .TargetsConfigured}}
