@@ -44,9 +44,9 @@ The command of this action could not be found.
 		<td style="width: 75%">
 			{{.ActionResult.ExitCode}}
 			{{if eq .ActionResult.ExitCode 0}}
-				<span class="text-success">(Success)</span>
+				<span class="badge badge-success">Success</span>
 			{{else}}
-				<span class="text-danger">(Failure)</span>
+				<span class="badge badge-danger">Failure</span>
 			{{end}}
 		</td>
 	</tr>
