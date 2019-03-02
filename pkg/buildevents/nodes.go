@@ -393,10 +393,7 @@ func (n *TargetCompletedNode) addTestResultNode(child *TestResultNode) error {
 	if n.Success == nil {
 		return status.Error(codes.InvalidArgument, "Cannot set value on target that did not complete successfully")
 	}
-	if n.Success.TestResult != nil {
-		return status.Error(codes.InvalidArgument, "Value already set")
-	}
-	n.Success.TestResult = child
+	n.Success.TestResults = append(n.Success.TestResults, child)
 	return nil
 }
 
@@ -422,7 +419,7 @@ func (n *TargetCompletedNode) addUnconfiguredLabelNode(child *UnconfiguredLabelN
 type TargetCompletedSuccess struct {
 	Payload *buildeventstream.TargetComplete
 
-	TestResult  *TestResultNode
+	TestResults []*TestResultNode
 	TestSummary *TestSummaryNode
 }
 
