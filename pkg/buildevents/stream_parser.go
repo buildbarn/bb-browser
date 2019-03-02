@@ -298,14 +298,24 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		newChild = n
 
 	case *buildeventstream.BuildEventId_TestResult:
-		payload, ok := event.Payload.(*buildeventstream.BuildEvent_TestResult)
-		if !ok {
+		var n *TestResultNode
+		switch payload := event.Payload.(type) {
+		case *buildeventstream.BuildEvent_Aborted:
+			n = &TestResultNode{
+				ID:      id.TestResult,
+				Aborted: &TestResultAborted{
+					Payload: payload.Aborted,
+				},
+			}
+		case *buildeventstream.BuildEvent_TestResult:
+			n = &TestResultNode{
+				ID:      id.TestResult,
+				Success: &TestResultSuccess{
+					Payload: payload.TestResult,
+				},
+			}
+		default:
 			return status.Error(codes.InvalidArgument, "\"TestResult\" build event has an incorrect payload type")
-		}
-
-		n := &TestResultNode{
-			ID:      id.TestResult,
-			Payload: payload.TestResult,
 		}
 		if err := parent.addTestResultNode(n); err != nil {
 			return util.StatusWrapf(err, "Cannot add \"TestResult\" node with ID %#v", key)

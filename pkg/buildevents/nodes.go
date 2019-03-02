@@ -479,12 +479,21 @@ type TargetConfiguredAborted struct {
 
 // TestResultNode corresponds to a Build Event Protocol message with
 // BuildEventID kind `test_result` and BuildEvent payload kind
-// `test_result`.
+// `aborted` or `test_result`.
 type TestResultNode struct {
 	defaultNode
 
 	ID      *buildeventstream.BuildEventId_TestResultId
+	Success *TestResultSuccess
+	Aborted *TestResultAborted
+}
+
+type TestResultSuccess struct {
 	Payload *buildeventstream.TestResult
+}
+
+type TestResultAborted struct {
+	Payload *buildeventstream.Aborted
 }
 
 // TestSummaryNode corresponds to a Build Event Protocol message with
