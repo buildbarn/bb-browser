@@ -10,43 +10,43 @@
 
 <h1 class="my-4">Build events</h1>
 
-{{if .Started}}
+{{with .Started}}
 
 <table class="table" style="table-layout: fixed">
 	<tr>
 		<th style="width: 25%">Invocation ID:</th>
-		<td class="text-monospace" style="width: 75%">{{.Started.Payload.Uuid}}</td>
+		<td class="text-monospace" style="width: 75%">{{.Payload.Uuid}}</td>
 	</tr>
 	<tr>
 		<th style="width: 25%">Start time:</th>
-		<td style="width: 75%">{{.Started.Payload.StartTimeMillis | timestamp_millis_rfc3339}}</td>
+		<td style="width: 75%">{{.Payload.StartTimeMillis | timestamp_millis_rfc3339}}</td>
 	</tr>
 	<tr>
 		<th style="width: 25%">Build tool version:</th>
-		<td style="width: 75%">{{.Started.Payload.BuildToolVersion}}</td>
+		<td style="width: 75%">{{.Payload.BuildToolVersion}}</td>
 	</tr>
 	<tr>
 		<th style="width: 25%">Command:</th>
-		<td style="width: 75%">{{.Started.Payload.Command}}</td>
+		<td style="width: 75%">{{.Payload.Command}}</td>
 	</tr>
 	<tr>
 		<th style="width: 25%">Workspace directory:</th>
-		<td class="text-monospace" style="width: 75%">{{.Started.Payload.WorkspaceDirectory}}</td>
+		<td class="text-monospace" style="width: 75%">{{.Payload.WorkspaceDirectory}}</td>
 	</tr>
 	<tr>
 		<th style="width: 25%">Working directory:</th>
-		<td class="text-monospace" style="width: 75%">{{.Started.Payload.WorkingDirectory}}</td>
+		<td class="text-monospace" style="width: 75%">{{.Payload.WorkingDirectory}}</td>
 	</tr>
 	<tr>
 		<th style="width: 25%">Server PID:</th>
-		<td style="width: 75%">{{.Started.Payload.ServerPid}}</td>
+		<td style="width: 75%">{{.Payload.ServerPid}}</td>
 	</tr>
 </table>
 
 {{$collapseID := 0}}
 
-{{$startedNode := .Started}}
-{{range .Started.Patterns}}
+{{$startedNode := .}}
+{{range .Patterns}}
 	<h2 class="my-4">Targets {{.ID.Pattern}}</h2>
 
 	<div class="accordion">
@@ -70,11 +70,11 @@
 				</div>
 				<div id="collapse-{{$collapseID}}" class="collapse">
 					<div class="card-body">
-						{{if .Success}}
-							<h3>{{.Success.Payload.TargetKind}}</h3>
-							{{if .Success.TargetCompleted}}
-								{{if .Success.TargetCompleted.Success}}
-									{{range .Success.TargetCompleted.Success.Payload.OutputGroup}}
+						{{with .Success}}
+							<h3>{{.Payload.TargetKind}}</h3>
+							{{with .TargetCompleted}}
+								{{with .Success}}
+									{{range .Payload.OutputGroup}}
 										{{$files := $startedNode.GetFilesForNamedSets .FileSets}}
 										{{if $files}}
 											<h4>Output group "{{.Name}}"</h4>
@@ -100,8 +100,19 @@
 											</table>
 										{{end}}
 									{{end}}
+								{{else}}
+									This target was not completed, because its execution
+									was aborted with reason "{{.Aborted.Payload.Reason}}".
+									{{.Aborted.Payload.Description}}
 								{{end}}
+							{{else}}
+								This target has not been completed yet.
 							{{end}}
+						{{else}}
+							No information about this target exists, because its
+							configuration was aborted with reason
+							"{{.Aborted.Payload.Reason}}".
+							{{.Aborted.Payload.Description}}
 						{{end}}
 					</div>
 				</div>
