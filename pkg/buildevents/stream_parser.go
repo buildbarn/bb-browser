@@ -12,6 +12,7 @@ import (
 )
 
 type node interface {
+	addActionCompletedNode(child *ActionCompletedNode) error
 	addBuildFinishedNode(child *BuildFinishedNode) error
 	addBuildMetricsNode(child *BuildMetricsNode) error
 	addBuildToolLogsNode(child *BuildToolLogsNode) error
@@ -79,6 +80,21 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 
 	var newChild node
 	switch id := event.Id.Id.(type) {
+	case *buildeventstream.BuildEventId_ActionCompleted:
+		payload, ok := event.Payload.(*buildeventstream.BuildEvent_Action)
+		if !ok {
+			return status.Error(codes.InvalidArgument, "\"ActionCompleted\" build event has an incorrect payload type")
+		}
+
+		n := &ActionCompletedNode{
+			ID:      id.ActionCompleted,
+			Payload: payload.Action,
+		}
+		if err := parent.addActionCompletedNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"ActionCompleted\" node with ID %#v", key)
+		}
+		newChild = n
+
 	case *buildeventstream.BuildEventId_BuildFinished:
 		payload, ok := event.Payload.(*buildeventstream.BuildEvent_Finished)
 		if !ok {

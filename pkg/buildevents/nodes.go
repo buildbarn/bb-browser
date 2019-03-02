@@ -27,6 +27,10 @@ func abortedIsFailure(aborted *buildeventstream.Aborted) bool {
 type defaultNode struct {
 }
 
+func (n *defaultNode) addActionCompletedNode(child *ActionCompletedNode) error {
+	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
+}
+
 func (n *defaultNode) addBuildFinishedNode(child *BuildFinishedNode) error {
 	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
 }
@@ -111,6 +115,15 @@ func (n *rootNode) addStartedNode(child *StartedNode) error {
 	}
 	n.Started = child
 	return nil
+}
+
+// ActionCompletedNode corresponds to a Build Event Protocol message with
+// BuildEventID kind `action_completed` and BuildEvent payload kind `action`.
+type ActionCompletedNode struct {
+	defaultNode
+
+	ID      *buildeventstream.BuildEventId_ActionCompletedId
+	Payload *buildeventstream.ActionExecuted
 }
 
 // BuildFinishedNode corresponds to a Build Event Protocol message with
@@ -235,12 +248,18 @@ type ProgressNode struct {
 	ID      *buildeventstream.BuildEventId_ProgressId
 	Payload *buildeventstream.Progress
 
-	BuildMetrics  *BuildMetricsNode
-	BuildToolLogs *BuildToolLogsNode
-	Configuration *ConfigurationNode
-	Fetches       []*FetchNode
-	NamedSets     []*NamedSetNode
-	Progress      *ProgressNode
+	ActionsCompleted []*ActionCompletedNode
+	BuildMetrics     *BuildMetricsNode
+	BuildToolLogs    *BuildToolLogsNode
+	Configuration    *ConfigurationNode
+	Fetches          []*FetchNode
+	NamedSets        []*NamedSetNode
+	Progress         *ProgressNode
+}
+
+func (n *ProgressNode) addActionCompletedNode(child *ActionCompletedNode) error {
+	n.ActionsCompleted = append(n.ActionsCompleted, child)
+	return nil
 }
 
 func (n *ProgressNode) addBuildMetricsNode(child *BuildMetricsNode) error {
@@ -565,7 +584,7 @@ type TestResultAborted struct {
 
 // TestSummaryNode corresponds to a Build Event Protocol message with
 // BuildEventID kind `test_summary` and BuildEvent payload kind
-// `test_summary`.
+// `aborted` or `test_summary`.
 type TestSummaryNode struct {
 	defaultNode
 
