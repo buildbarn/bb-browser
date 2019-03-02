@@ -11,6 +11,19 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+func abortedIsFailure(aborted *buildeventstream.Aborted) bool {
+	switch aborted.Reason {
+	case buildeventstream.Aborted_UNKNOWN,
+		buildeventstream.Aborted_USER_INTERRUPTED,
+		buildeventstream.Aborted_NO_ANALYZE,
+		buildeventstream.Aborted_NO_BUILD,
+		buildeventstream.Aborted_SKIPPED:
+		return false
+	default:
+		return true
+	}
+}
+
 type defaultNode struct {
 }
 
@@ -416,11 +429,33 @@ func (n *TargetCompletedNode) addUnconfiguredLabelNode(child *UnconfiguredLabelN
 	return nil
 }
 
+func (n *TargetCompletedNode) isFailure() bool {
+	if n.Success != nil {
+		return n.Success.isFailure()
+	}
+	return n.Aborted.isFailure()
+}
+
+func (n *TargetCompletedNode) isSuccess() bool {
+	if n.Success != nil {
+		return n.Success.isSuccess()
+	}
+	return n.Aborted.isSuccess()
+}
+
 type TargetCompletedSuccess struct {
 	Payload *buildeventstream.TargetComplete
 
 	TestResults []*TestResultNode
 	TestSummary *TestSummaryNode
+}
+
+func (n *TargetCompletedSuccess) isFailure() bool {
+	return !n.Payload.Success || (n.TestSummary != nil && n.TestSummary.IsFailure())
+}
+
+func (n *TargetCompletedSuccess) isSuccess() bool {
+	return n.Payload.Success && (n.TestSummary == nil || n.TestSummary.IsSuccess())
 }
 
 type TargetCompletedAborted struct {
@@ -429,10 +464,12 @@ type TargetCompletedAborted struct {
 	UnconfiguredLabels []*UnconfiguredLabelNode
 }
 
-// IsSuccess returns whether the target completed successfully. In more
-// practical terms, whether it should be displayed as green or red.
-func (n *TargetCompletedNode) IsSuccess() bool {
-	return n.Success != nil && n.Success.Payload.Success && (n.Success.TestSummary == nil || n.Success.TestSummary.Payload.OverallStatus == buildeventstream.TestStatus_PASSED)
+func (n *TargetCompletedAborted) isFailure() bool {
+	return abortedIsFailure(n.Payload)
+}
+
+func (n *TargetCompletedAborted) isSuccess() bool {
+	return false
 }
 
 // TargetConfiguredNode corresponds to a Build Event Protocol message
@@ -458,13 +495,27 @@ func (n *TargetConfiguredNode) addTargetCompletedNode(child *TargetCompletedNode
 }
 
 func (n *TargetConfiguredNode) getDisplayOrder() int {
-	if n.Success == nil || n.Success.TargetCompleted == nil {
-		return 2
+	if n.IsFailure() {
+		return 0
 	}
-	if n.Success.TargetCompleted.IsSuccess() {
+	if n.IsSuccess() {
 		return 1
 	}
-	return 0
+	return 2
+}
+
+func (n *TargetConfiguredNode) IsFailure() bool {
+	if n.Success != nil {
+		return n.Success.isFailure()
+	}
+	return n.Aborted.isFailure()
+}
+
+func (n *TargetConfiguredNode) IsSuccess() bool {
+	if n.Success != nil {
+		return n.Success.isSuccess()
+	}
+	return n.Aborted.isSuccess()
 }
 
 type TargetConfiguredSuccess struct {
@@ -473,8 +524,24 @@ type TargetConfiguredSuccess struct {
 	TargetCompleted *TargetCompletedNode
 }
 
+func (n *TargetConfiguredSuccess) isFailure() bool {
+	return n.TargetCompleted != nil && n.TargetCompleted.isFailure()
+}
+
+func (n *TargetConfiguredSuccess) isSuccess() bool {
+	return n.TargetCompleted != nil && n.TargetCompleted.isSuccess()
+}
+
 type TargetConfiguredAborted struct {
 	Payload *buildeventstream.Aborted
+}
+
+func (n *TargetConfiguredAborted) isFailure() bool {
+	return abortedIsFailure(n.Payload)
+}
+
+func (n *TargetConfiguredAborted) isSuccess() bool {
+	return false
 }
 
 // TestResultNode corresponds to a Build Event Protocol message with
@@ -503,7 +570,53 @@ type TestSummaryNode struct {
 	defaultNode
 
 	ID      *buildeventstream.BuildEventId_TestSummaryId
+	Success *TestSummarySuccess
+	Aborted *TestSummaryAborted
+}
+
+func (n *TestSummaryNode) IsFailure() bool {
+	if n.Success != nil {
+		return n.Success.isFailure()
+	}
+	return n.Aborted.isFailure()
+}
+
+func (n *TestSummaryNode) IsSuccess() bool {
+	if n.Success != nil {
+		return n.Success.isSuccess()
+	}
+	return n.Aborted.isSuccess()
+}
+
+type TestSummarySuccess struct {
 	Payload *buildeventstream.TestSummary
+}
+
+func (n *TestSummarySuccess) isFailure() bool {
+	switch n.Payload.OverallStatus {
+	case buildeventstream.TestStatus_NO_STATUS,
+		buildeventstream.TestStatus_PASSED,
+		buildeventstream.TestStatus_TOOL_HALTED_BEFORE_TESTING:
+		return false
+	default:
+		return true
+	}
+}
+
+func (n *TestSummarySuccess) isSuccess() bool {
+	return n.Payload.OverallStatus == buildeventstream.TestStatus_PASSED
+}
+
+type TestSummaryAborted struct {
+	Payload *buildeventstream.Aborted
+}
+
+func (n *TestSummaryAborted) isFailure() bool {
+	return abortedIsFailure(n.Payload)
+}
+
+func (n *TestSummaryAborted) isSuccess() bool {
+	return false
 }
 
 // UnconfiguredLabelNode corresponds to a Build Event Protocol message

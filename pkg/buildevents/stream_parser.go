@@ -302,14 +302,14 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		switch payload := event.Payload.(type) {
 		case *buildeventstream.BuildEvent_Aborted:
 			n = &TestResultNode{
-				ID:      id.TestResult,
+				ID: id.TestResult,
 				Aborted: &TestResultAborted{
 					Payload: payload.Aborted,
 				},
 			}
 		case *buildeventstream.BuildEvent_TestResult:
 			n = &TestResultNode{
-				ID:      id.TestResult,
+				ID: id.TestResult,
 				Success: &TestResultSuccess{
 					Payload: payload.TestResult,
 				},
@@ -323,14 +323,24 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		newChild = n
 
 	case *buildeventstream.BuildEventId_TestSummary:
-		payload, ok := event.Payload.(*buildeventstream.BuildEvent_TestSummary)
-		if !ok {
+		var n *TestSummaryNode
+		switch payload := event.Payload.(type) {
+		case *buildeventstream.BuildEvent_Aborted:
+			n = &TestSummaryNode{
+				ID: id.TestSummary,
+				Aborted: &TestSummaryAborted{
+					Payload: payload.Aborted,
+				},
+			}
+		case *buildeventstream.BuildEvent_TestSummary:
+			n = &TestSummaryNode{
+				ID: id.TestSummary,
+				Success: &TestSummarySuccess{
+					Payload: payload.TestSummary,
+				},
+			}
+		default:
 			return status.Error(codes.InvalidArgument, "\"TestSummary\" build event has an incorrect payload type")
-		}
-
-		n := &TestSummaryNode{
-			ID:      id.TestSummary,
-			Payload: payload.TestSummary,
 		}
 		if err := parent.addTestSummaryNode(n); err != nil {
 			return util.StatusWrapf(err, "Cannot add \"TestSummary\" node with ID %#v", key)
