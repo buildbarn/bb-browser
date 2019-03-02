@@ -66,19 +66,18 @@
 					{{else}}
 						bg-secondary
 					{{end}} card-header py-2 text-white" data-toggle="collapse" data-target="#collapse-{{$collapseID}}" style="cursor: pointer">
-					{{.ID.Label}}
+					{{.ID.Label}} {{with .Success}}({{.Payload.TargetKind}}){{end}}
 				</div>
 				<div id="collapse-{{$collapseID}}" class="collapse">
 					<div class="card-body">
 						{{with .Success}}
-							<h3>{{.Payload.TargetKind}}</h3>
 							{{with .TargetCompleted}}
 								{{with .Success}}
 									{{range .Payload.OutputGroup}}
 										{{$files := $startedNode.GetFilesForNamedSets .FileSets}}
 										{{if $files}}
-											<h4>Output group "{{.Name}}"</h4>
-											<table class="table">
+											<h3 class="mb-4">Output group "{{.Name}}"</h3>
+											<table class="m-0 table">
 												<thead>
 													<tr>
 														<th scope="col">Size</th>
