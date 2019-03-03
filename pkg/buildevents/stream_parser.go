@@ -17,10 +17,10 @@ type node interface {
 	addBuildMetricsNode(child *BuildMetricsNode) error
 	addBuildToolLogsNode(child *BuildToolLogsNode) error
 	addConfigurationNode(child *ConfigurationNode) error
-	addExpandedNode(child *ExpandedNode, skipped bool) error
 	addFetchNode(child *FetchNode) error
 	addNamedSetNode(child *NamedSetNode) error
 	addOptionsParsedNode(child *OptionsParsedNode) error
+	addPatternNode(child *PatternNode, skipped bool) error
 	addProgressNode(child *ProgressNode) error
 	addStartedNode(child *StartedNode) error
 	addStructuredCommandLineNode(child *StructuredCommandLineNode) error
@@ -205,28 +205,28 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		newChild = n
 
 	case *buildeventstream.BuildEventId_Pattern:
-		var n *ExpandedNode
+		var n *PatternNode
 		switch payload := event.Payload.(type) {
 		case *buildeventstream.BuildEvent_Aborted:
-			n = &ExpandedNode{
+			n = &PatternNode{
 				ID: id.Pattern,
-				Aborted: &ExpandedAborted{
+				Aborted: &PatternAborted{
 					aborted: aborted{
 						Payload: payload.Aborted,
 					},
 				},
 			}
 		case *buildeventstream.BuildEvent_Expanded:
-			n = &ExpandedNode{
+			n = &PatternNode{
 				ID: id.Pattern,
-				Success: &ExpandedSuccess{
+				Success: &PatternSuccess{
 					Payload: payload.Expanded,
 				},
 			}
 		default:
 			return status.Error(codes.InvalidArgument, "\"Pattern\" build event has an incorrect payload type")
 		}
-		if err := parent.addExpandedNode(n, false); err != nil {
+		if err := parent.addPatternNode(n, false); err != nil {
 			return util.StatusWrapf(err, "Cannot add \"Pattern\" node with ID %#v", key)
 		}
 		newChild = n
@@ -469,13 +469,13 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 // When zero, the tree is complete.
 func (p *StreamParser) Finalize() (*StartedNode, int) {
 	if started := p.root.Started; started != nil {
-		for _, expandedNode := range started.Patterns {
-			if success := expandedNode.Success; success != nil {
+		for _, patternNode := range started.Patterns {
+			if success := patternNode.Success; success != nil {
 				sort.Sort(targetConfiguredNodeList(success.TargetsConfigured))
 			}
 		}
-		for _, expandedNode := range started.PatternsSkipped {
-			if success := expandedNode.Success; success != nil {
+		for _, patternNode := range started.PatternsSkipped {
+			if success := patternNode.Success; success != nil {
 				sort.Sort(targetConfiguredNodeList(success.TargetsConfigured))
 			}
 		}

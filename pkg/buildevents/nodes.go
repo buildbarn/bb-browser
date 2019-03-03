@@ -55,10 +55,6 @@ func (n *defaultNode) addConfigurationNode(child *ConfigurationNode) error {
 	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
 }
 
-func (n *defaultNode) addExpandedNode(child *ExpandedNode, skipped bool) error {
-	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
-}
-
 func (n *defaultNode) addFetchNode(child *FetchNode) error {
 	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
 }
@@ -68,6 +64,10 @@ func (n *defaultNode) addNamedSetNode(child *NamedSetNode) error {
 }
 
 func (n *defaultNode) addOptionsParsedNode(child *OptionsParsedNode) error {
+	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
+}
+
+func (n *defaultNode) addPatternNode(child *PatternNode, skipped bool) error {
 	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
 }
 
@@ -193,79 +193,6 @@ type ConfigurationNode struct {
 	Payload *buildeventstream.Configuration
 }
 
-// ExpandedNode corresponds to a Build Event Protocol message with
-// BuildEventID kind `pattern` or `pattern_skipped` and BuildEvent
-// payload kind `expanded`.
-type ExpandedNode struct {
-	defaultNode
-
-	ID      *buildeventstream.BuildEventId_PatternExpandedId
-	Success *ExpandedSuccess
-	Aborted *ExpandedAborted
-}
-
-func (n *ExpandedNode) addConfigurationNode(configuration *ConfigurationNode) error {
-	if n.Success == nil {
-		return status.Error(codes.InvalidArgument, "Cannot set value on pattern that did not expand successfully")
-	}
-	if n.Success.Configuration != nil {
-		return status.Error(codes.InvalidArgument, "Value already set")
-	}
-	n.Success.Configuration = configuration
-	return nil
-}
-
-func (n *ExpandedNode) addTargetConfiguredNode(child *TargetConfiguredNode) error {
-	if n.Success == nil {
-		return status.Error(codes.InvalidArgument, "Cannot set value on pattern that did not expand successfully")
-	}
-	n.Success.TargetsConfigured = append(n.Success.TargetsConfigured, child)
-	return nil
-}
-
-func (n *ExpandedNode) IsFailure() bool {
-	if n.Success != nil {
-		return n.Success.isFailure()
-	}
-	return n.Aborted.isFailure()
-}
-
-func (n *ExpandedNode) IsSuccess() bool {
-	if n.Success != nil {
-		return n.Success.isSuccess()
-	}
-	return n.Aborted.isSuccess()
-}
-
-type ExpandedSuccess struct {
-	Payload *buildeventstream.PatternExpanded
-
-	Configuration     *ConfigurationNode
-	TargetsConfigured []*TargetConfiguredNode
-}
-
-func (n *ExpandedSuccess) isFailure() bool {
-	for _, targetConfigured := range n.TargetsConfigured {
-		if targetConfigured.IsFailure() {
-			return true
-		}
-	}
-	return false
-}
-
-func (n *ExpandedSuccess) isSuccess() bool {
-	for _, targetConfigured := range n.TargetsConfigured {
-		if targetConfigured.IsSuccess() {
-			return true
-		}
-	}
-	return false
-}
-
-type ExpandedAborted struct {
-	aborted
-}
-
 // FetchNode corresponds to a Build Event Protocol message with
 // BuildEventID kind `fetch` and BuildEvent payload kind `fetch`.
 type FetchNode struct {
@@ -295,6 +222,79 @@ type OptionsParsedNode struct {
 	Payload *buildeventstream.OptionsParsed
 }
 
+// PatternNode corresponds to a Build Event Protocol message with
+// BuildEventID kind `pattern` or `pattern_skipped` and BuildEvent
+// payload kind `aborted` or `expanded`.
+type PatternNode struct {
+	defaultNode
+
+	ID      *buildeventstream.BuildEventId_PatternExpandedId
+	Success *PatternSuccess
+	Aborted *PatternAborted
+}
+
+func (n *PatternNode) addConfigurationNode(configuration *ConfigurationNode) error {
+	if n.Success == nil {
+		return status.Error(codes.InvalidArgument, "Cannot set value on pattern that did not expand successfully")
+	}
+	if n.Success.Configuration != nil {
+		return status.Error(codes.InvalidArgument, "Value already set")
+	}
+	n.Success.Configuration = configuration
+	return nil
+}
+
+func (n *PatternNode) addTargetConfiguredNode(child *TargetConfiguredNode) error {
+	if n.Success == nil {
+		return status.Error(codes.InvalidArgument, "Cannot set value on pattern that did not expand successfully")
+	}
+	n.Success.TargetsConfigured = append(n.Success.TargetsConfigured, child)
+	return nil
+}
+
+func (n *PatternNode) IsFailure() bool {
+	if n.Success != nil {
+		return n.Success.isFailure()
+	}
+	return n.Aborted.isFailure()
+}
+
+func (n *PatternNode) IsSuccess() bool {
+	if n.Success != nil {
+		return n.Success.isSuccess()
+	}
+	return n.Aborted.isSuccess()
+}
+
+type PatternSuccess struct {
+	Payload *buildeventstream.PatternExpanded
+
+	Configuration     *ConfigurationNode
+	TargetsConfigured []*TargetConfiguredNode
+}
+
+func (n *PatternSuccess) isFailure() bool {
+	for _, targetConfigured := range n.TargetsConfigured {
+		if targetConfigured.IsFailure() {
+			return true
+		}
+	}
+	return false
+}
+
+func (n *PatternSuccess) isSuccess() bool {
+	for _, targetConfigured := range n.TargetsConfigured {
+		if targetConfigured.IsSuccess() {
+			return true
+		}
+	}
+	return false
+}
+
+type PatternAborted struct {
+	aborted
+}
+
 // ProgressNode corresponds to a Build Event Protocol message with
 // BuildEventID kind `progress` and BuildEvent payload kind `progress`.
 type ProgressNode struct {
@@ -307,9 +307,9 @@ type ProgressNode struct {
 	BuildMetrics     *BuildMetricsNode
 	BuildToolLogs    *BuildToolLogsNode
 	Configuration    *ConfigurationNode
-	Expandeds        []*ExpandedNode
 	Fetches          []*FetchNode
 	NamedSets        []*NamedSetNode
+	Patterns         []*PatternNode
 	Progress         *ProgressNode
 }
 
@@ -342,14 +342,6 @@ func (n *ProgressNode) addConfigurationNode(configuration *ConfigurationNode) er
 	return nil
 }
 
-func (n *ProgressNode) addExpandedNode(child *ExpandedNode, skipped bool) error {
-	if skipped {
-		return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
-	}
-	n.Expandeds = append(n.Expandeds, child)
-	return nil
-}
-
 func (n *ProgressNode) addFetchNode(child *FetchNode) error {
 	n.Fetches = append(n.Fetches, child)
 	return nil
@@ -357,6 +349,14 @@ func (n *ProgressNode) addFetchNode(child *FetchNode) error {
 
 func (n *ProgressNode) addNamedSetNode(child *NamedSetNode) error {
 	n.NamedSets = append(n.NamedSets, child)
+	return nil
+}
+
+func (n *ProgressNode) addPatternNode(child *PatternNode, skipped bool) error {
+	if skipped {
+		return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
+	}
+	n.Patterns = append(n.Patterns, child)
 	return nil
 }
 
@@ -379,8 +379,8 @@ type StartedNode struct {
 
 	BuildFinished            *BuildFinishedNode
 	OptionsParsed            *OptionsParsedNode
-	Patterns                 []*ExpandedNode
-	PatternsSkipped          []*ExpandedNode
+	Patterns                 []*PatternNode
+	PatternsSkipped          []*PatternNode
 	Progress                 *ProgressNode
 	StructuredCommandLines   []*StructuredCommandLineNode
 	UnstructuredCommandLines []*UnstructuredCommandLineNode
@@ -406,7 +406,7 @@ func (n *StartedNode) addOptionsParsedNode(child *OptionsParsedNode) error {
 	return nil
 }
 
-func (n *StartedNode) addExpandedNode(child *ExpandedNode, skipped bool) error {
+func (n *StartedNode) addPatternNode(child *PatternNode, skipped bool) error {
 	if skipped {
 		n.PatternsSkipped = append(n.PatternsSkipped, child)
 	} else {
