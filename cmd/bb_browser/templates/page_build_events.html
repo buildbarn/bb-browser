@@ -63,6 +63,16 @@
 			</td>
 		</tr>
 	{{end}}
+	{{range .WorkspaceStatuses}}
+		<tr>
+			<th style="width: 25%">Workspace status:</th>
+			<td class="text-monospace" style="width: 75%; overflow-x: scroll">
+				{{range .Payload.Item}}
+					<b>{{.Key}}</b>={{shellquote .Value}}<br/>
+				{{end}}
+			</td>
+		</tr>
+	{{end}}
 </table>
 
 {{$collapseID := 0}}
