@@ -320,7 +320,7 @@ type StartedNode struct {
 	Progress                 *ProgressNode
 	StructuredCommandLines   []*StructuredCommandLineNode
 	UnstructuredCommandLines []*UnstructuredCommandLineNode
-	WorkspaceStatuses        []*WorkspaceStatusNode
+	WorkspaceStatus          *WorkspaceStatusNode
 
 	actionsCompleted map[string][]*ActionCompletedNode
 	namedSets        map[string]*buildeventstream.NamedSetOfFiles
@@ -370,7 +370,10 @@ func (n *StartedNode) addUnstructuredCommandLineNode(child *UnstructuredCommandL
 }
 
 func (n *StartedNode) addWorkspaceStatusNode(child *WorkspaceStatusNode) error {
-	n.WorkspaceStatuses = append(n.WorkspaceStatuses, child)
+	if n.WorkspaceStatus != nil {
+		return status.Error(codes.InvalidArgument, "Value already set")
+	}
+	n.WorkspaceStatus = child
 	return nil
 }
 

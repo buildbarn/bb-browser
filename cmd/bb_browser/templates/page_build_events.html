@@ -63,7 +63,7 @@
 			</td>
 		</tr>
 	{{end}}
-	{{range .WorkspaceStatuses}}
+	{{with .WorkspaceStatus}}
 		<tr>
 			<th style="width: 25%">Workspace status:</th>
 			<td class="text-monospace" style="width: 75%; overflow-x: scroll">
