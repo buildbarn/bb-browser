@@ -187,7 +187,7 @@ func (s *BrowserService) handleBuildEvents(w http.ResponseWriter, req *http.Requ
 					logsForActionsCompleted[actionCompleted] = append(logsForActionsCompleted[actionCompleted], stdout)
 				}
 
-				if stderr, err := s.getLogInfoFromActionCompleted(ctx, "Standard output", actionCompleted.Payload.Stderr); err != nil {
+				if stderr, err := s.getLogInfoFromActionCompleted(ctx, "Standard error", actionCompleted.Payload.Stderr); err != nil {
 					http.Error(w, err.Error(), http.StatusBadRequest)
 					return
 				} else if stderr != nil {
