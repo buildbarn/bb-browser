@@ -172,7 +172,11 @@ func (s *BrowserService) handleBuildEvents(w http.ResponseWriter, req *http.Requ
 			return
 		}
 	}
-	started, eventsExpected := parser.Finalize()
+	started, eventsExpected, err := parser.Finalize()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	// Convert stdout and stderr stored in ActionCompletedNodes to a
 	// format usable by the templates.

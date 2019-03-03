@@ -244,6 +244,17 @@ func (n *PatternNode) addConfigurationNode(configuration *ConfigurationNode) err
 	return nil
 }
 
+func (n *PatternNode) addPatternNode(child *PatternNode, skipped bool) error {
+	if child.Aborted == nil || skipped {
+		return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
+	}
+	if n.Success == nil {
+		return status.Error(codes.InvalidArgument, "Cannot set value on pattern that did not expand successfully")
+	}
+	n.Success.Patterns = append(n.Success.Patterns, child)
+	return nil
+}
+
 func (n *PatternNode) addTargetConfiguredNode(child *TargetConfiguredNode) error {
 	if n.Success == nil {
 		return status.Error(codes.InvalidArgument, "Cannot set value on pattern that did not expand successfully")
@@ -270,6 +281,7 @@ type PatternSuccess struct {
 	Payload *buildeventstream.PatternExpanded
 
 	Configuration     *ConfigurationNode
+	Patterns          []*PatternNode
 	TargetsConfigured []*TargetConfiguredNode
 }
 
@@ -283,12 +295,17 @@ func (n *PatternSuccess) isFailure() bool {
 }
 
 func (n *PatternSuccess) isSuccess() bool {
-	for _, targetConfigured := range n.TargetsConfigured {
-		if targetConfigured.IsSuccess() {
-			return true
+	for _, pattern := range n.Patterns {
+		if !pattern.IsSuccess() {
+			return false
 		}
 	}
-	return false
+	for _, targetConfigured := range n.TargetsConfigured {
+		if !targetConfigured.IsSuccess() {
+			return false
+		}
+	}
+	return true
 }
 
 type PatternAborted struct {
@@ -386,8 +403,7 @@ type StartedNode struct {
 	UnstructuredCommandLines []*UnstructuredCommandLineNode
 	WorkspaceStatus          *WorkspaceStatusNode
 
-	actionsCompleted map[string][]*ActionCompletedNode
-	namedSets        map[string]*buildeventstream.NamedSetOfFiles
+	namedSets map[string]*buildeventstream.NamedSetOfFiles
 }
 
 func (n *StartedNode) addBuildFinishedNode(child *BuildFinishedNode) error {
@@ -441,11 +457,6 @@ func (n *StartedNode) addWorkspaceStatusNode(child *WorkspaceStatusNode) error {
 	return nil
 }
 
-// TODO(edsch): Should this also take the ConfigurationId into account?
-func (n *StartedNode) GetActionsCompletedForLabel(label string) []*ActionCompletedNode {
-	return n.actionsCompleted[label]
-}
-
 // GetFilesForNamedSets obtains the transitive closure of the set of
 // files stored in named sets. This function can be used to get a full
 // list of files stored in an OutputGroup message (i.e., the list of
@@ -494,6 +505,14 @@ type TargetCompletedNode struct {
 	Aborted *TargetCompletedAborted
 }
 
+func (n *TargetCompletedNode) addActionCompletedNode(child *ActionCompletedNode) error {
+	if n.Success == nil {
+		return status.Error(codes.InvalidArgument, "Cannot set value on target that did not complete successfully")
+	}
+	n.Success.ActionsCompleted = append(n.Success.ActionsCompleted, child)
+	return nil
+}
+
 func (n *TargetCompletedNode) addTestResultNode(child *TestResultNode) error {
 	if n.Success == nil {
 		return status.Error(codes.InvalidArgument, "Cannot set value on target that did not complete successfully")
@@ -538,8 +557,9 @@ func (n *TargetCompletedNode) IsSuccess() bool {
 type TargetCompletedSuccess struct {
 	Payload *buildeventstream.TargetComplete
 
-	TestResults []*TestResultNode
-	TestSummary *TestSummaryNode
+	ActionsCompleted []*ActionCompletedNode
+	TestResults      []*TestResultNode
+	TestSummary      *TestSummaryNode
 }
 
 func (n *TargetCompletedSuccess) isFailure() bool {

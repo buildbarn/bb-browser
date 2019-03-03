@@ -87,6 +87,18 @@
 	</h2>
 
 	{{with .Success}}
+		{{range .Patterns}}
+			<p>
+				No information about targets for
+				{{range .ID.Pattern}}
+					{{.}}
+				{{end}}
+				exists, because their expansion was aborted with reason
+				<span class="badge badge-{{if .IsSuccess}}success{{else}}{{if .IsFailure}}danger{{else}}secondary{{end}}{{end}}">{{.Aborted.Payload.Reason}}</span>.
+				{{.Aborted.Payload.Description}}
+			</p>
+		{{end}}
+
 		<div class="accordion">
 			{{range .TargetsConfigured}}
 				<div class="card">
@@ -98,28 +110,28 @@
 					<div id="collapse-{{$collapseID}}" class="collapse">
 						<div class="card-body">
 
-							{{range $startedNode.GetActionsCompletedForLabel .ID.Label}}
-								<h3 class="mb-4 mt-2">{{.Payload.Type}} "{{.ID.PrimaryOutput}}"</h3>
-								<table class="table" style="table-layout: fixed">
-									{{with .Payload.CommandLine}}{{template "view_arguments.html" .}}{{end}}
-									<tr>
-										<th style="width: 25%">Exit code:</th>
-										<td style="width: 75%">
-											{{.Payload.ExitCode}}
-											{{if .Payload.Success}}
-												<span class="badge badge-success">Success</span>
-											{{else}}
-												<span class="badge badge-danger">Failure</span>
-											{{end}}
-										</td>
-									</tr>
-									{{range index $logsForActionsCompleted .}}{{template "view_log.html" .}}{{end}}
-								</table>
-							{{end}}
-
 							{{with .Success}}
 								{{with .TargetCompleted}}
 									{{with .Success}}
+										{{range .ActionsCompleted}}
+											<h3 class="mb-4 mt-2">{{.Payload.Type}} "{{.ID.PrimaryOutput}}"</h3>
+											<table class="table" style="table-layout: fixed">
+												{{with .Payload.CommandLine}}{{template "view_arguments.html" .}}{{end}}
+												<tr>
+													<th style="width: 25%">Exit code:</th>
+													<td style="width: 75%">
+														{{.Payload.ExitCode}}
+														{{if .Payload.Success}}
+															<span class="badge badge-success">Success</span>
+														{{else}}
+															<span class="badge badge-danger">Failure</span>
+														{{end}}
+													</td>
+												</tr>
+												{{range index $logsForActionsCompleted .}}{{template "view_log.html" .}}{{end}}
+											</table>
+										{{end}}
+
 										{{range .Payload.OutputGroup}}
 											{{$files := $startedNode.GetFilesForNamedSets .FileSets}}
 											{{if $files}}
