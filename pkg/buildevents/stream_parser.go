@@ -468,9 +468,9 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 
 // Finalize returns the root of the resulting build event tree. It may
 // return nil in case not a single build event was inserted. It also
-// returns whether the tree is finalized (i.e., it no longer expects any
-// more build events to be inserted).
-func (p *StreamParser) Finalize() (*StartedNode, bool) {
+// returns how many build events are at least expected to be inserted.
+// When zero, the tree is complete.
+func (p *StreamParser) Finalize() (*StartedNode, int) {
 	if started := p.root.Started; started != nil {
 		for _, expandedNode := range started.Patterns {
 			sort.Sort(targetConfiguredNodeList(expandedNode.TargetsConfigured))
@@ -480,5 +480,5 @@ func (p *StreamParser) Finalize() (*StartedNode, bool) {
 		}
 	}
 
-	return p.root.Started, len(p.parents) == 0
+	return p.root.Started, len(p.parents)
 }

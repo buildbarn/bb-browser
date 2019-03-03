@@ -172,7 +172,7 @@ func (s *BrowserService) handleBuildEvents(w http.ResponseWriter, req *http.Requ
 			return
 		}
 	}
-	started, finished := parser.Finalize()
+	started, eventsExpected := parser.Finalize()
 
 	// Convert stdout and stderr stored in ActionCompletedNodes to a
 	// format usable by the templates.
@@ -199,11 +199,11 @@ func (s *BrowserService) handleBuildEvents(w http.ResponseWriter, req *http.Requ
 
 	if err := s.templates.ExecuteTemplate(w, "page_build_events.html", struct {
 		Started                 *buildevents.StartedNode
-		Finished                bool
+		EventsExpected          int
 		LogsForActionsCompleted map[*buildevents.ActionCompletedNode][]*logInfo
 	}{
 		Started:                 started,
-		Finished:                finished,
+		EventsExpected:          eventsExpected,
 		LogsForActionsCompleted: logsForActionsCompleted,
 	}); err != nil {
 		log.Print(err)

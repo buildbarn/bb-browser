@@ -8,6 +8,12 @@
 	{{template "header.html" "secondary"}}
 {{end}}
 
+{{with .EventsExpected}}
+	<div class="alert alert-warning my-4" role="alert">
+		Showing partial results, as at least {{.}} build event{{if eq . 1}} is{{else}}s are{{end}} still expected.
+	</div>
+{{end}}
+
 <h1 class="my-4">Build events</h1>
 
 {{$logsForActionsCompleted := .LogsForActionsCompleted}}
