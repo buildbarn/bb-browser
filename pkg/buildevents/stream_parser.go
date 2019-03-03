@@ -41,15 +41,10 @@ type node interface {
 // encode parent-child relationships that are actually emitted by Bazel
 // in practice. This makes the resulting tree suitable for
 // analysis/displaying purposes.
-//
-// TODO(edsch): We currently allow multiple parents for every node,
-// meaning we end up creating a DAG instead of a tree. This is necessary
-// due to Bazel emitting multiple Progress events, referring to the same
-// ActionCompletedId. An issue has been filed upstream to get this
-// resolved: https://github.com/bazelbuild/bazel/issues/7608
 type StreamParser struct {
-	root    rootNode
-	parents map[string][]node
+	root             rootNode
+	parents          map[string]node
+	childrenToIgnore map[string]bool
 }
 
 // NewStreamParser constructs a StreamParser that is in the initial
@@ -58,13 +53,14 @@ type StreamParser struct {
 // BuildEventId of kind `started`.
 func NewStreamParser() *StreamParser {
 	p := &StreamParser{
-		parents: map[string][]node{},
+		parents:          map[string]node{},
+		childrenToIgnore: map[string]bool{},
 	}
 	p.parents[proto.MarshalTextString(&buildeventstream.BuildEventId{
 		Id: &buildeventstream.BuildEventId_Started{
 			Started: &buildeventstream.BuildEventId_BuildStartedId{},
 		},
-	})] = []node{&p.root}
+	})] = &p.root
 	return p
 }
 
@@ -78,7 +74,7 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 	}
 
 	key := proto.MarshalTextString(event.Id)
-	parents, ok := p.parents[key]
+	parent, ok := p.parents[key]
 	if !ok {
 		return status.Errorf(codes.InvalidArgument, "Event with ID %#v was not expected", key)
 	}
@@ -96,10 +92,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			ID:      id.ActionCompleted,
 			Payload: payload.Action,
 		}
-		for _, parent := range parents {
-			if err := parent.addActionCompletedNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"ActionCompleted\" node with ID %#v", key)
-			}
+		if err := parent.addActionCompletedNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"ActionCompleted\" node with ID %#v", key)
 		}
 		p.root.Started.actionsCompleted[n.ID.Label] = append(p.root.Started.actionsCompleted[n.ID.Label], n)
 		newChild = n
@@ -114,10 +108,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			ID:      id.BuildFinished,
 			Payload: payload.Finished,
 		}
-		for _, parent := range parents {
-			if err := parent.addBuildFinishedNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"BuildFinished\" node with ID %#v", key)
-			}
+		if err := parent.addBuildFinishedNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"BuildFinished\" node with ID %#v", key)
 		}
 		newChild = n
 
@@ -131,10 +123,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			ID:      id.BuildMetrics,
 			Payload: payload.BuildMetrics,
 		}
-		for _, parent := range parents {
-			if err := parent.addBuildMetricsNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"BuildMetrics\" node with ID %#v", key)
-			}
+		if err := parent.addBuildMetricsNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"BuildMetrics\" node with ID %#v", key)
 		}
 		newChild = n
 
@@ -148,10 +138,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			ID:      id.BuildToolLogs,
 			Payload: payload.BuildToolLogs,
 		}
-		for _, parent := range parents {
-			if err := parent.addBuildToolLogsNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"BuildToolLogs\" node with ID %#v", key)
-			}
+		if err := parent.addBuildToolLogsNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"BuildToolLogs\" node with ID %#v", key)
 		}
 		newChild = n
 
@@ -165,10 +153,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			ID:      id.Configuration,
 			Payload: payload.Configuration,
 		}
-		for _, parent := range parents {
-			if err := parent.addConfigurationNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"Configuration\" node with ID %#v", key)
-			}
+		if err := parent.addConfigurationNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"Configuration\" node with ID %#v", key)
 		}
 		newChild = n
 
@@ -182,10 +168,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			ID:      id.Fetch,
 			Payload: payload.Fetch,
 		}
-		for _, parent := range parents {
-			if err := parent.addFetchNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"Fetch\" node with ID %#v", key)
-			}
+		if err := parent.addFetchNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"Fetch\" node with ID %#v", key)
 		}
 		newChild = n
 
@@ -199,10 +183,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			ID:      id.NamedSet,
 			Payload: payload.NamedSetOfFiles,
 		}
-		for _, parent := range parents {
-			if err := parent.addNamedSetNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"NamedSet\" node with ID %#v", key)
-			}
+		if err := parent.addNamedSetNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"NamedSet\" node with ID %#v", key)
 		}
 		p.root.Started.namedSets[proto.MarshalTextString(n.ID)] = n.Payload
 		newChild = n
@@ -217,10 +199,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			ID:      id.OptionsParsed,
 			Payload: payload.OptionsParsed,
 		}
-		for _, parent := range parents {
-			if err := parent.addOptionsParsedNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"OptionsParsed\" node with ID %#v", key)
-			}
+		if err := parent.addOptionsParsedNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"OptionsParsed\" node with ID %#v", key)
 		}
 		newChild = n
 
@@ -246,10 +226,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		default:
 			return status.Error(codes.InvalidArgument, "\"Pattern\" build event has an incorrect payload type")
 		}
-		for _, parent := range parents {
-			if err := parent.addExpandedNode(n, false); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"Pattern\" node with ID %#v", key)
-			}
+		if err := parent.addExpandedNode(n, false); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"Pattern\" node with ID %#v", key)
 		}
 		newChild = n
 
@@ -263,10 +241,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			ID:      id.Progress,
 			Payload: payload.Progress,
 		}
-		for _, parent := range parents {
-			if err := parent.addProgressNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"Progress\" node with ID %#v", key)
-			}
+		if err := parent.addProgressNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"Progress\" node with ID %#v", key)
 		}
 		newChild = n
 
@@ -282,10 +258,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			actionsCompleted: map[string][]*ActionCompletedNode{},
 			namedSets:        map[string]*buildeventstream.NamedSetOfFiles{},
 		}
-		for _, parent := range parents {
-			if err := parent.addStartedNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"Started\" node with ID %#v", key)
-			}
+		if err := parent.addStartedNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"Started\" node with ID %#v", key)
 		}
 		newChild = n
 
@@ -299,10 +273,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			ID:      id.StructuredCommandLine,
 			Payload: payload.StructuredCommandLine,
 		}
-		for _, parent := range parents {
-			if err := parent.addStructuredCommandLineNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"StructuredCommandLine\" node with ID %#v", key)
-			}
+		if err := parent.addStructuredCommandLineNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"StructuredCommandLine\" node with ID %#v", key)
 		}
 		newChild = n
 
@@ -329,10 +301,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		default:
 			return status.Error(codes.InvalidArgument, "\"TargetCompleted\" build event has an incorrect payload type")
 		}
-		for _, parent := range parents {
-			if err := parent.addTargetCompletedNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"TargetCompleted\" node with ID %#v", key)
-			}
+		if err := parent.addTargetCompletedNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"TargetCompleted\" node with ID %#v", key)
 		}
 		newChild = n
 
@@ -358,10 +328,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		default:
 			return status.Error(codes.InvalidArgument, "\"TargetConfigured\" build event has an incorrect payload type")
 		}
-		for _, parent := range parents {
-			if err := parent.addTargetConfiguredNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"TargetConfigured\" node with ID %#v", key)
-			}
+		if err := parent.addTargetConfiguredNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"TargetConfigured\" node with ID %#v", key)
 		}
 		newChild = n
 
@@ -387,10 +355,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		default:
 			return status.Error(codes.InvalidArgument, "\"TestResult\" build event has an incorrect payload type")
 		}
-		for _, parent := range parents {
-			if err := parent.addTestResultNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"TestResult\" node with ID %#v", key)
-			}
+		if err := parent.addTestResultNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"TestResult\" node with ID %#v", key)
 		}
 		newChild = n
 
@@ -416,10 +382,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		default:
 			return status.Error(codes.InvalidArgument, "\"TestSummary\" build event has an incorrect payload type")
 		}
-		for _, parent := range parents {
-			if err := parent.addTestSummaryNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"TestSummary\" node with ID %#v", key)
-			}
+		if err := parent.addTestSummaryNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"TestSummary\" node with ID %#v", key)
 		}
 		newChild = n
 
@@ -433,10 +397,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			ID:      id.UnconfiguredLabel,
 			Payload: payload.Aborted,
 		}
-		for _, parent := range parents {
-			if err := parent.addUnconfiguredLabelNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"UnconfiguredLabelNode\" node with ID %#v", key)
-			}
+		if err := parent.addUnconfiguredLabelNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"UnconfiguredLabelNode\" node with ID %#v", key)
 		}
 		newChild = n
 
@@ -450,10 +412,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			ID:      id.UnstructuredCommandLine,
 			Payload: payload.UnstructuredCommandLine,
 		}
-		for _, parent := range parents {
-			if err := parent.addUnstructuredCommandLineNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"UnstructuredCommandLine\" node with ID %#v", key)
-			}
+		if err := parent.addUnstructuredCommandLineNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"UnstructuredCommandLine\" node with ID %#v", key)
 		}
 		newChild = n
 
@@ -467,10 +427,8 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			ID:      id.WorkspaceStatus,
 			Payload: payload.WorkspaceStatus,
 		}
-		for _, parent := range parents {
-			if err := parent.addWorkspaceStatusNode(n); err != nil {
-				return util.StatusWrapf(err, "Cannot add \"WorkspaceStatus\" node with ID %#v", key)
-			}
+		if err := parent.addWorkspaceStatusNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"WorkspaceStatus\" node with ID %#v", key)
 		}
 		newChild = n
 
@@ -480,7 +438,26 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 
 	for _, child := range event.Children {
 		key := proto.MarshalTextString(child)
-		p.parents[key] = append(p.parents[key], newChild)
+		if !p.childrenToIgnore[key] {
+			if _, ok := p.parents[key]; ok {
+				return status.Errorf(codes.InvalidArgument, "Received two build events with ID %#v", key)
+			}
+			p.parents[key] = newChild
+
+			// TODO(edsch): When Bazel is invoked with -k,
+			// ActionCompleted and Pattern nodes may be
+			// reported as children of more than one
+			// Progress node, sometimes even after the fact.
+			// Attempt to recover from this by ignoring such
+			// children. This prevents the tree from turning
+			// into a DAG. More details:
+			// https://github.com/bazelbuild/bazel/issues/7608
+			if _, ok := event.Id.Id.(*buildeventstream.BuildEventId_Progress); ok {
+				if _, ok := child.Id.(*buildeventstream.BuildEventId_Progress); !ok {
+					p.childrenToIgnore[key] = true
+				}
+			}
+		}
 	}
 
 	return nil
