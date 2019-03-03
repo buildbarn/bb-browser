@@ -19,10 +19,6 @@
 		<td class="text-monospace" style="width: 75%">{{.Payload.Uuid}}</td>
 	</tr>
 	<tr>
-		<th style="width: 25%">Start time:</th>
-		<td style="width: 75%">{{.Payload.StartTimeMillis | timestamp_millis_rfc3339}}</td>
-	</tr>
-	<tr>
 		<th style="width: 25%">Build tool version:</th>
 		<td style="width: 75%">{{.Payload.BuildToolVersion}}</td>
 	</tr>
@@ -42,6 +38,25 @@
 		<th style="width: 25%">Server PID:</th>
 		<td style="width: 75%">{{.Payload.ServerPid}}</td>
 	</tr>
+	<tr>
+		<th style="width: 25%">Start time:</th>
+		<td style="width: 75%">{{.Payload.StartTimeMillis | timestamp_millis_rfc3339}}</td>
+	</tr>
+	{{with .BuildFinished}}
+		<tr>
+			<th style="width: 25%">Finish time:</th>
+			<td style="width: 75%">{{.Payload.FinishTimeMillis | timestamp_millis_rfc3339}}</td>
+		</tr>
+		<tr>
+			<th style="width: 25%">Exit code:</th>
+			<td style="width: 75%">
+				{{.Payload.ExitCode.Code}}
+				<span class="badge badge-{{if eq .Payload.ExitCode.Code 0}}success{{else}}danger{{end}}">
+					{{.Payload.ExitCode.Name}}
+				</span>
+			</td>
+		</tr>
+	{{end}}
 </table>
 
 {{$collapseID := 0}}
