@@ -225,14 +225,26 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		newChild = n
 
 	case *buildeventstream.BuildEventId_Pattern:
-		payload, ok := event.Payload.(*buildeventstream.BuildEvent_Expanded)
-		if !ok {
+		var n *ExpandedNode
+		switch payload := event.Payload.(type) {
+		case *buildeventstream.BuildEvent_Aborted:
+			n = &ExpandedNode{
+				ID: id.Pattern,
+				Aborted: &ExpandedAborted{
+					aborted: aborted{
+						Payload: payload.Aborted,
+					},
+				},
+			}
+		case *buildeventstream.BuildEvent_Expanded:
+			n = &ExpandedNode{
+				ID: id.Pattern,
+				Success: &ExpandedSuccess{
+					Payload: payload.Expanded,
+				},
+			}
+		default:
 			return status.Error(codes.InvalidArgument, "\"Pattern\" build event has an incorrect payload type")
-		}
-
-		n := &ExpandedNode{
-			ID:      id.Pattern,
-			Payload: payload.Expanded,
 		}
 		for _, parent := range parents {
 			if err := parent.addExpandedNode(n, false); err != nil {
@@ -301,7 +313,9 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			n = &TargetCompletedNode{
 				ID: id.TargetCompleted,
 				Aborted: &TargetCompletedAborted{
-					Payload: payload.Aborted,
+					aborted: aborted{
+						Payload: payload.Aborted,
+					},
 				},
 			}
 			newChild = n
@@ -329,7 +343,9 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			n = &TargetConfiguredNode{
 				ID: id.TargetConfigured,
 				Aborted: &TargetConfiguredAborted{
-					Payload: payload.Aborted,
+					aborted: aborted{
+						Payload: payload.Aborted,
+					},
 				},
 			}
 		case *buildeventstream.BuildEvent_Configured:
@@ -356,7 +372,9 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			n = &TestResultNode{
 				ID: id.TestResult,
 				Aborted: &TestResultAborted{
-					Payload: payload.Aborted,
+					aborted: aborted{
+						Payload: payload.Aborted,
+					},
 				},
 			}
 		case *buildeventstream.BuildEvent_TestResult:
@@ -383,7 +401,9 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 			n = &TestSummaryNode{
 				ID: id.TestSummary,
 				Aborted: &TestSummaryAborted{
-					Payload: payload.Aborted,
+					aborted: aborted{
+						Payload: payload.Aborted,
+					},
 				},
 			}
 		case *buildeventstream.BuildEvent_TestSummary:
@@ -473,10 +493,14 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 func (p *StreamParser) Finalize() (*StartedNode, int) {
 	if started := p.root.Started; started != nil {
 		for _, expandedNode := range started.Patterns {
-			sort.Sort(targetConfiguredNodeList(expandedNode.TargetsConfigured))
+			if success := expandedNode.Success; success != nil {
+				sort.Sort(targetConfiguredNodeList(success.TargetsConfigured))
+			}
 		}
 		for _, expandedNode := range started.PatternsSkipped {
-			sort.Sort(targetConfiguredNodeList(expandedNode.TargetsConfigured))
+			if success := expandedNode.Success; success != nil {
+				sort.Sort(targetConfiguredNodeList(success.TargetsConfigured))
+			}
 		}
 	}
 

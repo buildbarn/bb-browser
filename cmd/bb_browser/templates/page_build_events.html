@@ -86,140 +86,147 @@
 		{{end}}
 	</h2>
 
-	<div class="accordion">
-		{{range .TargetsConfigured}}
-			<div class="card">
-				<div class="
-					bg-{{if .IsSuccess}}success{{else}}{{if .IsFailure}}danger{{else}}secondary{{end}}{{end}}
-					card-header py-2 text-white" data-toggle="collapse" data-target="#collapse-{{$collapseID}}" style="cursor: pointer">
-					{{.ID.Label}} {{with .Success}}({{.Payload.TargetKind}}){{end}}
-				</div>
-				<div id="collapse-{{$collapseID}}" class="collapse">
-					<div class="card-body">
+	{{with .Success}}
+		<div class="accordion">
+			{{range .TargetsConfigured}}
+				<div class="card">
+					<div class="
+						bg-{{if .IsSuccess}}success{{else}}{{if .IsFailure}}danger{{else}}secondary{{end}}{{end}}
+						card-header py-2 text-white" data-toggle="collapse" data-target="#collapse-{{$collapseID}}" style="cursor: pointer">
+						{{.ID.Label}} {{with .Success}}({{.Payload.TargetKind}}){{end}}
+					</div>
+					<div id="collapse-{{$collapseID}}" class="collapse">
+						<div class="card-body">
 
-						{{range $startedNode.GetActionsCompletedForLabel .ID.Label}}
-							<h3 class="mb-4 mt-2">{{.Payload.Type}} "{{.ID.PrimaryOutput}}"</h3>
-							<table class="table" style="table-layout: fixed">
-								{{with .Payload.CommandLine}}{{template "view_arguments.html" .}}{{end}}
-								<tr>
-									<th style="width: 25%">Exit code:</th>
-									<td style="width: 75%">
-										{{.Payload.ExitCode}}
-										{{if .Payload.Success}}
-											<span class="badge badge-success">Success</span>
-										{{else}}
-											<span class="badge badge-danger">Failure</span>
-										{{end}}
-									</td>
-								</tr>
-								{{range index $logsForActionsCompleted .}}{{template "view_log.html" .}}{{end}}
-							</table>
-						{{end}}
+							{{range $startedNode.GetActionsCompletedForLabel .ID.Label}}
+								<h3 class="mb-4 mt-2">{{.Payload.Type}} "{{.ID.PrimaryOutput}}"</h3>
+								<table class="table" style="table-layout: fixed">
+									{{with .Payload.CommandLine}}{{template "view_arguments.html" .}}{{end}}
+									<tr>
+										<th style="width: 25%">Exit code:</th>
+										<td style="width: 75%">
+											{{.Payload.ExitCode}}
+											{{if .Payload.Success}}
+												<span class="badge badge-success">Success</span>
+											{{else}}
+												<span class="badge badge-danger">Failure</span>
+											{{end}}
+										</td>
+									</tr>
+									{{range index $logsForActionsCompleted .}}{{template "view_log.html" .}}{{end}}
+								</table>
+							{{end}}
 
-						{{with .Success}}
-							{{with .TargetCompleted}}
-								{{with .Success}}
-									{{range .Payload.OutputGroup}}
-										{{$files := $startedNode.GetFilesForNamedSets .FileSets}}
-										{{if $files}}
-											<h3 class="mb-4 mt-2">Output group "{{.Name}}"</h3>
-											<table class="m-0 table">
-												<thead>
-													<tr>
-														<th scope="col">Size</th>
-														<th scope="col" style="width: 100%">Filename</th>
-													</tr>
-												</thead>
-												{{range $files}}
-													<tr class="text-monospace">
-														{{$digest := . | build_event_file_to_digest}}
-														{{if $digest}}
-															<td style="text-align: right">{{$digest.GetSizeBytes}}</td>
-															<td style="width: 100%"><a href="/file/{{$digest.GetInstance}}/{{$digest.GetHashString}}/{{$digest.GetSizeBytes}}/{{.Name | basename}}">{{.Name}}</a></td>
-														{{else}}
-															<td></td>
-															<td style="width: 100%">{{.Name}}</td>
-														{{end}}
-													</tr>
-												{{end}}
-											</table>
-										{{end}}
-									{{end}}
-									{{with .TestSummary}}
-										<h3 class="mb-4 mt-2">Test summary</h3>
-										{{if .Success}}
-											<table class="table" style="table-layout: fixed">
-												<tr>
-													<th style="width: 25%">Overall status:</th>
-													<td style="width: 75%">
-														<span class="badge badge-{{if .IsSuccess}}success{{else}}{{if .IsFailure}}danger{{else}}secondary{{end}}{{end}}">
-															{{.Success.Payload.OverallStatus}}
-														</span>
-													</td>
-												</tr>
-												{{with .Success.Payload.Passed}}
-													<tr>
-														<th style="width: 25%">Passed tests:</th>
-														<td style="width: 75%">
-															{{$index := 1}}
-															{{range .}}
-																{{$digest := . | build_event_file_to_digest}}
-																{{if $digest}}
-																	<a href="/file/{{$digest.GetInstance}}/{{$digest.GetHashString}}/{{$digest.GetSizeBytes}}/test.log">{{$index}}</a>
-																{{else}}
-																	{{$index}}
-																{{end}}
-																{{$index = inc $index}}
+							{{with .Success}}
+								{{with .TargetCompleted}}
+									{{with .Success}}
+										{{range .Payload.OutputGroup}}
+											{{$files := $startedNode.GetFilesForNamedSets .FileSets}}
+											{{if $files}}
+												<h3 class="mb-4 mt-2">Output group "{{.Name}}"</h3>
+												<table class="m-0 table">
+													<thead>
+														<tr>
+															<th scope="col">Size</th>
+															<th scope="col" style="width: 100%">Filename</th>
+														</tr>
+													</thead>
+													{{range $files}}
+														<tr class="text-monospace">
+															{{$digest := . | build_event_file_to_digest}}
+															{{if $digest}}
+																<td style="text-align: right">{{$digest.GetSizeBytes}}</td>
+																<td style="width: 100%"><a href="/file/{{$digest.GetInstance}}/{{$digest.GetHashString}}/{{$digest.GetSizeBytes}}/{{.Name | basename}}">{{.Name}}</a></td>
+															{{else}}
+																<td></td>
+																<td style="width: 100%">{{.Name}}</td>
 															{{end}}
+														</tr>
+													{{end}}
+												</table>
+											{{end}}
+										{{end}}
+										{{with .TestSummary}}
+											<h3 class="mb-4 mt-2">Test summary</h3>
+											{{if .Success}}
+												<table class="table" style="table-layout: fixed">
+													<tr>
+														<th style="width: 25%">Overall status:</th>
+														<td style="width: 75%">
+															<span class="badge badge-{{if .IsSuccess}}success{{else}}{{if .IsFailure}}danger{{else}}secondary{{end}}{{end}}">
+																{{.Success.Payload.OverallStatus}}
+															</span>
 														</td>
 													</tr>
-												{{end}}
-												{{with .Success.Payload.Failed}}
-													<tr>
-														<th style="width: 25%">Failed tests:</th>
-														<td style="width: 75%">
-															{{$index := 1}}
-															{{range .}}
-																{{$digest := . | build_event_file_to_digest}}
-																{{if $digest}}
-																	<a href="/file/{{$digest.GetInstance}}/{{$digest.GetHashString}}/{{$digest.GetSizeBytes}}/test.log">{{$index}}</a>
-																{{else}}
-																	{{$index}}
+													{{with .Success.Payload.Passed}}
+														<tr>
+															<th style="width: 25%">Passed tests:</th>
+															<td style="width: 75%">
+																{{$index := 1}}
+																{{range .}}
+																	{{$digest := . | build_event_file_to_digest}}
+																	{{if $digest}}
+																		<a href="/file/{{$digest.GetInstance}}/{{$digest.GetHashString}}/{{$digest.GetSizeBytes}}/test.log">{{$index}}</a>
+																	{{else}}
+																		{{$index}}
+																	{{end}}
+																	{{$index = inc $index}}
 																{{end}}
-																{{$index = inc $index}}
-															{{end}}
-														</td>
-													</tr>
-												{{end}}
-											</table>
-										{{else}}
-											This test was not run, because its execution was aborted
-											with reason
-											<span class="badge badge-{{if .IsSuccess}}success{{else}}{{if .IsFailure}}danger{{else}}secondary{{end}}{{end}}">{{.Aborted.Payload.Reason}}</span>.
-											{{.Aborted.Payload.Description}}
+															</td>
+														</tr>
+													{{end}}
+													{{with .Success.Payload.Failed}}
+														<tr>
+															<th style="width: 25%">Failed tests:</th>
+															<td style="width: 75%">
+																{{$index := 1}}
+																{{range .}}
+																	{{$digest := . | build_event_file_to_digest}}
+																	{{if $digest}}
+																		<a href="/file/{{$digest.GetInstance}}/{{$digest.GetHashString}}/{{$digest.GetSizeBytes}}/test.log">{{$index}}</a>
+																	{{else}}
+																		{{$index}}
+																	{{end}}
+																	{{$index = inc $index}}
+																{{end}}
+															</td>
+														</tr>
+													{{end}}
+												</table>
+											{{else}}
+												This test was not run, because its execution was aborted
+												with reason
+												<span class="badge badge-{{if .IsSuccess}}success{{else}}{{if .IsFailure}}danger{{else}}secondary{{end}}{{end}}">{{.Aborted.Payload.Reason}}</span>.
+												{{.Aborted.Payload.Description}}
+											{{end}}
 										{{end}}
+									{{else}}
+										This target was not completed, because its execution
+										was aborted with reason
+										<span class="badge badge-{{if .IsSuccess}}success{{else}}{{if .IsFailure}}danger{{else}}secondary{{end}}{{end}}">{{.Aborted.Payload.Reason}}</span>.
+										{{.Aborted.Payload.Description}}
 									{{end}}
 								{{else}}
-									This target was not completed, because its execution
-									was aborted with reason
-									<span class="badge badge-{{if .IsSuccess}}success{{else}}{{if .IsFailure}}danger{{else}}secondary{{end}}{{end}}">{{.Aborted.Payload.Reason}}</span>.
-									{{.Aborted.Payload.Description}}
+									This target has not been completed yet.
 								{{end}}
 							{{else}}
-								This target has not been completed yet.
+								No information about this target exists, because its
+								configuration was aborted with reason
+								<span class="badge badge-{{if .IsSuccess}}success{{else}}{{if .IsFailure}}danger{{else}}secondary{{end}}{{end}}">{{.Aborted.Payload.Reason}}</span>.
+								{{.Aborted.Payload.Description}}
 							{{end}}
-						{{else}}
-							No information about this target exists, because its
-							configuration was aborted with reason
-							<span class="badge badge-{{if .IsSuccess}}success{{else}}{{if .IsFailure}}danger{{else}}secondary{{end}}{{end}}">{{.Aborted.Payload.Reason}}</span>.
-							{{.Aborted.Payload.Description}}
-						{{end}}
+						</div>
 					</div>
+					{{$collapseID = inc $collapseID}}
 				</div>
-				{{$collapseID = inc $collapseID}}
-			</div>
-		{{end}}
-	</div>
+			{{end}}
+		</div>
+	{{else}}
+		No information about these targets exists, because their expansion was
+		aborted with reason
+		<span class="badge badge-{{if .IsSuccess}}success{{else}}{{if .IsFailure}}danger{{else}}secondary{{end}}{{end}}">{{.Aborted.Payload.Reason}}</span>.
+		{{.Aborted.Payload.Description}}
+	{{end}}
 {{end}}
 
 {{else}}

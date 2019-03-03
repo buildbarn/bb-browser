@@ -11,8 +11,12 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func abortedIsFailure(aborted *buildeventstream.Aborted) bool {
-	switch aborted.Reason {
+type aborted struct {
+	Payload *buildeventstream.Aborted
+}
+
+func (n *aborted) isFailure() bool {
+	switch n.Payload.Reason {
 	case buildeventstream.Aborted_UNKNOWN,
 		buildeventstream.Aborted_USER_INTERRUPTED,
 		buildeventstream.Aborted_NO_ANALYZE,
@@ -22,6 +26,10 @@ func abortedIsFailure(aborted *buildeventstream.Aborted) bool {
 	default:
 		return true
 	}
+}
+
+func (n *aborted) isSuccess() bool {
+	return false
 }
 
 type defaultNode struct {
@@ -192,23 +200,70 @@ type ExpandedNode struct {
 	defaultNode
 
 	ID      *buildeventstream.BuildEventId_PatternExpandedId
+	Success *ExpandedSuccess
+	Aborted *ExpandedAborted
+}
+
+func (n *ExpandedNode) addConfigurationNode(configuration *ConfigurationNode) error {
+	if n.Success == nil {
+		return status.Error(codes.InvalidArgument, "Cannot set value on pattern that did not expand successfully")
+	}
+	if n.Success.Configuration != nil {
+		return status.Error(codes.InvalidArgument, "Value already set")
+	}
+	n.Success.Configuration = configuration
+	return nil
+}
+
+func (n *ExpandedNode) addTargetConfiguredNode(child *TargetConfiguredNode) error {
+	if n.Success == nil {
+		return status.Error(codes.InvalidArgument, "Cannot set value on pattern that did not expand successfully")
+	}
+	n.Success.TargetsConfigured = append(n.Success.TargetsConfigured, child)
+	return nil
+}
+
+func (n *ExpandedNode) IsFailure() bool {
+	if n.Success != nil {
+		return n.Success.isFailure()
+	}
+	return n.Aborted.isFailure()
+}
+
+func (n *ExpandedNode) IsSuccess() bool {
+	if n.Success != nil {
+		return n.Success.isSuccess()
+	}
+	return n.Aborted.isSuccess()
+}
+
+type ExpandedSuccess struct {
 	Payload *buildeventstream.PatternExpanded
 
 	Configuration     *ConfigurationNode
 	TargetsConfigured []*TargetConfiguredNode
 }
 
-func (n *ExpandedNode) addConfigurationNode(configuration *ConfigurationNode) error {
-	if n.Configuration != nil {
-		return status.Error(codes.InvalidArgument, "Value already set")
+func (n *ExpandedSuccess) isFailure() bool {
+	for _, targetConfigured := range n.TargetsConfigured {
+		if targetConfigured.IsFailure() {
+			return true
+		}
 	}
-	n.Configuration = configuration
-	return nil
+	return false
 }
 
-func (n *ExpandedNode) addTargetConfiguredNode(child *TargetConfiguredNode) error {
-	n.TargetsConfigured = append(n.TargetsConfigured, child)
-	return nil
+func (n *ExpandedSuccess) isSuccess() bool {
+	for _, targetConfigured := range n.TargetsConfigured {
+		if targetConfigured.IsSuccess() {
+			return true
+		}
+	}
+	return false
+}
+
+type ExpandedAborted struct {
+	aborted
 }
 
 // FetchNode corresponds to a Build Event Protocol message with
@@ -252,6 +307,7 @@ type ProgressNode struct {
 	BuildMetrics     *BuildMetricsNode
 	BuildToolLogs    *BuildToolLogsNode
 	Configuration    *ConfigurationNode
+	Expandeds        []*ExpandedNode
 	Fetches          []*FetchNode
 	NamedSets        []*NamedSetNode
 	Progress         *ProgressNode
@@ -283,6 +339,14 @@ func (n *ProgressNode) addConfigurationNode(configuration *ConfigurationNode) er
 		return status.Error(codes.InvalidArgument, "Value already set")
 	}
 	n.Configuration = configuration
+	return nil
+}
+
+func (n *ProgressNode) addExpandedNode(child *ExpandedNode, skipped bool) error {
+	if skipped {
+		return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
+	}
+	n.Expandeds = append(n.Expandeds, child)
 	return nil
 }
 
@@ -487,17 +551,9 @@ func (n *TargetCompletedSuccess) isSuccess() bool {
 }
 
 type TargetCompletedAborted struct {
-	Payload *buildeventstream.Aborted
+	aborted
 
 	UnconfiguredLabels []*UnconfiguredLabelNode
-}
-
-func (n *TargetCompletedAborted) isFailure() bool {
-	return abortedIsFailure(n.Payload)
-}
-
-func (n *TargetCompletedAborted) isSuccess() bool {
-	return false
 }
 
 // TargetConfiguredNode corresponds to a Build Event Protocol message
@@ -561,15 +617,7 @@ func (n *TargetConfiguredSuccess) isSuccess() bool {
 }
 
 type TargetConfiguredAborted struct {
-	Payload *buildeventstream.Aborted
-}
-
-func (n *TargetConfiguredAborted) isFailure() bool {
-	return abortedIsFailure(n.Payload)
-}
-
-func (n *TargetConfiguredAborted) isSuccess() bool {
-	return false
+	aborted
 }
 
 // TestResultNode corresponds to a Build Event Protocol message with
@@ -588,7 +636,7 @@ type TestResultSuccess struct {
 }
 
 type TestResultAborted struct {
-	Payload *buildeventstream.Aborted
+	aborted
 }
 
 // TestSummaryNode corresponds to a Build Event Protocol message with
@@ -636,15 +684,7 @@ func (n *TestSummarySuccess) isSuccess() bool {
 }
 
 type TestSummaryAborted struct {
-	Payload *buildeventstream.Aborted
-}
-
-func (n *TestSummaryAborted) isFailure() bool {
-	return abortedIsFailure(n.Payload)
-}
-
-func (n *TestSummaryAborted) isSuccess() bool {
-	return false
+	aborted
 }
 
 // UnconfiguredLabelNode corresponds to a Build Event Protocol message
