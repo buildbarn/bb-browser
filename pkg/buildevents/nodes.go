@@ -454,14 +454,14 @@ func (n *TargetCompletedNode) addUnconfiguredLabelNode(child *UnconfiguredLabelN
 	return nil
 }
 
-func (n *TargetCompletedNode) isFailure() bool {
+func (n *TargetCompletedNode) IsFailure() bool {
 	if n.Success != nil {
 		return n.Success.isFailure()
 	}
 	return n.Aborted.isFailure()
 }
 
-func (n *TargetCompletedNode) isSuccess() bool {
+func (n *TargetCompletedNode) IsSuccess() bool {
 	if n.Success != nil {
 		return n.Success.isSuccess()
 	}
@@ -550,11 +550,11 @@ type TargetConfiguredSuccess struct {
 }
 
 func (n *TargetConfiguredSuccess) isFailure() bool {
-	return n.TargetCompleted != nil && n.TargetCompleted.isFailure()
+	return n.TargetCompleted != nil && n.TargetCompleted.IsFailure()
 }
 
 func (n *TargetConfiguredSuccess) isSuccess() bool {
-	return n.TargetCompleted != nil && n.TargetCompleted.isSuccess()
+	return n.TargetCompleted != nil && n.TargetCompleted.IsSuccess()
 }
 
 type TargetConfiguredAborted struct {
