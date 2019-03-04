@@ -67,7 +67,7 @@ func (n *defaultNode) addOptionsParsedNode(child *OptionsParsedNode) error {
 	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
 }
 
-func (n *defaultNode) addPatternNode(child *PatternNode, skipped bool) error {
+func (n *defaultNode) addPatternNode(child *PatternNode) error {
 	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
 }
 
@@ -223,8 +223,8 @@ type OptionsParsedNode struct {
 }
 
 // PatternNode corresponds to a Build Event Protocol message with
-// BuildEventID kind `pattern` or `pattern_skipped` and BuildEvent
-// payload kind `aborted` or `expanded`.
+// BuildEventID kind `pattern` and BuildEvent payload kind `aborted` or
+// `expanded`.
 type PatternNode struct {
 	defaultNode
 
@@ -244,8 +244,8 @@ func (n *PatternNode) addConfigurationNode(configuration *ConfigurationNode) err
 	return nil
 }
 
-func (n *PatternNode) addPatternNode(child *PatternNode, skipped bool) error {
-	if child.Aborted == nil || skipped {
+func (n *PatternNode) addPatternNode(child *PatternNode) error {
+	if child.Aborted == nil {
 		return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
 	}
 	if n.Success == nil {
@@ -369,10 +369,7 @@ func (n *ProgressNode) addNamedSetNode(child *NamedSetNode) error {
 	return nil
 }
 
-func (n *ProgressNode) addPatternNode(child *PatternNode, skipped bool) error {
-	if skipped {
-		return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
-	}
+func (n *ProgressNode) addPatternNode(child *PatternNode) error {
 	n.Patterns = append(n.Patterns, child)
 	return nil
 }
@@ -397,7 +394,6 @@ type StartedNode struct {
 	BuildFinished            *BuildFinishedNode
 	OptionsParsed            *OptionsParsedNode
 	Patterns                 []*PatternNode
-	PatternsSkipped          []*PatternNode
 	Progress                 *ProgressNode
 	StructuredCommandLines   []*StructuredCommandLineNode
 	UnstructuredCommandLines []*UnstructuredCommandLineNode
@@ -422,12 +418,8 @@ func (n *StartedNode) addOptionsParsedNode(child *OptionsParsedNode) error {
 	return nil
 }
 
-func (n *StartedNode) addPatternNode(child *PatternNode, skipped bool) error {
-	if skipped {
-		n.PatternsSkipped = append(n.PatternsSkipped, child)
-	} else {
-		n.Patterns = append(n.Patterns, child)
-	}
+func (n *StartedNode) addPatternNode(child *PatternNode) error {
+	n.Patterns = append(n.Patterns, child)
 	return nil
 }
 

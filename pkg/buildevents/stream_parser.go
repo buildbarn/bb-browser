@@ -20,7 +20,7 @@ type node interface {
 	addFetchNode(child *FetchNode) error
 	addNamedSetNode(child *NamedSetNode) error
 	addOptionsParsedNode(child *OptionsParsedNode) error
-	addPatternNode(child *PatternNode, skipped bool) error
+	addPatternNode(child *PatternNode) error
 	addProgressNode(child *ProgressNode) error
 	addStartedNode(child *StartedNode) error
 	addStructuredCommandLineNode(child *StructuredCommandLineNode) error
@@ -575,7 +575,7 @@ func (p *StreamParser) Finalize() (*StartedNode, int, error) {
 			return nil, 0, err
 		}
 		for _, parent := range parents {
-			if err := parent.addPatternNode(n, false); err != nil {
+			if err := parent.addPatternNode(n); err != nil {
 				return nil, 0, util.StatusWrapf(err, "Cannot add \"Pattern\" node with ID %#v", key)
 			}
 		}
@@ -583,11 +583,6 @@ func (p *StreamParser) Finalize() (*StartedNode, int, error) {
 
 	if started := p.root.Started; started != nil {
 		for _, patternNode := range started.Patterns {
-			if success := patternNode.Success; success != nil {
-				sort.Sort(targetConfiguredNodeList(success.TargetsConfigured))
-			}
-		}
-		for _, patternNode := range started.PatternsSkipped {
 			if success := patternNode.Success; success != nil {
 				sort.Sort(targetConfiguredNodeList(success.TargetsConfigured))
 			}
