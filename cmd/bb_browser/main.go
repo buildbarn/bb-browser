@@ -26,6 +26,8 @@ func main() {
 		blobstoreConfig    = flag.String("blobstore-config", "/config/blobstore.conf", "Configuration for blob storage")
 		maximumMessageSize = flag.Int64("maximum-message-size", 16*1024*1024, "Maximum Protobuf message size to unmarshal")
 		webListenAddress   = flag.String("web.listen-address", ":80", "Port on which to expose metrics")
+		tlsCertFile        = flag.String("tls-cert-file", "", "Certificate for TLS server authentication")
+		tlsKeyFile         = flag.String("tls-key-file", "", "Private key for TLS server authentication")
 	)
 	flag.Parse()
 
@@ -77,5 +79,11 @@ func main() {
 		ac.NewBlobAccessActionCache(actionCacheBlobAccess),
 		templates,
 		router)
-	log.Fatal(http.ListenAndServe(*webListenAddress, router))
+	if *tlsCertFile != "" && *tlsKeyFile != "" {
+		log.Fatal(http.ListenAndServeTLS(*webListenAddress, *tlsCertFile, *tlsKeyFile, router))
+	} else if *tlsCertFile != "" || *tlsKeyFile != "" {
+		log.Fatal("Both certificate and key are required for TLS encryption")
+	} else {
+		log.Fatal(http.ListenAndServe(*webListenAddress, router))
+	}
 }
