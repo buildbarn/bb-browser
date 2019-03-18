@@ -29,6 +29,7 @@ import (
 	"github.com/buildkite/terminal"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"github.com/matttproud/golang_protobuf_extensions/pbutil"
 
 	"google.golang.org/grpc/codes"
@@ -47,6 +48,17 @@ func getDigestFromRequest(req *http.Request) (*util.Digest, error) {
 			Hash:      vars["hash"],
 			SizeBytes: sizeBytes,
 		})
+}
+
+// Generates a Context from an incoming HTTP request, forwarding any
+// 'Authorization' header as gRPC 'authorization' metadata.
+func extractContextFromRequest(req *http.Request) context.Context {
+	ctx := req.Context()
+	md := metautils.ExtractIncoming(ctx)
+	if authorization := req.Header.Get("Authorization"); authorization != "" {
+		md.Set("authorization", authorization)
+	}
+	return md.ToIncoming(ctx)
 }
 
 // BrowserService implements a web service that can be used to explore
@@ -106,7 +118,7 @@ func (s *BrowserService) handleAction(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	ctx := req.Context()
+	ctx := extractContextFromRequest(req)
 	actionResult, err := s.actionCache.GetActionResult(ctx, digest)
 	if err != nil && status.Code(err) != codes.NotFound {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -154,7 +166,7 @@ func (s *BrowserService) handleBuildEvents(w http.ResponseWriter, req *http.Requ
 	// Look up the invocation ID in the Action Cache. The output
 	// files of this entry correspond to one or more blobs in the
 	// CAS that, when concatenated, represents a Build Event Stream.
-	ctx := req.Context()
+	ctx := extractContextFromRequest(req)
 	actionResult, err := s.actionCache.GetActionResult(ctx, digest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -220,7 +232,7 @@ func (s *BrowserService) handleUncachedActionResult(w http.ResponseWriter, req *
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	ctx := req.Context()
+	ctx := extractContextFromRequest(req)
 	uncachedActionResult, err := s.contentAddressableStorage.GetUncachedActionResult(ctx, digest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -357,7 +369,7 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 		ActionResult: actionResult,
 	}
 
-	ctx := req.Context()
+	ctx := extractContextFromRequest(req)
 	if actionResult != nil {
 		actionInfo.OutputDirectories = actionResult.OutputDirectories
 		actionInfo.OutputSymlinks = actionResult.OutputFileSymlinks
@@ -452,7 +464,7 @@ func (s *BrowserService) handleCommand(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	ctx := req.Context()
+	ctx := extractContextFromRequest(req)
 	command, err := s.contentAddressableStorage.GetCommand(ctx, digest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -561,7 +573,7 @@ func (s *BrowserService) handleDirectory(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	ctx := req.Context()
+	ctx := extractContextFromRequest(req)
 	directory, err := s.contentAddressableStorage.GetDirectory(ctx, digest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -587,7 +599,7 @@ func (s *BrowserService) handleFile(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	ctx := req.Context()
+	ctx := extractContextFromRequest(req)
 	_, r, err := s.contentAddressableStorageBlobAccess.Get(ctx, digest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -623,7 +635,7 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	ctx := req.Context()
+	ctx := extractContextFromRequest(req)
 	tree, err := s.contentAddressableStorage.GetTree(ctx, digest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
