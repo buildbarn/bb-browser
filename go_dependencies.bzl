@@ -26,6 +26,14 @@ def bb_browser_go_dependencies():
     )
 
     go_repository(
+        name = "com_github_grpc_ecosystem_go_grpc_middleware",
+        importpath = "github.com/grpc-ecosystem/go-grpc-middleware",
+        sha256 = "e9178768b55709d2fc2b5a509baceccb4e51d841fa13ed409e16455435e6917b",
+        strip_prefix = "go-grpc-middleware-1.0.0",
+        urls = ["https://github.com/grpc-ecosystem/go-grpc-middleware/archive/v1.0.0.tar.gz"],
+    )
+
+    go_repository(
         name = "com_github_kballard_go_shellquote",
         commit = "95032a82bc518f77982ea72343cc1ade730072f0",
         importpath = "github.com/kballard/go-shellquote",
