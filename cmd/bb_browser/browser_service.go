@@ -42,6 +42,11 @@ func getDigestFromRequest(req *http.Request) (*util.Digest, error) {
 	if err != nil {
 		return nil, err
 	}
+	if vars["instance"] == "_" {
+		// If special underbar instance name is used then treat that as the
+		// empty instance name otherwise url is ambiguous.
+		vars["instance"] = ""
+	}
 	return util.NewDigest(
 		vars["instance"],
 		&remoteexecution.Digest{

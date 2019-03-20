@@ -94,3 +94,10 @@ Prebuilt container images of Buildbarn Browser may be found on
 [Docker Hub](https://hub.docker.com/r/buildbarn/bb-browser). More
 examples of how Buildbarn Browser may be deployed can be found in
 [the Buildbarn deployments repository](https://github.com/buildbarn/bb-deployments).
+
+### Usage with Empty Instance Names
+
+It is a valid for the remote execution instance name to be the empty
+string. This however causes ambiguity in the url syntax used for the various
+bb-browser pages. The special `_` character is used to represent the empty
+instance name since the empty string cannnot be passed.
