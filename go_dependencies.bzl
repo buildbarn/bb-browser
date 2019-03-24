@@ -39,3 +39,15 @@ def bb_browser_go_dependencies():
         commit = "95032a82bc518f77982ea72343cc1ade730072f0",
         importpath = "github.com/kballard/go-shellquote",
     )
+
+    go_repository(
+        name = "com_github_tiziano88_elm_protobuf",
+        commit = "b76b05c2ab22f89475cc038b2a2f358ca5b7808f",
+        importpath = "github.com/tiziano88/elm-protobuf",
+        patches = [
+            "@com_github_buildbarn_bb_browser//:patches/com_github_tiziano88_elm_protobuf/bytes.diff",
+            "@com_github_buildbarn_bb_browser//:patches/com_github_tiziano88_elm_protobuf/proto2.diff",
+            "@com_github_buildbarn_bb_browser//:patches/com_github_tiziano88_elm_protobuf/recursive-type.diff",
+            "@com_github_buildbarn_bb_browser//:patches/com_github_tiziano88_elm_protobuf/silent.diff",
+        ],
+    )

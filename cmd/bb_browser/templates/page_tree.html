@@ -3,6 +3,7 @@
 <h1 class="my-4">Output directory</h1>
 
 {{$instance := .Instance}}
+{{$subdirectory := .Subdirectory}}
 
 <table class="table">
 	<thead>
@@ -37,11 +38,11 @@
 		<tr class="text-monospace">
 			<td>‑rw{{if .IsExecutable}}x{{else}}‑{{end}}r‑{{if .IsExecutable}}x{{else}}‑{{end}}r‑{{if .IsExecutable}}x{{else}}‑{{end}}</td>
 			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
-			<td style="width: 100%"><a href="/file/{{$instance}}/{{.Digest.Hash}}/{{.Digest.SizeBytes}}/{{.Name}}">{{.Name}}</a></td>
+			<td style="width: 100%"><a href="/api/get_file?instance={{$instance}}&amp;hash={{.Digest.Hash}}&amp;size_bytes={{.Digest.SizeBytes}}&amp;name={{.Name}}">{{.Name}}</a></td>
 		</tr>
 	{{end}}
 </table>
 
-<a class="btn btn-primary" href="?format=tar" role="button">Download as tarball</a>
+<a class="btn btn-primary" href="/api/get_tree_tarball?instance={{$instance}}&amp;hash={{.Digest.Hash}}&amp;size_bytes={{.Digest.SizeBytes}}&amp;subdirectory={{$subdirectory}}" role="button">Download as tarball</a>
 
 {{template "footer.html"}}

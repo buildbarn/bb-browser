@@ -9,6 +9,8 @@ go_library(
         ":BootstrapCSS",
         ":BootstrapJS",
         ":FaviconPNG",
+        ":FrontendJS",
+        ":IndexHTML",
         ":JQueryJS",
         ":TerminalCSS",
     ],
@@ -31,6 +33,18 @@ bundle_file(
 bundle_file(
     name = "FaviconPNG",
     src = "favicon.png",
+    package = "assets",
+)
+
+bundle_file(
+    name = "FrontendJS",
+    src = "//Buildbarn/Browser/Frontend",
+    package = "assets",
+)
+
+bundle_file(
+    name = "IndexHTML",
+    src = "index.html",
     package = "assets",
 )
 

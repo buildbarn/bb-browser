@@ -1,0 +1,99 @@
+load("@com_github_edschouten_rules_elm//elm:def.bzl", "elm_binary", "elm_library", "elm_test")
+load("@com_github_edschouten_rules_elm//proto:def.bzl", "elm_proto_library")
+
+elm_proto_library(
+    name = "CAS",
+    proto = "@com_github_buildbarn_bb_storage//pkg/proto/cas:cas_proto",
+)
+
+elm_proto_library(
+    name = "REv2",
+    proto = "@com_github_bazelbuild_remote_apis//build/bazel/remote/execution/v2:remoteexecution_proto",
+)
+
+elm_library(
+    name = "libFrontend",
+    srcs = [
+        "Api.elm",
+        "Error.elm",
+        "Page.elm",
+        "Page/Action.elm",
+        "Page/Command.elm",
+        "Page/Directory.elm",
+        "Page/NotFound.elm",
+        "Page/Tree.elm",
+        "Page/Welcome.elm",
+    ],
+    deps = [
+        ":CAS",
+        ":Digest",
+        ":REv2",
+        ":Route",
+        ":Shell",
+        ":Terminal",
+        "@elm_package_elm_browser",
+        "@elm_package_elm_html",
+        "@elm_package_elm_http",
+        "@elm_package_rundis_elm_bootstrap",
+    ],
+)
+
+elm_library(
+    name = "Digest",
+    srcs = ["Digest.elm"],
+    deps = [":REv2"],
+)
+
+elm_library(
+    name = "Route",
+    srcs = ["Route.elm"],
+    deps = [
+        ":Digest",
+        "@elm_package_elm_url",
+    ],
+)
+
+elm_test(
+    name = "RouteTest",
+    main = "RouteTest.elm",
+    deps = [
+        ":Route",
+        "@elm_package_elm_explorations_test",
+    ],
+)
+
+elm_library(
+    name = "Shell",
+    srcs = ["Shell.elm"],
+)
+
+elm_test(
+    name = "ShellTest",
+    main = "ShellTest.elm",
+    deps = [
+        ":Shell",
+        "@elm_package_elm_explorations_test",
+    ],
+)
+
+elm_library(
+    name = "Terminal",
+    srcs = ["Terminal.elm"],
+    deps = ["@elm_package_elm_parser"],
+)
+
+elm_test(
+    name = "TerminalTest",
+    main = "TerminalTest.elm",
+    deps = [
+        ":Terminal",
+        "@elm_package_elm_explorations_test",
+    ],
+)
+
+elm_binary(
+    name = "Frontend",
+    main = "Main.elm",
+    visibility = ["//visibility:public"],
+    deps = [":libFrontend"],
+)

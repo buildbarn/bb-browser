@@ -12,12 +12,16 @@ type AssetService struct {
 
 func NewAssetService(router *mux.Router) *AssetService {
 	s := &AssetService{}
+	router.HandleFunc("/",
+		s.handleRequest(assets.IndexHTML, "text/html; charset=utf-8"))
 	router.HandleFunc("/bootstrap.css",
 		s.handleRequest(assets.BootstrapCSS, "text/css"))
 	router.HandleFunc("/bootstrap.js",
 		s.handleRequest(assets.BootstrapJS, "application/javascript"))
 	router.HandleFunc("/favicon.png",
 		s.handleRequest(assets.FaviconPNG, "image/png"))
+	router.HandleFunc("/frontend.js",
+		s.handleRequest(assets.FrontendJS, "application/javascript"))
 	router.HandleFunc("/jquery.js",
 		s.handleRequest(assets.JQueryJS, "application/javascript"))
 	router.HandleFunc("/terminal.css",

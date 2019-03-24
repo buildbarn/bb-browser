@@ -12,7 +12,7 @@
 		<tr class="text-monospace">
 			<td>drwxr‑xr‑x</td>
 			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
-			<td style="width: 100%"><a href="/directory/{{$instance}}/{{.Digest.Hash}}/{{.Digest.SizeBytes}}/">{{.Name}}</a>/</td>
+			<td style="width: 100%"><a href="/#directory/{{$instance}}/{{.Digest.Hash}}/{{.Digest.SizeBytes}}">{{.Name}}</a>/</td>
 		</tr>
 	{{end}}
 	{{range .Directory.Symlinks}}
@@ -26,9 +26,9 @@
 		<tr class="text-monospace">
 			<td>‑r‑{{if .IsExecutable}}x{{else}}‑{{end}}r‑{{if .IsExecutable}}x{{else}}‑{{end}}r‑{{if .IsExecutable}}x{{else}}‑{{end}}</td>
 			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
-			<td style="width: 100%"><a href="/file/{{$instance}}/{{.Digest.Hash}}/{{.Digest.SizeBytes}}/{{.Name}}">{{.Name}}</a></td>
+			<td style="width: 100%"><a href="/api/get_file?instance={{$instance}}&amp;hash={{.Digest.Hash}}&amp;size_bytes={{.Digest.SizeBytes}}&amp;name={{.Name}}">{{.Name}}</a></td>
 		</tr>
 	{{end}}
 </table>
 
-<a class="btn btn-primary" href="/directory/{{.Digest.GetInstance}}/{{.Digest.GetHashString}}/{{.Digest.GetSizeBytes}}/?format=tar" role="button">Download as tarball</a>
+<a class="btn btn-primary" href="/api/get_directory_tarball?instance={{.Digest.GetInstance}}&amp;hash={{.Digest.GetHashString}}&amp;size_bytes={{.Digest.GetSizeBytes}}" role="button">Download as tarball</a>

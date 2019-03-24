@@ -1,23 +1,17 @@
 package main
 
 import (
-	"archive/tar"
-	"compress/gzip"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
-	"fmt"
 	"html/template"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
-	"path"
 	"strconv"
 	"strings"
-	"unicode/utf8"
 
 	buildeventstream "github.com/bazelbuild/bazel/src/main/java/com/google/devtools/build/lib/buildeventstream/proto"
 	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
@@ -29,7 +23,6 @@ import (
 	"github.com/buildkite/terminal"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/mux"
-	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"github.com/matttproud/golang_protobuf_extensions/pbutil"
 
 	"google.golang.org/grpc/codes"
@@ -48,17 +41,6 @@ func getDigestFromRequest(req *http.Request) (*util.Digest, error) {
 			Hash:      vars["hash"],
 			SizeBytes: sizeBytes,
 		})
-}
-
-// Generates a Context from an incoming HTTP request, forwarding any
-// 'Authorization' header as gRPC 'authorization' metadata.
-func extractContextFromRequest(req *http.Request) context.Context {
-	ctx := req.Context()
-	md := metautils.ExtractIncoming(ctx)
-	if authorization := req.Header.Get("Authorization"); authorization != "" {
-		md.Set("authorization", authorization)
-	}
-	return md.ToIncoming(ctx)
 }
 
 // BrowserService implements a web service that can be used to explore
@@ -81,21 +63,11 @@ func NewBrowserService(contentAddressableStorage cas.ContentAddressableStorage, 
 		actionCache:                         actionCache,
 		templates:                           templates,
 	}
-	router.HandleFunc("/", s.handleWelcome)
 	router.HandleFunc("/action/{instance}/{hash}/{sizeBytes}/", s.handleAction)
 	router.HandleFunc("/build_events/{instance}/{invocationID}", s.handleBuildEvents)
-	router.HandleFunc("/command/{instance}/{hash}/{sizeBytes}/", s.handleCommand)
-	router.HandleFunc("/directory/{instance}/{hash}/{sizeBytes}/", s.handleDirectory)
-	router.HandleFunc("/file/{instance}/{hash}/{sizeBytes}/{name}", s.handleFile)
 	router.HandleFunc("/tree/{instance}/{hash}/{sizeBytes}/{subdirectory:(?:.*/)?}", s.handleTree)
 	router.HandleFunc("/uncached_action_result/{instance}/{hash}/{sizeBytes}/", s.handleUncachedActionResult)
 	return s
-}
-
-func (s *BrowserService) handleWelcome(w http.ResponseWriter, req *http.Request) {
-	if err := s.templates.ExecuteTemplate(w, "page_welcome.html", nil); err != nil {
-		log.Print(err)
-	}
 }
 
 type directoryInfo struct {
@@ -457,177 +429,6 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 	}
 }
 
-func (s *BrowserService) handleCommand(w http.ResponseWriter, req *http.Request) {
-	digest, err := getDigestFromRequest(req)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	ctx := extractContextFromRequest(req)
-	command, err := s.contentAddressableStorage.GetCommand(ctx, digest)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if err := s.templates.ExecuteTemplate(w, "page_command.html", command); err != nil {
-		log.Print(err)
-	}
-}
-
-func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Writer, digest *util.Digest, directory *remoteexecution.Directory, directoryPath string, getDirectory func(context.Context, *util.Digest) (*remoteexecution.Directory, error)) error {
-	// Emit child directories.
-	for _, directoryNode := range directory.Directories {
-		childPath := path.Join(directoryPath, directoryNode.Name)
-		if err := w.WriteHeader(&tar.Header{
-			Typeflag: tar.TypeDir,
-			Name:     childPath,
-			Mode:     0777,
-		}); err != nil {
-			return err
-		}
-		childDigest, err := digest.NewDerivedDigest(directoryNode.Digest)
-		if err != nil {
-			return err
-		}
-		childDirectory, err := getDirectory(ctx, childDigest)
-		if err != nil {
-			return err
-		}
-		if err := s.generateTarballDirectory(ctx, w, childDigest, childDirectory, childPath, getDirectory); err != nil {
-			return err
-		}
-	}
-
-	// Emit symlinks.
-	for _, symlinkNode := range directory.Symlinks {
-		childPath := path.Join(directoryPath, symlinkNode.Name)
-		if err := w.WriteHeader(&tar.Header{
-			Typeflag: tar.TypeSymlink,
-			Name:     childPath,
-			Linkname: symlinkNode.Target,
-			Mode:     0777,
-		}); err != nil {
-			return err
-		}
-	}
-
-	// Emit regular files.
-	for _, fileNode := range directory.Files {
-		childPath := path.Join(directoryPath, fileNode.Name)
-		mode := int64(0666)
-		if fileNode.IsExecutable {
-			mode = 0777
-		}
-		if err := w.WriteHeader(&tar.Header{
-			Typeflag: tar.TypeReg,
-			Name:     childPath,
-			Size:     fileNode.Digest.SizeBytes,
-			Mode:     mode,
-		}); err != nil {
-			return err
-		}
-
-		childDigest, err := digest.NewDerivedDigest(fileNode.Digest)
-		if err != nil {
-			return err
-		}
-		_, r, err := s.contentAddressableStorageBlobAccess.Get(ctx, childDigest)
-		if err != nil {
-			return err
-		}
-		_, err = io.Copy(w, r)
-		r.Close()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (s *BrowserService) generateTarball(ctx context.Context, w http.ResponseWriter, digest *util.Digest, directory *remoteexecution.Directory, getDirectory func(context.Context, *util.Digest) (*remoteexecution.Directory, error)) {
-	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.tar.gz\"", digest.GetHashString()))
-	w.Header().Set("Content-Type", "application/gzip")
-	gzipWriter := gzip.NewWriter(w)
-	tarWriter := tar.NewWriter(gzipWriter)
-	if err := s.generateTarballDirectory(ctx, tarWriter, digest, directory, "", getDirectory); err != nil {
-		// TODO(edsch): Any way to propagate this to the client?
-		log.Print(err)
-		return
-	}
-	if err := tarWriter.Close(); err != nil {
-		log.Print(err)
-		return
-	}
-	if err := gzipWriter.Close(); err != nil {
-		log.Print(err)
-		return
-	}
-}
-
-func (s *BrowserService) handleDirectory(w http.ResponseWriter, req *http.Request) {
-	digest, err := getDigestFromRequest(req)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	ctx := extractContextFromRequest(req)
-	directory, err := s.contentAddressableStorage.GetDirectory(ctx, digest)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if req.URL.Query().Get("format") == "tar" {
-		s.generateTarball(ctx, w, digest, directory, s.contentAddressableStorage.GetDirectory)
-	} else {
-		if err := s.templates.ExecuteTemplate(w, "page_directory.html", directoryInfo{
-			Digest:    digest,
-			Directory: directory,
-		}); err != nil {
-			log.Print(err)
-		}
-	}
-}
-
-func (s *BrowserService) handleFile(w http.ResponseWriter, req *http.Request) {
-	digest, err := getDigestFromRequest(req)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	ctx := extractContextFromRequest(req)
-	_, r, err := s.contentAddressableStorageBlobAccess.Get(ctx, digest)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	defer r.Close()
-
-	// Attempt to read the first chunk of data to see whether we can
-	// trigger an error. Only when no error occurs, we start setting
-	// response headers.
-	var first [4096]byte
-	n, err := r.Read(first[:])
-	if err != nil && err != io.EOF {
-		// TODO(edsch): Convert error code.
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	w.Header().Set("Content-Length", strconv.FormatInt(digest.GetSizeBytes(), 10))
-	if utf8.ValidString(string(first[:])) {
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	} else {
-		w.Header().Set("Content-Type", "application/octet-stream")
-	}
-	w.Write(first[:n])
-	io.Copy(w, r)
-}
-
 func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 	digest, err := getDigestFromRequest(req)
 	if err != nil {
@@ -645,9 +446,11 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 		Instance           string
 		Directory          *remoteexecution.Directory
 		HasParentDirectory bool
+		Subdirectory       string
 	}{
-		Instance:  digest.GetInstance(),
-		Directory: tree.Root,
+		Instance:     digest.GetInstance(),
+		Directory:    tree.Root,
+		Subdirectory: mux.Vars(req)["subdirectory"],
 	}
 
 	// Construct map of all child directories.
@@ -669,7 +472,7 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 	// In case additional directory components are provided, we need
 	// to traverse the directories stored within.
 	for _, component := range strings.FieldsFunc(
-		mux.Vars(req)["subdirectory"],
+		treeInfo.Subdirectory,
 		func(r rune) bool { return r == '/' }) {
 		// Find child with matching name.
 		childNode := func() *remoteexecution.DirectoryNode {
@@ -700,19 +503,7 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 		treeInfo.Directory = childDirectory
 	}
 
-	if req.URL.Query().Get("format") == "tar" {
-		s.generateTarball(
-			ctx, w, digest, treeInfo.Directory,
-			func(ctx context.Context, digest *util.Digest) (*remoteexecution.Directory, error) {
-				childDirectory, ok := children[digest.GetKey(util.DigestKeyWithoutInstance)]
-				if !ok {
-					return nil, errors.New("Failed to find child node in tree")
-				}
-				return childDirectory, nil
-			})
-	} else {
-		if err := s.templates.ExecuteTemplate(w, "page_tree.html", &treeInfo); err != nil {
-			log.Print(err)
-		}
+	if err := s.templates.ExecuteTemplate(w, "page_tree.html", &treeInfo); err != nil {
+		log.Print(err)
 	}
 }

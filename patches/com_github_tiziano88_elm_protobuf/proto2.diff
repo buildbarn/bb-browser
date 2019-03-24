@@ -1,0 +1,15 @@
+diff --git protoc-gen-elm/main.go protoc-gen-elm/main.go
+index db6b9f3..d01d06a 100644
+--- protoc-gen-elm/main.go
++++ protoc-gen-elm/main.go
+@@ -156,10 +156,6 @@ func hasMapEntriesInMessage(inMessage *descriptor.DescriptorProto) bool {
+ }
+ 
+ func processFile(inFile *descriptor.FileDescriptorProto) (*plugin.CodeGeneratorResponse_File, error) {
+-	if inFile.GetSyntax() != "proto3" {
+-		return nil, fmt.Errorf("Only proto3 syntax is supported")
+-	}
+-
+ 	outFile := &plugin.CodeGeneratorResponse_File{}
+ 
+ 	inFilePath := inFile.GetName()

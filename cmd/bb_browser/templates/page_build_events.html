@@ -148,7 +148,7 @@
 															{{$digest := . | build_event_file_to_digest}}
 															{{if $digest}}
 																<td style="text-align: right">{{$digest.GetSizeBytes}}</td>
-																<td style="width: 100%"><a href="/file/{{$digest.GetInstance}}/{{$digest.GetHashString}}/{{$digest.GetSizeBytes}}/{{.Name | basename}}">{{.Name}}</a></td>
+																<td style="width: 100%"><a href="/api/get_file?instance={{$digest.GetInstance}}&amp;hash={{$digest.GetHashString}}&amp;size_bytes={{$digest.GetSizeBytes}}&amp;name={{.Name | basename}}">{{.Name}}</a></td>
 															{{else}}
 																<td></td>
 																<td style="width: 100%">{{.Name}}</td>
@@ -178,7 +178,7 @@
 																{{range .}}
 																	{{$digest := . | build_event_file_to_digest}}
 																	{{if $digest}}
-																		<a href="/file/{{$digest.GetInstance}}/{{$digest.GetHashString}}/{{$digest.GetSizeBytes}}/test.log">{{$index}}</a>
+																		<a href="/api/get_file?instance={{$digest.GetInstance}}&amp;hash={{$digest.GetHashString}}&amp;size_bytes={{$digest.GetSizeBytes}}&amp;name=test.log">{{$index}}</a>
 																	{{else}}
 																		{{$index}}
 																	{{end}}
@@ -195,7 +195,7 @@
 																{{range .}}
 																	{{$digest := . | build_event_file_to_digest}}
 																	{{if $digest}}
-																		<a href="/file/{{$digest.GetInstance}}/{{$digest.GetHashString}}/{{$digest.GetSizeBytes}}/test.log">{{$index}}</a>
+																		<a href="/api/get_file?instance={{$digest.GetInstance}}&amp;hash={{$digest.GetHashString}}&amp;size_bytes={{$digest.GetSizeBytes}}&amp;name=test.log">{{$index}}</a>
 																	{{else}}
 																		{{$index}}
 																	{{end}}

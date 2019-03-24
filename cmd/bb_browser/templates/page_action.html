@@ -27,7 +27,7 @@
 This action could not be found.
 {{end}}
 
-<h2 class="my-4">Command{{if .Action}}<sup><a href="/command/{{$instance}}/{{.Action.CommandDigest.Hash}}/{{.Action.CommandDigest.SizeBytes}}/">*</a></sup>{{end}}</h2>
+<h2 class="my-4">Command{{if .Action}}<sup><a href="/#command/{{$instance}}/{{.Action.CommandDigest.Hash}}/{{.Action.CommandDigest.SizeBytes}}">*</a></sup>{{end}}</h2>
 
 {{if .Command}}
 {{template "view_command.html" .Command}}
@@ -57,7 +57,7 @@ The command of this action could not be found.
 The action result of this action could not be found.
 {{end}}
 
-<h2 class="my-4">Input files{{if .Action}}<sup><a href="/directory/{{$instance}}/{{.Action.InputRootDigest.Hash}}/{{.Action.InputRootDigest.SizeBytes}}/">*</a></sup>{{end}}</h2>
+<h2 class="my-4">Input files{{if .Action}}<sup><a href="/#directory/{{$instance}}/{{.Action.InputRootDigest.Hash}}/{{.Action.InputRootDigest.SizeBytes}}">*</a></sup>{{end}}</h2>
 
 {{if .InputRoot}}
 {{template "view_directory.html" .InputRoot}}
@@ -93,7 +93,7 @@ The input root of this action could not be found.
 		<tr class="text-monospace">
 			<td>‑rw{{if .IsExecutable}}x{{else}}‑{{end}}r‑{{if .IsExecutable}}x{{else}}‑{{end}}r‑{{if .IsExecutable}}x{{else}}‑{{end}}</td>
 			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
-			<td style="width: 100%"><a class="text-success" href="/file/{{$instance}}/{{.Digest.Hash}}/{{.Digest.SizeBytes}}/{{basename .Path}}">{{.Path}}</a></td>
+			<td style="width: 100%"><a class="text-success" href="/api/get_file?instance={{$instance}}&amp;hash={{.Digest.Hash}}&amp;size_bytes={{.Digest.SizeBytes}}&amp;name={{basename .Path}}">{{.Path}}</a></td>
 		</tr>
 	{{end}}
 	{{range .MissingDirectories}}

@@ -34,6 +34,10 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to create blob access: ", err)
 	}
+	contentAddressableStorage := cas.NewBlobAccessContentAddressableStorage(
+		contentAddressableStorageBlobAccess,
+		*maximumMessageSize)
+	actionCache := ac.NewBlobAccessActionCache(actionCacheBlobAccess)
 
 	templates, err := template.New("templates").Funcs(template.FuncMap{
 		"basename": path.Base,
@@ -69,13 +73,16 @@ func main() {
 	router := mux.NewRouter()
 	router.Handle("/metrics", promhttp.Handler())
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+	NewAPIService(
+		contentAddressableStorage,
+		contentAddressableStorageBlobAccess,
+		actionCache,
+		router)
 	NewAssetService(router)
 	NewBrowserService(
-		cas.NewBlobAccessContentAddressableStorage(
-			contentAddressableStorageBlobAccess,
-			*maximumMessageSize),
+		contentAddressableStorage,
 		contentAddressableStorageBlobAccess,
-		ac.NewBlobAccessActionCache(actionCacheBlobAccess),
+		actionCache,
 		templates,
 		router)
 	log.Fatal(http.ListenAndServe(*webListenAddress, router))

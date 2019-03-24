@@ -1,0 +1,77 @@
+diff --git protoc-gen-elm/main.go protoc-gen-elm/main.go
+index db6b9f3..dfce867 100644
+--- protoc-gen-elm/main.go
++++ protoc-gen-elm/main.go
+@@ -267,6 +267,8 @@ func (fg *FileGenerator) GenerateBaseImports() {
+ 	fg.P("")
+ 	fg.P("import Protobuf exposing (..)")
+ 	fg.P("")
++	fg.P("import Bytes exposing (Bytes)")
++	fg.P("import Bytes.Encode as BE")
+ 	fg.P("import Json.Decode as JD")
+ 	fg.P("import Json.Encode as JE")
+ }
+diff --git protoc-gen-elm/message.go protoc-gen-elm/message.go
+index f6988db..b5c068f 100644
+--- protoc-gen-elm/message.go
++++ protoc-gen-elm/message.go
+@@ -375,7 +375,7 @@ func fieldDefaultValue(inField *descriptor.FieldDescriptorProto) string {
+ 	case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
+ 		return "xxx"
+ 	case descriptor.FieldDescriptorProto_TYPE_BYTES:
+-		return "[]"
++		return "(BE.encode (BE.string \"\"))"
+ 	default:
+ 		return fmt.Sprintf("Error generating decoder for field %s", inField.GetType())
+ 	}
+diff --git src/Protobuf.elm src/Protobuf.elm
+index 1a2ea5c..d3b5407 100644
+--- src/Protobuf.elm
++++ src/Protobuf.elm
+@@ -2,7 +2,7 @@ module Protobuf exposing
+     ( decode, required, optional, repeated, field
+     , withDefault, intDecoder, fromResult
+     , requiredFieldEncoder, optionalEncoder, repeatedFieldEncoder, numericStringEncoder, mapEntriesFieldEncoder, mapEntries
+-    , Bytes, bytesFieldDecoder, bytesFieldEncoder
++    , bytesFieldDecoder, bytesFieldEncoder
+     , Timestamp, timestampDecoder, timestampEncoder
+     , intValueDecoder, intValueEncoder
+     , stringValueDecoder, stringValueEncoder
+@@ -31,7 +31,7 @@ Buffer compiler](https://github.com/tiziano88/elm-protobuf).
+ 
+ # Bytes
+ 
+-@docs Bytes, bytesFieldDecoder, bytesFieldEncoder
++@docs bytesFieldDecoder, bytesFieldEncoder
+ 
+ 
+ # Well Known Types
+@@ -50,6 +50,8 @@ Buffer compiler](https://github.com/tiziano88/elm-protobuf).
+ 
+ -}
+ 
++import Bytes exposing (Bytes)
++import Bytes.Encode as BE
+ import ISO8601
+ import Json.Decode as JD
+ import Json.Encode as JE
+@@ -156,18 +158,12 @@ mapEntriesFieldEncoder name valueEncoder v =
+             Just ( name, JE.object encodedItems)
+ 
+ 
+-{-| Bytes field.
+--}
+-type alias Bytes =
+-    List Int
+-
+-
+ {-| Decodes a bytes field.
+ TODO: Implement.
+ -}
+ bytesFieldDecoder : JD.Decoder Bytes
+ bytesFieldDecoder =
+-    JD.succeed []
++    JD.succeed (BE.encode (BE.string ""))
+ 
+ 
+ {-| Encodes a bytes field.

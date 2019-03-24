@@ -1,0 +1,20 @@
+diff --git protoc-gen-elm/main.go protoc-gen-elm/main.go
+index db6b9f3..e35b1da 100644
+--- protoc-gen-elm/main.go
++++ protoc-gen-elm/main.go
+@@ -102,15 +102,11 @@ func main() {
+ 		inFile.SourceCodeInfo = nil
+ 	}
+ 
+-	log.Printf("Input data: %v", proto.MarshalTextString(req))
+-
+ 	resp := &plugin.CodeGeneratorResponse{}
+ 
+ 	for _, inFile := range req.GetProtoFile() {
+-		log.Printf("Processing file %s", inFile.GetName())
+ 		// Well Known Types.
+ 		if excludedFiles[inFile.GetName()] {
+-			log.Printf("Skipping well known type")
+ 			continue
+ 		}
+ 		outFile, err := processFile(inFile)

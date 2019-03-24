@@ -1,0 +1,28 @@
+diff --git proto/def.bzl proto/def.bzl
+index c6d53a9..63ca43a 100644
+--- proto/def.bzl
++++ proto/def.bzl
+@@ -64,7 +64,7 @@ def _elm_proto_library_aspect_impl(target, ctx):
+         )
+         return [
+             _create_elm_library_provider(
+-                ctx.rule.attr.deps + [ctx.attr._protobuf_library],
++                ctx.rule.attr.deps + ctx.attr._elm_deps,
+                 [],
+                 [],
+                 [outpath],
+@@ -96,8 +96,12 @@ _elm_proto_library_aspect = aspect(
+             cfg = "host",
+             default = Label("@com_github_tiziano88_elm_protobuf//protoc-gen-elm"),
+         ),
+-        "_protobuf_library": attr.label(
+-            default = Label("@elm_package_tiziano88_elm_protobuf"),
++        "_elm_deps": attr.label_list(
++            default = [
++                Label("@elm_package_elm_bytes"),
++                Label("@elm_package_elm_json"),
++                Label("@elm_package_tiziano88_elm_protobuf"),
++            ],
+         ),
+     },
+ )
