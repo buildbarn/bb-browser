@@ -55,6 +55,10 @@ func (n *defaultNode) addConfigurationNode(child *ConfigurationNode) error {
 	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
 }
 
+func (n *defaultNode) addConfiguredLabelNode(child *ConfiguredLabelNode) error {
+	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
+}
+
 func (n *defaultNode) addFetchNode(child *FetchNode) error {
 	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
 }
@@ -191,6 +195,16 @@ type ConfigurationNode struct {
 
 	ID      *buildeventstream.BuildEventId_ConfigurationId
 	Payload *buildeventstream.Configuration
+}
+
+// ConfiguredLabelNode corresponds to a Build Event Protocol message with
+// BuildEventID kind `configured_label` and BuildEvent payload kind
+// `aborted`.
+type ConfiguredLabelNode struct {
+	defaultNode
+
+	ID      *buildeventstream.BuildEventId_ConfiguredLabelId
+	Payload *buildeventstream.Aborted
 }
 
 // FetchNode corresponds to a Build Event Protocol message with
@@ -524,6 +538,14 @@ func (n *TargetCompletedNode) addTestSummaryNode(child *TestSummaryNode) error {
 	return nil
 }
 
+func (n *TargetCompletedNode) addConfiguredLabelNode(child *ConfiguredLabelNode) error {
+	if n.Aborted == nil {
+		return status.Error(codes.InvalidArgument, "Cannot set value on target that completed successfully")
+	}
+	n.Aborted.ConfiguredLabels = append(n.Aborted.ConfiguredLabels, child)
+	return nil
+}
+
 func (n *TargetCompletedNode) addUnconfiguredLabelNode(child *UnconfiguredLabelNode) error {
 	if n.Aborted == nil {
 		return status.Error(codes.InvalidArgument, "Cannot set value on target that completed successfully")
@@ -565,6 +587,7 @@ func (n *TargetCompletedSuccess) isSuccess() bool {
 type TargetCompletedAborted struct {
 	aborted
 
+	ConfiguredLabels   []*ConfiguredLabelNode
 	UnconfiguredLabels []*UnconfiguredLabelNode
 }
 

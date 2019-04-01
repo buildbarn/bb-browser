@@ -17,6 +17,7 @@ type node interface {
 	addBuildMetricsNode(child *BuildMetricsNode) error
 	addBuildToolLogsNode(child *BuildToolLogsNode) error
 	addConfigurationNode(child *ConfigurationNode) error
+	addConfiguredLabelNode(child *ConfiguredLabelNode) error
 	addFetchNode(child *FetchNode) error
 	addNamedSetNode(child *NamedSetNode) error
 	addOptionsParsedNode(child *OptionsParsedNode) error
@@ -185,6 +186,25 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		}
 		if err := parent.addConfigurationNode(n); err != nil {
 			return util.StatusWrapf(err, "Cannot add \"Configuration\" node with ID %#v", key)
+		}
+		newChild = n
+
+	case *buildeventstream.BuildEventId_ConfiguredLabel:
+		payload, ok := event.Payload.(*buildeventstream.BuildEvent_Aborted)
+		if !ok {
+			return status.Error(codes.InvalidArgument, "\"ConfiguredLabel\" build event has an incorrect payload type")
+		}
+
+		n := &ConfiguredLabelNode{
+			ID:      id.ConfiguredLabel,
+			Payload: payload.Aborted,
+		}
+		parent, err := p.getSingleParent(key)
+		if err != nil {
+			return err
+		}
+		if err := parent.addConfiguredLabelNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"ConfiguredLabel\" node with ID %#v", key)
 		}
 		newChild = n
 
