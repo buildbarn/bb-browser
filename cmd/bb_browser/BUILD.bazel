@@ -39,6 +39,15 @@ go_binary(
 )
 
 container_layer(
+    name = "bb_browser_layer_bootstrap",
+    directory = "/static",
+    files = [
+        "@com_github_twbs_bootstrap//:css/bootstrap.min.css",
+        "@com_github_twbs_bootstrap//:js/bootstrap.min.js",
+    ],
+)
+
+container_layer(
     name = "bb_browser_layer_executable",
     files = [":bb_browser"],
 )
@@ -56,6 +65,7 @@ container_image(
     name = "bb_browser_container",
     entrypoint = ["/bb_browser"],
     layers = [
+        ":bb_browser_layer_bootstrap",
         ":bb_browser_layer_executable",
         ":bb_browser_layer_resources",
     ],
