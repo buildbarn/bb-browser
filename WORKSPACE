@@ -1,6 +1,6 @@
 workspace(name = "com_github_buildbarn_bb_browser")
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 
 http_archive(
     name = "bazel_toolchains",
@@ -44,6 +44,12 @@ http_archive(
     sha256 = "888ffd30b7e192381e2f6a948ca04669fdcc2ccc2ba016de00d38c8e30793323",
     strip_prefix = "bootstrap-4.3.1-dist",
     urls = ["https://github.com/twbs/bootstrap/releases/download/v4.3.1/bootstrap-4.3.1-dist.zip"],
+)
+
+http_file(
+    name = "com_jquery_jquery",
+    sha256 = "0497a8d2a9bde7db8c0466fae73e347a3258192811ed1108e3e096d5f34ac0e8",
+    urls = ["https://code.jquery.com/jquery-3.4.0.min.js"],
 )
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")

@@ -1,0 +1,7 @@
+diff --git assets/BUILD.bazel assets/BUILD.bazel
+new file mode 100644
+index 0000000..4e6f75d
+--- /dev/null
++++ assets/BUILD.bazel
+@@ -0,0 +1 @@
++exports_files(["terminal.css"])

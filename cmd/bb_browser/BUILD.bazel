@@ -5,12 +5,14 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "go_default_library",
     srcs = [
+        "asset_service.go",
         "browser_service.go",
         "main.go",
     ],
     importpath = "github.com/buildbarn/bb-browser/cmd/bb_browser",
     visibility = ["//visibility:private"],
     deps = [
+        "//cmd/bb_browser/assets:go_default_library",
         "//pkg/buildevents:go_default_library",
         "@com_github_bazelbuild_bazel//src/main/java/com/google/devtools/build/lib/buildeventstream/proto:go_default_library",
         "@com_github_bazelbuild_remote_apis//build/bazel/remote/execution/v2:go_default_library",
@@ -39,35 +41,22 @@ go_binary(
 )
 
 container_layer(
-    name = "bb_browser_layer_bootstrap",
-    directory = "/static",
-    files = [
-        "@com_github_twbs_bootstrap//:css/bootstrap.min.css",
-        "@com_github_twbs_bootstrap//:js/bootstrap.min.js",
-    ],
-)
-
-container_layer(
     name = "bb_browser_layer_executable",
     files = [":bb_browser"],
 )
 
 container_layer(
-    name = "bb_browser_layer_resources",
+    name = "bb_browser_layer_templates",
     data_path = ".",
-    files = glob([
-        "static/**",
-        "templates/**",
-    ]),
+    files = glob(["templates/**"]),
 )
 
 container_image(
     name = "bb_browser_container",
     entrypoint = ["/bb_browser"],
     layers = [
-        ":bb_browser_layer_bootstrap",
         ":bb_browser_layer_executable",
-        ":bb_browser_layer_resources",
+        ":bb_browser_layer_templates",
     ],
     visibility = ["//visibility:public"],
 )

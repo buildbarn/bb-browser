@@ -4,6 +4,7 @@ def bb_browser_go_dependencies():
     go_repository(
         name = "com_github_buildkite_terminal",
         importpath = "github.com/buildkite/terminal",
+        patches = ["@com_github_buildbarn_bb_browser//:patches/com_github_buildkite_terminal/assets.diff"],
         sha256 = "5d0203bb4dd007ad607df7d0eecbe50ff4bdaa0e56e1ad2ea1eb331ff2ae5be6",
         strip_prefix = "terminal-to-html-3.1.0",
         urls = ["https://github.com/buildkite/terminal-to-html/archive/v3.1.0.tar.gz"],

@@ -69,6 +69,7 @@ func main() {
 	router := mux.NewRouter()
 	router.Handle("/metrics", promhttp.Handler())
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+	NewAssetService(router)
 	NewBrowserService(
 		cas.NewBlobAccessContentAddressableStorage(
 			contentAddressableStorageBlobAccess,
