@@ -16,6 +16,8 @@ func NewAssetService(router *mux.Router) *AssetService {
 		s.handleRequest(assets.BootstrapCSS, "text/css"))
 	router.HandleFunc("/bootstrap.js",
 		s.handleRequest(assets.BootstrapJS, "application/javascript"))
+	router.HandleFunc("/favicon.png",
+		s.handleRequest(assets.FaviconPNG, "image/png"))
 	router.HandleFunc("/jquery.js",
 		s.handleRequest(assets.JQueryJS, "application/javascript"))
 	router.HandleFunc("/terminal.css",

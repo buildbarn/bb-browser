@@ -8,6 +8,7 @@ go_library(
     srcs = [
         ":BootstrapCSS",
         ":BootstrapJS",
+        ":FaviconPNG",
         ":JQueryJS",
         ":TerminalCSS",
     ],
@@ -24,6 +25,12 @@ bundle_file(
 bundle_file(
     name = "BootstrapJS",
     src = "@com_github_twbs_bootstrap//:js/bootstrap.min.js",
+    package = "assets",
+)
+
+bundle_file(
+    name = "FaviconPNG",
+    src = "favicon.png",
     package = "assets",
 )
 
