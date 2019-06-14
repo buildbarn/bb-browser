@@ -1,19 +1,20 @@
 package main
 
 import (
-	"flag"
 	"html/template"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"net/url"
+	"os"
 	"path"
 	"strings"
 	"time"
 
 	buildeventstream "github.com/bazelbuild/bazel/src/main/java/com/google/devtools/build/lib/buildeventstream/proto"
+	"github.com/buildbarn/bb-browser/pkg/configuration"
 	"github.com/buildbarn/bb-storage/pkg/ac"
-	"github.com/buildbarn/bb-storage/pkg/blobstore/configuration"
+	blobstore_configuration "github.com/buildbarn/bb-storage/pkg/blobstore/configuration"
 	"github.com/buildbarn/bb-storage/pkg/cas"
 	"github.com/buildbarn/bb-storage/pkg/util"
 	"github.com/gorilla/mux"
@@ -22,15 +23,17 @@ import (
 )
 
 func main() {
-	var (
-		blobstoreConfig    = flag.String("blobstore-config", "/config/blobstore.conf", "Configuration for blob storage")
-		maximumMessageSize = flag.Int64("maximum-message-size", 16*1024*1024, "Maximum Protobuf message size to unmarshal")
-		webListenAddress   = flag.String("web.listen-address", ":80", "Port on which to expose metrics")
-	)
-	flag.Parse()
+	if len(os.Args) != 2 {
+		log.Fatal("Usage: bb_browser bb_browser.conf")
+	}
+
+	browserConfiguration, err := configuration.GetBrowserConfiguration(os.Args[1])
+	if err != nil {
+		log.Fatalf("Failed to read configuration from %s: %s", os.Args[1], err)
+	}
 
 	// Storage access.
-	contentAddressableStorageBlobAccess, actionCacheBlobAccess, err := configuration.CreateBlobAccessObjectsFromConfig(*blobstoreConfig)
+	contentAddressableStorageBlobAccess, actionCacheBlobAccess, err := blobstore_configuration.CreateBlobAccessObjectsFromConfig(browserConfiguration.Blobstore)
 	if err != nil {
 		log.Fatal("Failed to create blob access: ", err)
 	}
@@ -73,10 +76,10 @@ func main() {
 	NewBrowserService(
 		cas.NewBlobAccessContentAddressableStorage(
 			contentAddressableStorageBlobAccess,
-			*maximumMessageSize),
+			browserConfiguration.MaximumMessageSizeBytes),
 		contentAddressableStorageBlobAccess,
 		ac.NewBlobAccessActionCache(actionCacheBlobAccess),
 		templates,
 		router)
-	log.Fatal(http.ListenAndServe(*webListenAddress, router))
+	log.Fatal(http.ListenAndServe(browserConfiguration.ListenAddress, router))
 }
