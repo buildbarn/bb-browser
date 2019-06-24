@@ -1,4 +1,4 @@
-# Buildbarn Browser
+# Buildbarn Browser [![Build status](https://badge.buildkite.com/e3a50ce641ac264df8fffe8c52931f850f8e00e8852a5c7ee4.svg)](https://buildkite.com/buildbarn/bb-browser)
 
 Buildbarn Browser is a simple web service written in Go that can display
 objects stored in a Content Addressable Storage (CAS) and an Action
