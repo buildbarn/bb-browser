@@ -1,6 +1,7 @@
 workspace(name = "com_github_buildbarn_bb_browser")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 http_archive(
     name = "bazel_toolchains",
@@ -37,6 +38,17 @@ http_archive(
     sha256 = "be9296bfd64882e3c08e3283c58fcb461fa6dd3c171764fcc4cf322f60615a9b",
 )
 
+git_repository(
+    name = "com_google_protobuf",
+    commit = "09745575a923640154bcf307fba8aedff47f240a",
+    remote = "https://github.com/protocolbuffers/protobuf",
+    shallow_since = "1558721209 -0700",
+)
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
+
 http_archive(
     name = "com_github_bazelbuild_bazel",
     patches = ["//:patches/com_github_bazelbuild_bazel/build_event_stream.diff"],
@@ -60,9 +72,9 @@ http_file(
 
 http_archive(
     name = "com_github_buildbarn_bb_deployments",
-    sha256 = "3c3f3acc40a829ce30f9e593b2ad48d2016386bfbbb70f0e36f47fb49a9d6ea0",
-    strip_prefix = "bb-deployments-5b304a6df814ba5c7f862557cfdf2ec365f5a682",
-    url = "https://github.com/buildbarn/bb-deployments/archive/5b304a6df814ba5c7f862557cfdf2ec365f5a682.tar.gz",
+    sha256 = "466189141613ef42ea6e83ff4e9d21175e072f8b72e56d9767fc8684676f0dfd",
+    strip_prefix = "bb-deployments-819bf30e1b4fc8b9e7d9b62f631bd183d74fa54b",
+    url = "https://github.com/buildbarn/bb-deployments/archive/819bf30e1b4fc8b9e7d9b62f631bd183d74fa54b.tar.gz",
 )
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
