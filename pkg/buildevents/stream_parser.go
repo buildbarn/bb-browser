@@ -31,6 +31,7 @@ type node interface {
 	addTestSummaryNode(child *TestSummaryNode) error
 	addUnconfiguredLabelNode(child *UnconfiguredLabelNode) error
 	addUnstructuredCommandLineNode(child *UnstructuredCommandLineNode) error
+	addWorkspaceConfigNode(child *WorkspaceConfigNode) error
 	addWorkspaceStatusNode(child *WorkspaceStatusNode) error
 }
 
@@ -528,6 +529,25 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		}
 		if err := parent.addWorkspaceStatusNode(n); err != nil {
 			return util.StatusWrapf(err, "Cannot add \"WorkspaceStatus\" node with ID %#v", key)
+		}
+		newChild = n
+
+	case *buildeventstream.BuildEventId_Workspace:
+		payload, ok := event.Payload.(*buildeventstream.BuildEvent_WorkspaceInfo)
+		if !ok {
+			return status.Error(codes.InvalidArgument, "\"WorkspaceConfig\" build event has an incorrect payload type")
+		}
+
+		n := &WorkspaceConfigNode{
+			ID: id.Workspace,
+			Payload: payload.WorkspaceInfo,
+		}
+		parent, err := p.getSingleParent(key)
+		if err != nil {
+			return err
+		}
+		if err := parent.addWorkspaceConfigNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"WorkspaceConfig\" node with ID %#v", key)
 		}
 		newChild = n
 

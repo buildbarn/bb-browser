@@ -111,6 +111,10 @@ func (n *defaultNode) addUnstructuredCommandLineNode(child *UnstructuredCommandL
 	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
 }
 
+func (n *defaultNode) addWorkspaceConfigNode(child *WorkspaceConfigNode) error {
+	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
+}
+
 func (n *defaultNode) addWorkspaceStatusNode(child *WorkspaceStatusNode) error {
 	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
 }
@@ -342,6 +346,7 @@ type ProgressNode struct {
 	NamedSets        []*NamedSetNode
 	Patterns         []*PatternNode
 	Progress         *ProgressNode
+	WorkspaceConfig  *WorkspaceConfigNode
 }
 
 func (n *ProgressNode) addActionCompletedNode(child *ActionCompletedNode) error {
@@ -393,6 +398,14 @@ func (n *ProgressNode) addProgressNode(child *ProgressNode) error {
 		return status.Error(codes.InvalidArgument, "Value already set")
 	}
 	n.Progress = child
+	return nil
+}
+
+func (n *ProgressNode) addWorkspaceConfigNode(child *WorkspaceConfigNode) error {
+	if n.WorkspaceConfig != nil {
+		return status.Error(codes.InvalidArgument, "Value already set")
+	}
+	n.WorkspaceConfig = child
 	return nil
 }
 
@@ -750,4 +763,14 @@ type WorkspaceStatusNode struct {
 
 	ID      *buildeventstream.BuildEventId_WorkspaceStatusId
 	Payload *buildeventstream.WorkspaceStatus
+}
+
+// WorkspaceConfigNode corresponds to a Build Event Protocol message
+// with BuildEventID kind `workspace` and BuildEvent payload kind
+// `workspace_info`.
+type WorkspaceConfigNode struct {
+	defaultNode
+
+	ID      *buildeventstream.BuildEventId_WorkspaceConfigId
+	Payload *buildeventstream.WorkspaceConfig
 }
