@@ -72,9 +72,9 @@ http_file(
 
 http_archive(
     name = "com_github_buildbarn_bb_deployments",
-    sha256 = "466189141613ef42ea6e83ff4e9d21175e072f8b72e56d9767fc8684676f0dfd",
-    strip_prefix = "bb-deployments-819bf30e1b4fc8b9e7d9b62f631bd183d74fa54b",
-    url = "https://github.com/buildbarn/bb-deployments/archive/819bf30e1b4fc8b9e7d9b62f631bd183d74fa54b.tar.gz",
+    sha256 = "cf910624a50d3f1f4c8af98d96f4ff7cbdd51f2c107315ac835256776a41df1c",
+    strip_prefix = "bb-deployments-cf505b7f363ce87798a367d6741b8f550a5e077a",
+    url = "https://github.com/buildbarn/bb-deployments/archive/cf505b7f363ce87798a367d6741b8f550a5e077a.tar.gz",
 )
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
