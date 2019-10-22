@@ -87,7 +87,7 @@ Buildbarn Browser uses the same storage layer as
 access various types of storage backends (S3, Redis, etc.). In the example
 above, it's been configured to simply forward storage access requests to
 gRPC service `bb-storage:8980`.  Please refer to
-[the configuration file's schema](https://github.com/buildbarn/bb-storage/blob/master/pkg/proto/blobstore/blobstore.proto)
+[the configuration file's schema](https://github.com/buildbarn/bb-storage/blob/master/pkg/proto/configuration/blobstore/blobstore.proto)
 for more information on how storage access may be configured.
 
 Prebuilt container images of Buildbarn Browser may be found on
