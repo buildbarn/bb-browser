@@ -11,7 +11,7 @@ import (
 	"time"
 
 	buildeventstream "github.com/bazelbuild/bazel/src/main/java/com/google/devtools/build/lib/buildeventstream/proto"
-	"github.com/buildbarn/bb-browser/pkg/configuration"
+	"github.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browser"
 	blobstore_configuration "github.com/buildbarn/bb-storage/pkg/blobstore/configuration"
 	"github.com/buildbarn/bb-storage/pkg/cas"
 	"github.com/buildbarn/bb-storage/pkg/util"
@@ -22,18 +22,17 @@ import (
 
 func main() {
 	if len(os.Args) != 2 {
-		log.Fatal("Usage: bb_browser bb_browser.conf")
+		log.Fatal("Usage: bb_browser bb_browser.jsonnet")
 	}
-
-	browserConfiguration, err := configuration.GetBrowserConfiguration(os.Args[1])
-	if err != nil {
+	var configuration bb_browser.ApplicationConfiguration
+	if err := util.UnmarshalConfigurationFromFile(os.Args[1], &configuration); err != nil {
 		log.Fatalf("Failed to read configuration from %s: %s", os.Args[1], err)
 	}
 
 	// Storage access.
 	contentAddressableStorageBlobAccess, actionCacheBlobAccess, err := blobstore_configuration.CreateBlobAccessObjectsFromConfig(
-		browserConfiguration.Blobstore,
-		int(browserConfiguration.MaximumMessageSizeBytes))
+		configuration.Blobstore,
+		int(configuration.MaximumMessageSizeBytes))
 	if err != nil {
 		log.Fatal("Failed to create blob access: ", err)
 	}
@@ -73,11 +72,11 @@ func main() {
 	NewBrowserService(
 		cas.NewBlobAccessContentAddressableStorage(
 			contentAddressableStorageBlobAccess,
-			int(browserConfiguration.MaximumMessageSizeBytes)),
+			int(configuration.MaximumMessageSizeBytes)),
 		contentAddressableStorageBlobAccess,
 		actionCacheBlobAccess,
-		int(browserConfiguration.MaximumMessageSizeBytes),
+		int(configuration.MaximumMessageSizeBytes),
 		templates,
 		router)
-	log.Fatal(http.ListenAndServe(browserConfiguration.ListenAddress, router))
+	log.Fatal(http.ListenAndServe(configuration.ListenAddress, router))
 }
