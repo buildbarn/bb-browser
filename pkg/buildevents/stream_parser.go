@@ -539,7 +539,7 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		}
 
 		n := &WorkspaceConfigNode{
-			ID: id.Workspace,
+			ID:      id.Workspace,
 			Payload: payload.WorkspaceInfo,
 		}
 		parent, err := p.getSingleParent(key)
