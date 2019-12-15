@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"path"
-	"strings"
 	"time"
 
 	buildeventstream "github.com/bazelbuild/bazel/src/main/java/com/google/devtools/build/lib/buildeventstream/proto"
@@ -58,10 +57,7 @@ func main() {
 		"inc": func(n int) int {
 			return n + 1
 		},
-		"shellquote": func(in string) string {
-			// Use non-breaking hyphens to improve readability of output.
-			return strings.Replace(shellquote.Join(in), "-", "‑", -1)
-		},
+		"shellquote": shellquote.Join,
 		"timestamp_millis_rfc3339": func(in int64) string {
 			return time.Unix(in/1000, in%1000*1000000).Format(time.RFC3339)
 		},

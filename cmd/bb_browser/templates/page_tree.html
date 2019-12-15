@@ -14,14 +14,14 @@
 	</thead>
 	{{if .HasParentDirectory}}
 		<tr class="text-monospace">
-			<td>drwxr‑xr‑x</td>
+			<td style="white-space: nowrap">drwxr-xr-x</td>
 			<td></td>
 			<td style="width: 100%"><a href="..">..</a>/</td>
 		</tr>
 	{{end}}
 	{{range .Directory.Directories}}
 		<tr class="text-monospace">
-			<td>drwxr‑xr‑x</td>
+			<td style="white-space: nowrap">drwxr-xr-x</td>
 			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
 			<td style="width: 100%"><a href="{{.Name}}/">{{.Name}}</a>/</td>
 		</tr>
@@ -35,7 +35,7 @@
 	{{end}}
 	{{range .Directory.Files}}
 		<tr class="text-monospace">
-			<td>‑rw{{if .IsExecutable}}x{{else}}‑{{end}}r‑{{if .IsExecutable}}x{{else}}‑{{end}}r‑{{if .IsExecutable}}x{{else}}‑{{end}}</td>
+			<td style="white-space: nowrap">-rw{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}</td>
 			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
 			<td style="width: 100%"><a href="/file/{{$instance}}/{{.Digest.Hash}}/{{.Digest.SizeBytes}}/{{.Name}}">{{.Name}}</a></td>
 		</tr>

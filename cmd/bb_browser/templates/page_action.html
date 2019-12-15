@@ -77,7 +77,7 @@ The input root of this action could not be found.
 	</thead>
 	{{range .OutputDirectories}}
 		<tr class="text-monospace">
-			<td>drwxr‑xr‑x</td>
+			<td style="white-space: nowrap">drwxr-xr-x</td>
 			<td style="text-align: right">{{.TreeDigest.SizeBytes}}</td>
 			<td style="width: 100%"><a class="text-success" href="/tree/{{$instance}}/{{.TreeDigest.Hash}}/{{.TreeDigest.SizeBytes}}/">{{.Path}}</a>/</td>
 		</tr>
@@ -91,21 +91,21 @@ The input root of this action could not be found.
 	{{end}}
 	{{range .OutputFiles}}
 		<tr class="text-monospace">
-			<td>‑rw{{if .IsExecutable}}x{{else}}‑{{end}}r‑{{if .IsExecutable}}x{{else}}‑{{end}}r‑{{if .IsExecutable}}x{{else}}‑{{end}}</td>
+			<td style="white-space: nowrap">-rw{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}</td>
 			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
 			<td style="width: 100%"><a class="text-success" href="/file/{{$instance}}/{{.Digest.Hash}}/{{.Digest.SizeBytes}}/{{basename .Path}}">{{.Path}}</a></td>
 		</tr>
 	{{end}}
 	{{range .MissingDirectories}}
 		<tr class="text-monospace">
-			<td>drwxr‑xr‑x</td>
+			<td style="white-space: nowrap">drwxr-xr-x</td>
 			<td></td>
 			<td style="width: 100%"><s class="text-danger">{{.}}</s>/</td>
 		</tr>
 	{{end}}
 	{{range .MissingFiles}}
 		<tr class="text-monospace">
-			<td>‑rw‑r‑‑r‑‑</td>
+			<td style="white-space: nowrap">-rw-r--r--</td>
 			<td></td>
 			<td style="width: 100%"><s class="text-danger">{{.}}</s></td>
 		</tr>
