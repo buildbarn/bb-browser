@@ -68,3 +68,11 @@ def bb_browser_go_dependencies():
         sum = "h1:sjZBwGj9Jlw33ImPtvFviGYvseOtDM7hkSKB7+Tv3SM=",
         version = "v2.0.5",
     )
+
+    go_repository(
+        name = "com_github_dustin_go_humanize",
+        importpath = "github.com/dustin/go-humanize",
+        sha256 = "e4540bd50ac855143b4f2e509313079c50cf5d8774f09cc10dbca5ae9803d8ba",
+        strip_prefix = "go-humanize-1.0.0",
+        urls = ["https://github.com/dustin/go-humanize/archive/v1.0.0.tar.gz"],
+    )

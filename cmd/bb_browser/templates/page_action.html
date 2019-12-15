@@ -125,4 +125,123 @@ The input root of this action could not be found.
 	{{end}}
 </table>
 
+{{with $actionResult.GetExecutionMetadata}}
+	<h2 class="my-4">Execution metadata</h2>
+
+	<table class="table" style="table-layout: fixed">
+		{{with .Worker}}
+			<tr>
+				<th style="width: 25%">Worker:</th>
+				<td style="width: 75%">{{.}}</td>
+			</tr>
+		{{end}}
+		<tr>
+			<th style="width: 25%">Timeline:</th>
+			<td style="width: 75%">
+				{{with timestamp_proto_rfc3339 .QueuedTimestamp}}<b>{{.}}</b><br/>{{end}}
+				Action added to the queue.<br/>
+				{{template "view_action_timestamp_delta.html" timestamp_proto_delta .QueuedTimestamp .WorkerStartTimestamp}}
+				Worker received the action.<br/>
+				{{template "view_action_timestamp_delta.html" timestamp_proto_delta .WorkerStartTimestamp .InputFetchStartTimestamp}}
+				Worker started fetching action inputs.<br/>
+				{{template "view_action_timestamp_delta.html" timestamp_proto_delta .InputFetchStartTimestamp .InputFetchCompletedTimestamp}}
+				Worker finished fetching action inputs.<br/>
+				{{template "view_action_timestamp_delta.html" timestamp_proto_delta .InputFetchCompletedTimestamp .ExecutionStartTimestamp}}
+				Worker started executing the action command.<br/>
+				{{template "view_action_timestamp_delta.html" timestamp_proto_delta .ExecutionStartTimestamp .ExecutionCompletedTimestamp}}
+				Worker completed executing the action command.<br/>
+				{{template "view_action_timestamp_delta.html" timestamp_proto_delta .ExecutionCompletedTimestamp .OutputUploadStartTimestamp}}
+				Worker started uploading action outputs.<br/>
+				{{template "view_action_timestamp_delta.html" timestamp_proto_delta .OutputUploadStartTimestamp .OutputUploadCompletedTimestamp}}
+				Worker completed uploading action outputs.<br/>
+				{{template "view_action_timestamp_delta.html" timestamp_proto_delta .OutputUploadCompletedTimestamp .WorkerCompletedTimestamp}}
+				Worker completed the action, including all stages.
+			</td>
+		</tr>
+	</table>
+
+	{{range .AuxiliaryMetadata}}
+		{{with to_file_pool_resource_usage .}}
+			<h3 class="my-4">File pool resource usage</h3>
+			<table class="table" style="table-layout: fixed">
+				<tr>
+					<th style="width: 25%">Files created:</th>
+					<td style="width: 75%">{{.FilesCreated}}</td>
+				</tr>
+				<tr>
+					<th style="width: 25%">Peak usage:</th>
+					<td style="width: 75%">{{.FilesCountPeak}} files, having a total size of {{humanize_bytes .FilesSizeBytesPeak}}</td>
+				</tr>
+				{{if .ReadsCount}}
+					<tr>
+						<th style="width: 25%">Reads:</th>
+						<td style="width: 75%">{{.ReadsCount}} operations, having a total size of {{humanize_bytes .ReadsSizeBytes}}</td>
+					</tr>
+				{{end}}
+				{{if .WritesCount}}
+					<tr>
+						<th style="width: 25%">Writes:</th>
+						<td style="width: 75%">{{.WritesCount}} operations, having a total size of {{humanize_bytes .WritesSizeBytes}}</td>
+					</tr>
+				{{end}}
+				{{if .TruncatesCount}}
+					<tr>
+						<th style="width: 25%">Truncates:</th>
+						<td style="width: 75%">{{.TruncatesCount}} operations</td>
+					</tr>
+				{{end}}
+			</table>
+		{{end}}
+
+		{{with to_posix_resource_usage .}}
+			<h3 class="my-4">POSIX resource usage</h3>
+			<table class="table" style="table-layout: fixed">
+				<tr>
+					<th style="width: 25%">CPU time:</th>
+					<td style="width: 75%">
+						{{with duration_proto .UserTime}}{{.}}{{else}}?{{end}} user,
+						{{with duration_proto .SystemTime}}{{.}}{{else}}?{{end}} system
+					</td>
+				</tr>
+				{{with .MaximumResidentSetSize}}
+					<tr>
+						<th style="width: 25%">Maximum resident set size:</th>
+						<td style="width: 75%">{{humanize_bytes .}}</td>
+					</tr>
+				{{end}}
+				{{if or .PageReclaims .PageFaults .Swaps}}
+					<tr>
+						<th style="width: 25%">Paging:</th>
+						<td style="width: 75%">{{.PageReclaims}} reclaims, {{.PageFaults}} faults, {{.Swaps}} swaps</td>
+					</tr>
+				{{end}}
+				{{if or .BlockInputOperations .BlockOutputOperations}}
+					<tr>
+						<th style="width: 25%">Block operations:</th>
+						<td style="width: 75%">{{.BlockInputOperations}} inputs, {{.BlockOutputOperations}} outputs</td>
+					</tr>
+				{{end}}
+				{{if or .MessagesSent .MessagesReceived}}
+					<tr>
+						<th style="width: 25%">Messages:</th>
+						<td style="width: 75%">{{.MessagesSent}} sent, {{.MessagesReceived}} received</td>
+					</tr>
+				{{end}}
+				{{with .SignalsReceived}}
+					<tr>
+						<th style="width: 25%">Signals:</th>
+						<td style="width: 75%">{{.}} received</td>
+					</tr>
+				{{end}}
+				{{if or .VoluntaryContextSwitches .InvoluntaryContextSwitches}}
+					<tr>
+						<th style="width: 25%">Context switches:</th>
+						<td style="width: 75%">{{.VoluntaryContextSwitches}} voluntary, {{.InvoluntaryContextSwitches}} involuntary</td>
+					</tr>
+				{{end}}
+			</table>
+		{{end}}
+	{{end}}
+{{end}}
+
 {{template "footer.html"}}
