@@ -13,7 +13,6 @@ import (
 
 	buildeventstream "github.com/bazelbuild/bazel/src/main/java/com/google/devtools/build/lib/buildeventstream/proto"
 	"github.com/buildbarn/bb-browser/pkg/configuration"
-	"github.com/buildbarn/bb-storage/pkg/ac"
 	blobstore_configuration "github.com/buildbarn/bb-storage/pkg/blobstore/configuration"
 	"github.com/buildbarn/bb-storage/pkg/cas"
 	"github.com/buildbarn/bb-storage/pkg/util"
@@ -33,7 +32,9 @@ func main() {
 	}
 
 	// Storage access.
-	contentAddressableStorageBlobAccess, actionCacheBlobAccess, err := blobstore_configuration.CreateBlobAccessObjectsFromConfig(browserConfiguration.Blobstore)
+	contentAddressableStorageBlobAccess, actionCacheBlobAccess, err := blobstore_configuration.CreateBlobAccessObjectsFromConfig(
+		browserConfiguration.Blobstore,
+		int(browserConfiguration.MaximumMessageSizeBytes))
 	if err != nil {
 		log.Fatal("Failed to create blob access: ", err)
 	}
@@ -76,9 +77,10 @@ func main() {
 	NewBrowserService(
 		cas.NewBlobAccessContentAddressableStorage(
 			contentAddressableStorageBlobAccess,
-			browserConfiguration.MaximumMessageSizeBytes),
+			int(browserConfiguration.MaximumMessageSizeBytes)),
 		contentAddressableStorageBlobAccess,
-		ac.NewBlobAccessActionCache(actionCacheBlobAccess),
+		actionCacheBlobAccess,
+		int(browserConfiguration.MaximumMessageSizeBytes),
 		templates,
 		router)
 	log.Fatal(http.ListenAndServe(browserConfiguration.ListenAddress, router))
