@@ -67,10 +67,16 @@ http_archive(
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
-# TODO: Use the copy from Git!
-local_repository(
+git_repository(
+    name = "com_github_buildbarn_bb_remote_execution",
+    commit = "300a067f01b85cb799df147c5b815df1cd74d62c",
+    remote = "https://github.com/buildbarn/bb-remote-execution.git",
+)
+
+git_repository(
     name = "com_github_buildbarn_bb_storage",
-    path = "../bb-storage-staging",
+    commit = "f920d927b81c938ce04ab30e55a7051e71e4ea4f",
+    remote = "https://github.com/buildbarn/bb-storage.git",
 )
 
 load("@io_bazel_rules_docker//repositories:repositories.bzl", container_repositories = "repositories")

@@ -1,0 +1,7 @@
+{{with .}}
+	<b>{{timestamp_rfc3339 .Time}}</b>
+	{{with .DurationFromPrevious}}
+		⏱ +{{.}}
+	{{end}}
+	<br/>
+{{end}}
