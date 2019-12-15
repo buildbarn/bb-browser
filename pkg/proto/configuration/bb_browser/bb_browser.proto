@@ -6,14 +6,13 @@ import "pkg/proto/configuration/blobstore/blobstore.proto";
 
 option go_package = "github.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browser";
 
-message BrowserConfiguration {
+message ApplicationConfiguration {
   // Configuration for blob storage.
   buildbarn.configuration.blobstore.BlobstoreConfiguration blobstore = 1;
 
-  // Maximum Protobuf message size to unmarshal. Defaults to 16*1024*1024.
-  uint64 maximum_message_size_bytes = 2;
+  // Maximum Protobuf message size to unmarshal.
+  int64 maximum_message_size_bytes = 2;
 
-  // Address on which to listen to expose the web service and metrics. Defaults to ":80".
+  // Address on which to listen to expose the web service and metrics.
   string listen_address = 3;
 }
-
