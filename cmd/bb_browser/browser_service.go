@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -22,7 +21,6 @@ import (
 	buildeventstream "github.com/bazelbuild/bazel/src/main/java/com/google/devtools/build/lib/buildeventstream/proto"
 	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
 	"github.com/buildbarn/bb-browser/pkg/buildevents"
-	"github.com/buildbarn/bb-storage/pkg/ac"
 	"github.com/buildbarn/bb-storage/pkg/blobstore"
 	"github.com/buildbarn/bb-storage/pkg/cas"
 	"github.com/buildbarn/bb-storage/pkg/util"
@@ -68,17 +66,19 @@ func extractContextFromRequest(req *http.Request) context.Context {
 type BrowserService struct {
 	contentAddressableStorage           cas.ContentAddressableStorage
 	contentAddressableStorageBlobAccess blobstore.BlobAccess
-	actionCache                         ac.ActionCache
+	actionCache                         blobstore.BlobAccess
+	maximumMessageSizeBytes             int
 	templates                           *template.Template
 }
 
 // NewBrowserService constructs a BrowserService that accesses storage
 // through a set of handles.
-func NewBrowserService(contentAddressableStorage cas.ContentAddressableStorage, contentAddressableStorageBlobAccess blobstore.BlobAccess, actionCache ac.ActionCache, templates *template.Template, router *mux.Router) *BrowserService {
+func NewBrowserService(contentAddressableStorage cas.ContentAddressableStorage, contentAddressableStorageBlobAccess blobstore.BlobAccess, actionCache blobstore.BlobAccess, maximumMessageSizeBytes int, templates *template.Template, router *mux.Router) *BrowserService {
 	s := &BrowserService{
 		contentAddressableStorage:           contentAddressableStorage,
 		contentAddressableStorageBlobAccess: contentAddressableStorageBlobAccess,
 		actionCache:                         actionCache,
+		maximumMessageSizeBytes:             maximumMessageSizeBytes,
 		templates:                           templates,
 	}
 	router.HandleFunc("/", s.handleWelcome)
@@ -119,7 +119,7 @@ func (s *BrowserService) handleAction(w http.ResponseWriter, req *http.Request) 
 	}
 
 	ctx := extractContextFromRequest(req)
-	actionResult, err := s.actionCache.GetActionResult(ctx, digest)
+	actionResult, err := s.actionCache.Get(ctx, digest).ToActionResult(s.maximumMessageSizeBytes)
 	if err != nil && status.Code(err) != codes.NotFound {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -129,10 +129,7 @@ func (s *BrowserService) handleAction(w http.ResponseWriter, req *http.Request) 
 }
 
 func (s *BrowserService) readBuildEventStream(ctx context.Context, parser *buildevents.StreamParser, digest *util.Digest) error {
-	_, r, err := s.contentAddressableStorageBlobAccess.Get(ctx, digest)
-	if err != nil {
-		return err
-	}
+	r := s.contentAddressableStorageBlobAccess.Get(ctx, digest).ToReader()
 	defer r.Close()
 
 	for {
@@ -167,7 +164,7 @@ func (s *BrowserService) handleBuildEvents(w http.ResponseWriter, req *http.Requ
 	// files of this entry correspond to one or more blobs in the
 	// CAS that, when concatenated, represents a Build Event Stream.
 	ctx := extractContextFromRequest(req)
-	actionResult, err := s.actionCache.GetActionResult(ctx, digest)
+	actionResult, err := s.actionCache.Get(ctx, digest).ToActionResult(s.maximumMessageSizeBytes)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -243,7 +240,7 @@ func (s *BrowserService) handleUncachedActionResult(w http.ResponseWriter, req *
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	s.handleActionCommon(w, req, actionDigest, uncachedActionResult.ActionResult)
+	s.handleActionCommon(w, req, actionDigest, uncachedActionResult.ExecuteResponse.GetResult())
 }
 
 func (s *BrowserService) getLogInfoFromActionResult(ctx context.Context, name string, instance string, logDigest *remoteexecution.Digest, rawLogBody []byte) (*logInfo, error) {
@@ -309,10 +306,11 @@ func (s *BrowserService) getLogInfoFromActionCompleted(ctx context.Context, name
 }
 
 func (s *BrowserService) getLogInfoForDigest(ctx context.Context, name string, digest *util.Digest) (*logInfo, error) {
+	maximumLogSizeBytes := 100000
 	if size := digest.GetSizeBytes(); size == 0 {
 		// No log file present.
 		return nil, nil
-	} else if size > 100000 {
+	} else if size > int64(maximumLogSizeBytes) {
 		// Log file too large to show inline.
 		return &logInfo{
 			Name:     name,
@@ -321,12 +319,7 @@ func (s *BrowserService) getLogInfoForDigest(ctx context.Context, name string, d
 		}, nil
 	}
 
-	_, r, err := s.contentAddressableStorageBlobAccess.Get(ctx, digest)
-	if err != nil {
-		return nil, err
-	}
-	data, err := ioutil.ReadAll(r)
-	r.Close()
+	data, err := s.contentAddressableStorageBlobAccess.Get(ctx, digest).ToByteSlice(maximumLogSizeBytes)
 	if err == nil {
 		// Log found. Convert ANSI escape sequences to HTML.
 		return &logInfo{
@@ -533,13 +526,7 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 		if err != nil {
 			return err
 		}
-		_, r, err := s.contentAddressableStorageBlobAccess.Get(ctx, childDigest)
-		if err != nil {
-			return err
-		}
-		_, err = io.Copy(w, r)
-		r.Close()
-		if err != nil {
+		if err := s.contentAddressableStorageBlobAccess.Get(ctx, childDigest).IntoWriter(w); err != nil {
 			return err
 		}
 	}
@@ -600,11 +587,7 @@ func (s *BrowserService) handleFile(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ctx := extractContextFromRequest(req)
-	_, r, err := s.contentAddressableStorageBlobAccess.Get(ctx, digest)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+	r := s.contentAddressableStorageBlobAccess.Get(ctx, digest).ToReader()
 	defer r.Close()
 
 	// Attempt to read the first chunk of data to see whether we can

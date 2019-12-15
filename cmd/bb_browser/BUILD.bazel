@@ -17,7 +17,6 @@ go_library(
         "//pkg/configuration:go_default_library",
         "@com_github_bazelbuild_bazel//src/main/java/com/google/devtools/build/lib/buildeventstream/proto:go_default_library",
         "@com_github_bazelbuild_remote_apis//build/bazel/remote/execution/v2:go_default_library",
-        "@com_github_buildbarn_bb_storage//pkg/ac:go_default_library",
         "@com_github_buildbarn_bb_storage//pkg/blobstore:go_default_library",
         "@com_github_buildbarn_bb_storage//pkg/blobstore/configuration:go_default_library",
         "@com_github_buildbarn_bb_storage//pkg/cas:go_default_library",
