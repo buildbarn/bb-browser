@@ -1,13 +1,19 @@
 {{$instance := .Instance}}
+{{$actionResult := .ExecuteResponse.GetResult}}
+{{$status := .ExecuteResponse.GetStatus}}
 
-{{if .ActionResult}}
-	{{if eq .ActionResult.ExitCode 0}}
-		{{template "header.html" "success"}}
-	{{else}}
-		{{template "header.html" "danger"}}
-	{{end}}
+{{if ne $status.GetCode 0}}
+	{{template "header.html" "danger"}}
 {{else}}
-	{{template "header.html" "secondary"}}
+	{{with $actionResult}}
+		{{if eq .ExitCode 0}}
+			{{template "header.html" "success"}}
+		{{else}}
+			{{template "header.html" "danger"}}
+		{{end}}
+	{{else}}
+		{{template "header.html" "secondary"}}
+	{{end}}
 {{end}}
 
 <h1 class="my-4">Action</h1>
@@ -37,19 +43,26 @@ The command of this action could not be found.
 
 <h2 class="my-4">Result</h2>
 
-{{if .ActionResult}}
+{{if $actionResult}}
 <table class="table" style="table-layout: fixed">
-	<tr>
-		<th style="width: 25%">Exit code:</th>
-		<td style="width: 75%">
-			{{.ActionResult.ExitCode}}
-			{{if eq .ActionResult.ExitCode 0}}
-				<span class="badge badge-success">Success</span>
-			{{else}}
-				<span class="badge badge-danger">Failure</span>
-			{{end}}
-		</td>
-	</tr>
+	{{if ne $status.GetCode 0}}
+		<tr>
+			<th style="width: 25%">Status:</th>
+			<td style="width: 75%">Code {{$status.GetCode}}: {{$status.Message}}</td>
+		</tr>
+	{{else}}
+		<tr>
+			<th style="width: 25%">Exit code:</th>
+			<td style="width: 75%">
+				{{$actionResult.ExitCode}}
+				{{if eq $actionResult.ExitCode 0}}
+					<span class="badge badge-success">Success</span>
+				{{else}}
+					<span class="badge badge-danger">Failure</span>
+				{{end}}
+			</td>
+		</tr>
+	{{end}}
 	{{template "view_log.html" .StdoutInfo}}
 	{{template "view_log.html" .StderrInfo}}
 </table>
