@@ -4,7 +4,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	_ "net/http/pprof"
 	"net/url"
 	"os"
 	"path"
@@ -17,7 +16,6 @@ import (
 	"github.com/buildbarn/bb-storage/pkg/util"
 	"github.com/gorilla/mux"
 	"github.com/kballard/go-shellquote"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -38,7 +36,8 @@ func main() {
 	}
 
 	templates, err := template.New("templates").Funcs(template.FuncMap{
-		"basename": path.Base,
+		"asset_path": GetAssetPath,
+		"basename":   path.Base,
 		"build_event_file_to_digest": func(in *buildeventstream.File) *util.Digest {
 			// Converts URLs of this format to digest objects:
 			// bytestream://host/instance/blobs/hash/size
@@ -66,9 +65,6 @@ func main() {
 	}
 
 	router := mux.NewRouter()
-	router.Handle("/metrics", promhttp.Handler())
-	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
-	NewAssetService(router)
 	NewBrowserService(
 		cas.NewBlobAccessContentAddressableStorage(
 			contentAddressableStorageBlobAccess,
@@ -78,5 +74,7 @@ func main() {
 		int(configuration.MaximumMessageSizeBytes),
 		templates,
 		router)
+	RegisterAssetEndpoints(router)
+	util.RegisterAdministrativeHTTPEndpoints(router)
 	log.Fatal(http.ListenAndServe(configuration.ListenAddress, router))
 }
