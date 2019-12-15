@@ -2,7 +2,7 @@
 	{{template "view_arguments.html" .Arguments}}
 	<tr>
 		<th style="width: 25%">Environment variables:</th>
-		<td class="text-monospace" style="width: 75%; overflow-x: scroll">
+		<td class="text-monospace" style="width: 75%; overflow-x: scroll; white-space: nowrap">
 			{{range .EnvironmentVariables}}
 				<b>{{.Name}}</b>={{shellquote .Value}}<br/>
 			{{end}}
