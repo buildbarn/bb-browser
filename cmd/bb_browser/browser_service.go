@@ -125,7 +125,9 @@ func (s *BrowserService) handleAction(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	s.handleActionCommon(w, req, digest, actionResult)
+	s.handleActionCommon(w, req, digest, &remoteexecution.ExecuteResponse{
+		Result: actionResult,
+	})
 }
 
 func (s *BrowserService) readBuildEventStream(ctx context.Context, parser *buildevents.StreamParser, digest *util.Digest) error {
@@ -240,7 +242,7 @@ func (s *BrowserService) handleUncachedActionResult(w http.ResponseWriter, req *
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	s.handleActionCommon(w, req, actionDigest, uncachedActionResult.ExecuteResponse.GetResult())
+	s.handleActionCommon(w, req, actionDigest, uncachedActionResult.ExecuteResponse)
 }
 
 func (s *BrowserService) getLogInfoFromActionResult(ctx context.Context, name string, instance string, logDigest *remoteexecution.Digest, rawLogBody []byte) (*logInfo, error) {
@@ -338,7 +340,7 @@ func (s *BrowserService) getLogInfoForDigest(ctx context.Context, name string, d
 	return nil, err
 }
 
-func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Request, digest *util.Digest, actionResult *remoteexecution.ActionResult) {
+func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Request, digest *util.Digest, executeResponse *remoteexecution.ExecuteResponse) {
 	instance := digest.GetInstance()
 	actionInfo := struct {
 		Instance string
@@ -346,9 +348,9 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 
 		Command *remoteexecution.Command
 
-		ActionResult *remoteexecution.ActionResult
-		StdoutInfo   *logInfo
-		StderrInfo   *logInfo
+		ExecuteResponse *remoteexecution.ExecuteResponse
+		StdoutInfo      *logInfo
+		StderrInfo      *logInfo
 
 		InputRoot *directoryInfo
 
@@ -358,11 +360,12 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 		MissingDirectories []string
 		MissingFiles       []string
 	}{
-		Instance:     instance,
-		ActionResult: actionResult,
+		Instance:        instance,
+		ExecuteResponse: executeResponse,
 	}
 
 	ctx := extractContextFromRequest(req)
+	actionResult := executeResponse.GetResult()
 	if actionResult != nil {
 		actionInfo.OutputDirectories = actionResult.OutputDirectories
 		actionInfo.OutputSymlinks = actionResult.OutputFileSymlinks
