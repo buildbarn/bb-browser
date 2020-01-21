@@ -58,6 +58,7 @@ container_layer(
 
 container_image(
     name = "bb_browser_container",
+    base = "@go_image_static//image",
     entrypoint = ["/bb_browser"],
     layers = [
         ":bb_browser_layer_executable",
