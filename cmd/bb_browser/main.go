@@ -14,6 +14,7 @@ import (
 	"github.com/buildbarn/bb-remote-execution/pkg/proto/resourceusage"
 	blobstore_configuration "github.com/buildbarn/bb-storage/pkg/blobstore/configuration"
 	"github.com/buildbarn/bb-storage/pkg/cas"
+	"github.com/buildbarn/bb-storage/pkg/digest"
 	"github.com/buildbarn/bb-storage/pkg/util"
 	"github.com/dustin/go-humanize"
 	"github.com/golang/protobuf/ptypes"
@@ -59,7 +60,7 @@ func main() {
 	templates, err := template.New("templates").Funcs(template.FuncMap{
 		"asset_path": GetAssetPath,
 		"basename":   path.Base,
-		"build_event_file_to_digest": func(in *buildeventstream.File) *util.Digest {
+		"build_event_file_to_digest": func(in *buildeventstream.File) *digest.Digest {
 			// Converts URLs of this format to digest objects:
 			// bytestream://host/instance/blobs/hash/size
 			fileURI, ok := in.File.(*buildeventstream.File_Uri)
@@ -70,8 +71,11 @@ func main() {
 			if err != nil || u.Scheme != "bytestream" {
 				return nil
 			}
-			digest, _ := util.NewDigestFromBytestreamPath(u.Path)
-			return digest
+			digest, err := digest.NewDigestFromBytestreamPath(u.Path)
+			if err != nil {
+				return nil
+			}
+			return &digest
 		},
 		"duration_proto": func(pb *duration.Duration) *time.Duration {
 			// Converts a Protobuf duration to Go's native type.

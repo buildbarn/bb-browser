@@ -23,7 +23,7 @@ import (
 	"github.com/buildbarn/bb-browser/pkg/buildevents"
 	"github.com/buildbarn/bb-storage/pkg/blobstore"
 	"github.com/buildbarn/bb-storage/pkg/cas"
-	"github.com/buildbarn/bb-storage/pkg/util"
+	"github.com/buildbarn/bb-storage/pkg/digest"
 	"github.com/buildkite/terminal"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/mux"
@@ -34,18 +34,13 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func getDigestFromRequest(req *http.Request) (*util.Digest, error) {
+func getDigestFromRequest(req *http.Request) (digest.Digest, error) {
 	vars := mux.Vars(req)
 	sizeBytes, err := strconv.ParseInt(vars["sizeBytes"], 10, 64)
 	if err != nil {
-		return nil, err
+		return digest.BadDigest, err
 	}
-	return util.NewDigest(
-		vars["instance"],
-		&remoteexecution.Digest{
-			Hash:      vars["hash"],
-			SizeBytes: sizeBytes,
-		})
+	return digest.NewDigest(vars["instance"], vars["hash"], sizeBytes)
 }
 
 // Generates a Context from an incoming HTTP request, forwarding any
@@ -99,13 +94,13 @@ func (s *BrowserService) handleWelcome(w http.ResponseWriter, req *http.Request)
 }
 
 type directoryInfo struct {
-	Digest    *util.Digest
+	Digest    digest.Digest
 	Directory *remoteexecution.Directory
 }
 
 type logInfo struct {
 	Name     string
-	Digest   *util.Digest
+	Digest   digest.Digest
 	TooLarge bool
 	NotFound bool
 	HTML     template.HTML
@@ -130,7 +125,7 @@ func (s *BrowserService) handleAction(w http.ResponseWriter, req *http.Request) 
 	})
 }
 
-func (s *BrowserService) readBuildEventStream(ctx context.Context, parser *buildevents.StreamParser, digest *util.Digest) error {
+func (s *BrowserService) readBuildEventStream(ctx context.Context, parser *buildevents.StreamParser, digest digest.Digest) error {
 	r := s.contentAddressableStorageBlobAccess.Get(ctx, digest).ToReader()
 	defer r.Close()
 
@@ -152,11 +147,7 @@ func (s *BrowserService) handleBuildEvents(w http.ResponseWriter, req *http.Requ
 	// it, so that a fictive Action Cache entry can be accessed.
 	vars := mux.Vars(req)
 	hash := sha256.Sum256([]byte(vars["invocationID"]))
-	digest, err := util.NewDigest(
-		vars["instance"],
-		&remoteexecution.Digest{
-			Hash: hex.EncodeToString(hash[:]),
-		})
+	digest, err := digest.NewDigest(vars["instance"], hex.EncodeToString(hash[:]), 0)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -246,10 +237,10 @@ func (s *BrowserService) handleUncachedActionResult(w http.ResponseWriter, req *
 }
 
 func (s *BrowserService) getLogInfoFromActionResult(ctx context.Context, name string, instance string, logDigest *remoteexecution.Digest, rawLogBody []byte) (*logInfo, error) {
-	var digest *util.Digest
+	var blobDigest digest.Digest
 	if logDigest != nil {
 		var err error
-		digest, err = util.NewDigest(instance, logDigest)
+		blobDigest, err = digest.NewDigestFromPartialDigest(instance, logDigest)
 		if err != nil {
 			return nil, err
 		}
@@ -259,12 +250,12 @@ func (s *BrowserService) getLogInfoFromActionResult(ctx context.Context, name st
 		// Log body is small enough to be provided inline.
 		return &logInfo{
 			Name:   name,
-			Digest: digest,
+			Digest: blobDigest,
 			HTML:   template.HTML(terminal.Render(rawLogBody)),
 		}, nil
-	} else if digest != nil {
+	} else if logDigest != nil {
 		// Load the log from the Content Addressable Storage.
-		return s.getLogInfoForDigest(ctx, name, digest)
+		return s.getLogInfoForDigest(ctx, name, blobDigest)
 	}
 	return nil, nil
 }
@@ -285,7 +276,7 @@ func (s *BrowserService) getLogInfoFromActionCompleted(ctx context.Context, name
 				NotFound: true,
 			}, nil
 		}
-		digest, err := util.NewDigestFromBytestreamPath(u.Path)
+		digest, err := digest.NewDigestFromBytestreamPath(u.Path)
 		if err != nil {
 			return &logInfo{
 				Name:     name,
@@ -307,7 +298,7 @@ func (s *BrowserService) getLogInfoFromActionCompleted(ctx context.Context, name
 	}
 }
 
-func (s *BrowserService) getLogInfoForDigest(ctx context.Context, name string, digest *util.Digest) (*logInfo, error) {
+func (s *BrowserService) getLogInfoForDigest(ctx context.Context, name string, digest digest.Digest) (*logInfo, error) {
 	maximumLogSizeBytes := 100000
 	if size := digest.GetSizeBytes(); size == 0 {
 		// No log file present.
@@ -340,7 +331,7 @@ func (s *BrowserService) getLogInfoForDigest(ctx context.Context, name string, d
 	return nil, err
 }
 
-func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Request, digest *util.Digest, executeResponse *remoteexecution.ExecuteResponse) {
+func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Request, digest digest.Digest, executeResponse *remoteexecution.ExecuteResponse) {
 	instance := digest.GetInstance()
 	actionInfo := struct {
 		Instance string
@@ -472,7 +463,7 @@ func (s *BrowserService) handleCommand(w http.ResponseWriter, req *http.Request)
 	}
 }
 
-func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Writer, digest *util.Digest, directory *remoteexecution.Directory, directoryPath string, getDirectory func(context.Context, *util.Digest) (*remoteexecution.Directory, error)) error {
+func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Writer, digest digest.Digest, directory *remoteexecution.Directory, directoryPath string, getDirectory func(context.Context, digest.Digest) (*remoteexecution.Directory, error)) error {
 	// Emit child directories.
 	for _, directoryNode := range directory.Directories {
 		childPath := path.Join(directoryPath, directoryNode.Name)
@@ -536,7 +527,7 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 	return nil
 }
 
-func (s *BrowserService) generateTarball(ctx context.Context, w http.ResponseWriter, digest *util.Digest, directory *remoteexecution.Directory, getDirectory func(context.Context, *util.Digest) (*remoteexecution.Directory, error)) {
+func (s *BrowserService) generateTarball(ctx context.Context, w http.ResponseWriter, digest digest.Digest, directory *remoteexecution.Directory, getDirectory func(context.Context, digest.Digest) (*remoteexecution.Directory, error)) {
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.tar.gz\"", digest.GetHashString()))
 	w.Header().Set("Content-Type", "application/gzip")
 	gzipWriter := gzip.NewWriter(w)
@@ -615,14 +606,14 @@ func (s *BrowserService) handleFile(w http.ResponseWriter, req *http.Request) {
 }
 
 func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
-	digest, err := getDigestFromRequest(req)
+	treeDigest, err := getDigestFromRequest(req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	ctx := extractContextFromRequest(req)
-	tree, err := s.contentAddressableStorage.GetTree(ctx, digest)
+	tree, err := s.contentAddressableStorage.GetTree(ctx, treeDigest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -632,7 +623,7 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 		Directory          *remoteexecution.Directory
 		HasParentDirectory bool
 	}{
-		Instance:  digest.GetInstance(),
+		Instance:  treeDigest.GetInstance(),
 		Directory: tree.Root,
 	}
 
@@ -644,16 +635,17 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		digestGenerator := digest.NewDigestGenerator()
+		digestGenerator := treeDigest.NewGenerator()
 		if _, err := digestGenerator.Write(data); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		children[digestGenerator.Sum().GetKey(util.DigestKeyWithoutInstance)] = child
+		children[digestGenerator.Sum().GetKey(digest.KeyWithoutInstance)] = child
 	}
 
 	// In case additional directory components are provided, we need
 	// to traverse the directories stored within.
+	directoryDigest := treeDigest
 	for _, component := range strings.FieldsFunc(
 		mux.Vars(req)["subdirectory"],
 		func(r rune) bool { return r == '/' }) {
@@ -672,12 +664,12 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// Find corresponding child directory message.
-		digest, err = digest.NewDerivedDigest(childNode.Digest)
+		directoryDigest, err = directoryDigest.NewDerivedDigest(childNode.Digest)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		childDirectory, ok := children[digest.GetKey(util.DigestKeyWithoutInstance)]
+		childDirectory, ok := children[directoryDigest.GetKey(digest.KeyWithoutInstance)]
 		if !ok {
 			http.Error(w, "Failed to find child node in tree", http.StatusBadRequest)
 			return
@@ -688,9 +680,9 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 
 	if req.URL.Query().Get("format") == "tar" {
 		s.generateTarball(
-			ctx, w, digest, treeInfo.Directory,
-			func(ctx context.Context, digest *util.Digest) (*remoteexecution.Directory, error) {
-				childDirectory, ok := children[digest.GetKey(util.DigestKeyWithoutInstance)]
+			ctx, w, directoryDigest, treeInfo.Directory,
+			func(ctx context.Context, directoryDigest digest.Digest) (*remoteexecution.Directory, error) {
+				childDirectory, ok := children[directoryDigest.GetKey(digest.KeyWithoutInstance)]
 				if !ok {
 					return nil, errors.New("Failed to find child node in tree")
 				}
