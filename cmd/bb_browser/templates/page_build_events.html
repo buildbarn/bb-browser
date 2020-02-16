@@ -63,6 +63,18 @@
 			</td>
 		</tr>
 	{{end}}
+	{{with .BuildMetadata}}
+		{{if .Payload.Metadata}}
+			<tr>
+				<th style="width: 25%">Metadata:</th>
+				<td class="text-monospace" style="width: 75%; overflow-x: scroll; white-space: nowrap">
+					{{range $key, $value := .Payload.Metadata}}
+						<b>{{$key}}</b>={{shellquote $value}}<br/>
+					{{end}}
+				</td>
+			</tr>
+		{{end}}
+	{{end}}
 	{{with .WorkspaceStatus}}
 		<tr>
 			<th style="width: 25%">Workspace status:</th>

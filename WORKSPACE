@@ -40,8 +40,8 @@ http_archive(
 http_archive(
     name = "com_github_bazelbuild_bazel",
     patches = ["//:patches/com_github_bazelbuild_bazel/build_event_stream.diff"],
-    sha256 = "2cea463d611f5255d2f3d41c8de5dcc0961adccb39cf0ac036f07070ba720314",
-    urls = ["https://github.com/bazelbuild/bazel/releases/download/0.28.1/bazel-0.28.1-dist.zip"],
+    sha256 = "3371cd9050989173a3b27364668328653a65653a50a85c320adc53953b4d5f46",
+    urls = ["https://github.com/bazelbuild/bazel/releases/download/2.1.0/bazel-2.1.0-dist.zip"],
 )
 
 http_archive(

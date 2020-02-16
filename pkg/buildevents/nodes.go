@@ -43,6 +43,10 @@ func (n *defaultNode) addBuildFinishedNode(child *BuildFinishedNode) error {
 	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
 }
 
+func (n *defaultNode) addBuildMetadataNode(child *BuildMetadataNode) error {
+	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
+}
+
 func (n *defaultNode) addBuildMetricsNode(child *BuildMetricsNode) error {
 	return status.Error(codes.InvalidArgument, "Value cannot be placed at this location")
 }
@@ -419,6 +423,7 @@ type StartedNode struct {
 	Payload *buildeventstream.BuildStarted
 
 	BuildFinished            *BuildFinishedNode
+	BuildMetadata            *BuildMetadataNode
 	OptionsParsed            *OptionsParsedNode
 	Patterns                 []*PatternNode
 	Progress                 *ProgressNode
@@ -434,6 +439,14 @@ func (n *StartedNode) addBuildFinishedNode(child *BuildFinishedNode) error {
 		return status.Error(codes.InvalidArgument, "Value already set")
 	}
 	n.BuildFinished = child
+	return nil
+}
+
+func (n *StartedNode) addBuildMetadataNode(child *BuildMetadataNode) error {
+	if n.BuildMetadata != nil {
+		return status.Error(codes.InvalidArgument, "Value already set")
+	}
+	n.BuildMetadata = child
 	return nil
 }
 
@@ -501,6 +514,16 @@ func (n *StartedNode) GetFilesForNamedSets(namedSets []*buildeventstream.BuildEv
 	}
 	sort.Sort(files)
 	return files
+}
+
+// BuildMetadataNode corresponds to a Build Event Protocol message with
+// BuildEventID kind `build_metadata` and BuildEvent payload kind
+// `build_metadata`.
+type BuildMetadataNode struct {
+	defaultNode
+
+	ID      *buildeventstream.BuildEventId_BuildMetadataId
+	Payload *buildeventstream.BuildMetadata
 }
 
 // StructuredCommandLineNode corresponds to a Build Event Protocol
