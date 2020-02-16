@@ -14,6 +14,7 @@ import (
 type node interface {
 	addActionCompletedNode(child *ActionCompletedNode) error
 	addBuildFinishedNode(child *BuildFinishedNode) error
+	addBuildMetadataNode(child *BuildMetadataNode) error
 	addBuildMetricsNode(child *BuildMetricsNode) error
 	addBuildToolLogsNode(child *BuildToolLogsNode) error
 	addConfigurationNode(child *ConfigurationNode) error
@@ -130,6 +131,25 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 		}
 		if err := parent.addBuildFinishedNode(n); err != nil {
 			return util.StatusWrapf(err, "Cannot add \"BuildFinished\" node with ID %#v", key)
+		}
+		newChild = n
+
+	case *buildeventstream.BuildEventId_BuildMetadata:
+		payload, ok := event.Payload.(*buildeventstream.BuildEvent_BuildMetadata)
+		if !ok {
+			return status.Error(codes.InvalidArgument, "\"BuildMetadata\" build event has an incorrect payload type")
+		}
+
+		n := &BuildMetadataNode{
+			ID:      id.BuildMetadata,
+			Payload: payload.BuildMetadata,
+		}
+		parent, err := p.getSingleParent(key)
+		if err != nil {
+			return err
+		}
+		if err := parent.addBuildMetadataNode(n); err != nil {
+			return util.StatusWrapf(err, "Cannot add \"BuildMetadata\" node with ID %#v", key)
 		}
 		newChild = n
 
