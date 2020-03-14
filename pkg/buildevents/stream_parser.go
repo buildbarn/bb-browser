@@ -382,7 +382,6 @@ func (p *StreamParser) AddBuildEvent(event *buildeventstream.BuildEvent) error {
 					},
 				},
 			}
-			newChild = n
 		case *buildeventstream.BuildEvent_Completed:
 			n = &TargetCompletedNode{
 				ID: id.TargetCompleted,
