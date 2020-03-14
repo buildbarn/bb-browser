@@ -1,4 +1,4 @@
-# Buildbarn Browser [![Build status](https://github.com/buildbarn/bb-browser/workflows/CI/badge.svg)](https://github.com/buildbarn/bb-browser/actions)
+# Buildbarn Browser [![Build status](https://github.com/buildbarn/bb-browser/workflows/CI/badge.svg)](https://github.com/buildbarn/bb-browser/actions) [![GoDoc](https://godoc.org/github.com/buildbarn/bb-browser?status.svg)](https://godoc.org/github.com/buildbarn/bb-browser) [![Go Report Card](https://goreportcard.com/badge/github.com/buildbarn/bb-browser)](https://goreportcard.com/report/github.com/buildbarn/bb-browser)
 
 Buildbarn Browser is a simple web service written in Go that can display
 objects stored in a Content Addressable Storage (CAS) and an Action
