@@ -43,7 +43,7 @@ go_binary(
     name = "bb_browser",
     embed = [":go_default_library"],
     pure = "on",
-    visibility = ["//visibility:private"],
+    visibility = ["//visibility:public"],
 )
 
 container_layer(
