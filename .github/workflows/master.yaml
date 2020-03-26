@@ -8,7 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     container: docker://l.gcr.io/google/bazel:2.1.0
     steps:
-    - uses: actions/checkout@v1
+    - name: Check out source code
+      uses: actions/checkout@v1
 
     - name: Buildifier
       run: bazel run @com_github_bazelbuild_buildtools//:buildifier
@@ -25,8 +26,19 @@ jobs:
 
     - name: Linux build
       run: bazel build --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //...
+    - name: Upload bb_browser for Linux
+      uses: actions/upload-artifact@v2-preview
+      with:
+        name: bb_browser.linux_amd64
+        path: bazel-bin/cmd/bb_browser/linux_amd64_pure_stripped/bb_browser
+
     - name: macOS build
       run: bazel build --platforms=@io_bazel_rules_go//go/toolchain:darwin_amd64 //...
+    - name: Upload bb_browser for macOS
+      uses: actions/upload-artifact@v2-preview
+      with:
+        name: bb_browser.darwin_amd64
+        path: bazel-bin/cmd/bb_browser/darwin_amd64_pure_stripped/bb_browser
 
     - name: Install Docker credentials
       run: mkdir ~/.docker && echo "${DOCKER_CONFIG_JSON}" > ~/.docker/config.json

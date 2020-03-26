@@ -8,7 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     container: docker://l.gcr.io/google/bazel:2.1.0
     steps:
-    - uses: actions/checkout@v1
+    - name: Check out source code
+      uses: actions/checkout@v1
 
     - name: Buildifier
       run: bazel run @com_github_bazelbuild_buildtools//:buildifier
