@@ -5,7 +5,7 @@
 			{{if .NotFound}}
 				The log file for this action could not be found.
 			{{else if .TooLarge}}
-				The log file for this action is too large to display ({{.Digest.GetSizeBytes}} bytes).
+				The <a href="/file/{{.GetInstance}}/{{.GetHashString}}/{{.GetSizeBytes}}/log.txt">log file</a> for this action is too large to display ({{.Digest.GetSizeBytes}} bytes).
 			{{else}}
 				<div class="term-container">{{.HTML}}</div>
 			{{end}}
