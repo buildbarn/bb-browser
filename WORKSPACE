@@ -38,13 +38,6 @@ http_archive(
 )
 
 http_archive(
-    name = "com_github_bazelbuild_bazel",
-    patches = ["//:patches/com_github_bazelbuild_bazel/build_event_stream.diff"],
-    sha256 = "3371cd9050989173a3b27364668328653a65653a50a85c320adc53953b4d5f46",
-    urls = ["https://github.com/bazelbuild/bazel/releases/download/2.1.0/bazel-2.1.0-dist.zip"],
-)
-
-http_archive(
     name = "com_github_twbs_bootstrap",
     build_file_content = """exports_files(["css/bootstrap.min.css", "js/bootstrap.min.js"])""",
     sha256 = "888ffd30b7e192381e2f6a948ca04669fdcc2ccc2ba016de00d38c8e30793323",

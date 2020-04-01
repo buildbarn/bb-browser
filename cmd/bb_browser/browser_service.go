@@ -4,23 +4,18 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"path"
 	"strconv"
 	"strings"
 	"unicode/utf8"
 
-	buildeventstream "github.com/bazelbuild/bazel/src/main/java/com/google/devtools/build/lib/buildeventstream/proto"
 	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
-	"github.com/buildbarn/bb-browser/pkg/buildevents"
 	"github.com/buildbarn/bb-storage/pkg/blobstore"
 	"github.com/buildbarn/bb-storage/pkg/cas"
 	"github.com/buildbarn/bb-storage/pkg/digest"
@@ -28,7 +23,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
-	"github.com/matttproud/golang_protobuf_extensions/pbutil"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -78,7 +72,6 @@ func NewBrowserService(contentAddressableStorage cas.ContentAddressableStorage, 
 	}
 	router.HandleFunc("/", s.handleWelcome)
 	router.HandleFunc("/action/{instance}/{hash}/{sizeBytes}/", s.handleAction)
-	router.HandleFunc("/build_events/{instance}/{invocationID}", s.handleBuildEvents)
 	router.HandleFunc("/command/{instance}/{hash}/{sizeBytes}/", s.handleCommand)
 	router.HandleFunc("/directory/{instance}/{hash}/{sizeBytes}/", s.handleDirectory)
 	router.HandleFunc("/file/{instance}/{hash}/{sizeBytes}/{name}", s.handleFile)
@@ -125,97 +118,6 @@ func (s *BrowserService) handleAction(w http.ResponseWriter, req *http.Request) 
 	})
 }
 
-func (s *BrowserService) readBuildEventStream(ctx context.Context, parser *buildevents.StreamParser, digest digest.Digest) error {
-	r := s.contentAddressableStorageBlobAccess.Get(ctx, digest).ToReader()
-	defer r.Close()
-
-	for {
-		var event buildeventstream.BuildEvent
-		if _, err := pbutil.ReadDelimited(r, &event); err == io.EOF {
-			return nil
-		} else if err != nil {
-			return err
-		}
-		if err := parser.AddBuildEvent(&event); err != nil {
-			return err
-		}
-	}
-}
-
-func (s *BrowserService) handleBuildEvents(w http.ResponseWriter, req *http.Request) {
-	// Convert the invocation ID in the URL to a digest by hashing
-	// it, so that a fictive Action Cache entry can be accessed.
-	vars := mux.Vars(req)
-	hash := sha256.Sum256([]byte(vars["invocationID"]))
-	digest, err := digest.NewDigest(vars["instance"], hex.EncodeToString(hash[:]), 0)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// Look up the invocation ID in the Action Cache. The output
-	// files of this entry correspond to one or more blobs in the
-	// CAS that, when concatenated, represents a Build Event Stream.
-	ctx := extractContextFromRequest(req)
-	actionResult, err := s.actionCache.Get(ctx, digest).ToActionResult(s.maximumMessageSizeBytes)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	parser := buildevents.NewStreamParser()
-	for _, file := range actionResult.OutputFiles {
-		fileDigest, err := digest.NewDerivedDigest(file.Digest)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		if err := s.readBuildEventStream(ctx, parser, fileDigest); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-	}
-	started, eventsExpected, err := parser.Finalize()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// Convert stdout and stderr stored in ActionCompletedNodes to a
-	// format usable by the templates.
-	logsForActionsCompleted := map[*buildevents.ActionCompletedNode][]*logInfo{}
-	if started != nil {
-		for progress := started.Progress; progress != nil; progress = progress.Progress {
-			for _, actionCompleted := range progress.ActionsCompleted {
-				if stdout, err := s.getLogInfoFromActionCompleted(ctx, "Standard output", actionCompleted.Payload.Stdout); err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
-					return
-				} else if stdout != nil {
-					logsForActionsCompleted[actionCompleted] = append(logsForActionsCompleted[actionCompleted], stdout)
-				}
-
-				if stderr, err := s.getLogInfoFromActionCompleted(ctx, "Standard error", actionCompleted.Payload.Stderr); err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
-					return
-				} else if stderr != nil {
-					logsForActionsCompleted[actionCompleted] = append(logsForActionsCompleted[actionCompleted], stderr)
-				}
-			}
-		}
-	}
-
-	if err := s.templates.ExecuteTemplate(w, "page_build_events.html", struct {
-		Started                 *buildevents.StartedNode
-		EventsExpected          int
-		LogsForActionsCompleted map[*buildevents.ActionCompletedNode][]*logInfo
-	}{
-		Started:                 started,
-		EventsExpected:          eventsExpected,
-		LogsForActionsCompleted: logsForActionsCompleted,
-	}); err != nil {
-		log.Print(err)
-	}
-}
-
 func (s *BrowserService) handleUncachedActionResult(w http.ResponseWriter, req *http.Request) {
 	digest, err := getDigestFromRequest(req)
 	if err != nil {
@@ -258,44 +160,6 @@ func (s *BrowserService) getLogInfoFromActionResult(ctx context.Context, name st
 		return s.getLogInfoForDigest(ctx, name, blobDigest)
 	}
 	return nil, nil
-}
-
-func (s *BrowserService) getLogInfoFromActionCompleted(ctx context.Context, name string, file *buildeventstream.File) (*logInfo, error) {
-	if file == nil {
-		return nil, nil
-	}
-	switch data := file.File.(type) {
-	case *buildeventstream.File_Uri:
-		// A pathname or URL is provided. Load the log from the
-		// Content Addressable Storage if it's in the form of a
-		// bytestream:// URL.
-		u, err := url.Parse(data.Uri)
-		if err != nil || u.Scheme != "bytestream" {
-			return &logInfo{
-				Name:     name,
-				NotFound: true,
-			}, nil
-		}
-		digest, err := digest.NewDigestFromBytestreamPath(u.Path)
-		if err != nil {
-			return &logInfo{
-				Name:     name,
-				NotFound: true,
-			}, nil
-		}
-		return s.getLogInfoForDigest(ctx, name, digest)
-	case *buildeventstream.File_Contents:
-		// Log body is small enough to be provided inline.
-		return &logInfo{
-			Name: name,
-			HTML: template.HTML(data.Contents),
-		}, nil
-	default:
-		return &logInfo{
-			Name:     name,
-			NotFound: true,
-		}, nil
-	}
 }
 
 func (s *BrowserService) getLogInfoForDigest(ctx context.Context, name string, digest digest.Digest) (*logInfo, error) {

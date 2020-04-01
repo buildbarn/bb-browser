@@ -34,16 +34,6 @@ use of Buildbarn Browser:
   Buildbarn Browser is capable of displaying these action results in
   additition to cached ones stored in the AC.
 
-- **Storing Build Event Streams.**
-
-  Bazel has the ability to log build execution progress and output
-  through [the Build Event Protocol](https://docs.bazel.build/versions/master/build-event-protocol.html).
-  Logs can either be written to disk or be transmitted to a gRPC
-  service. [The Buildbarn Event Service](https://github.com/buildbarn/bb-event-service)
-  is a gRPC service that writes these logs directly into the CAS. Upon
-  completion, an AC entry is created to permit lookups of streams by
-  Bazel invocation ID.
-
 We invite other implementations of the Remote Execution API to implement
 such features as well. At the time of writing, the developers of
 [BuildGrid](https://gitlab.com/BuildGrid) are also working on adding

@@ -4,17 +4,14 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"time"
 
-	buildeventstream "github.com/bazelbuild/bazel/src/main/java/com/google/devtools/build/lib/buildeventstream/proto"
 	"github.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browser"
 	"github.com/buildbarn/bb-remote-execution/pkg/proto/resourceusage"
 	blobstore_configuration "github.com/buildbarn/bb-storage/pkg/blobstore/configuration"
 	"github.com/buildbarn/bb-storage/pkg/cas"
-	"github.com/buildbarn/bb-storage/pkg/digest"
 	"github.com/buildbarn/bb-storage/pkg/global"
 	"github.com/buildbarn/bb-storage/pkg/util"
 	"github.com/dustin/go-humanize"
@@ -64,23 +61,6 @@ func main() {
 	templates, err := template.New("templates").Funcs(template.FuncMap{
 		"asset_path": GetAssetPath,
 		"basename":   path.Base,
-		"build_event_file_to_digest": func(in *buildeventstream.File) *digest.Digest {
-			// Converts URLs of this format to digest objects:
-			// bytestream://host/instance/blobs/hash/size
-			fileURI, ok := in.File.(*buildeventstream.File_Uri)
-			if !ok {
-				return nil
-			}
-			u, err := url.Parse(fileURI.Uri)
-			if err != nil || u.Scheme != "bytestream" {
-				return nil
-			}
-			digest, err := digest.NewDigestFromBytestreamPath(u.Path)
-			if err != nil {
-				return nil
-			}
-			return &digest
-		},
 		"duration_proto": func(pb *duration.Duration) *time.Duration {
 			// Converts a Protobuf duration to Go's native type.
 			d, err := ptypes.Duration(pb)
@@ -120,11 +100,6 @@ func main() {
 		"timestamp_rfc3339": func(t time.Time) string {
 			// Converts a timestamp to RFC3339 format.
 			return t.Format(rfc3339Milli)
-		},
-		"timestamp_millis_rfc3339": func(in int64) string {
-			// Converts a time in milliseconds since the
-			// Epoch to RFC3339 format.
-			return time.Unix(in/1000, in%1000*1000000).Format(rfc3339Milli)
 		},
 		"timestamp_proto_delta": func(pbPrevious *timestamp.Timestamp, pbNow *timestamp.Timestamp) *timestampDelta {
 			tNow, err := ptypes.Timestamp(pbNow)

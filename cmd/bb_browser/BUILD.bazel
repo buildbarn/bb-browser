@@ -13,9 +13,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//cmd/bb_browser/assets:go_default_library",
-        "//pkg/buildevents:go_default_library",
         "//pkg/proto/configuration/bb_browser:go_default_library",
-        "@com_github_bazelbuild_bazel//src/main/java/com/google/devtools/build/lib/buildeventstream/proto:go_default_library",
         "@com_github_bazelbuild_remote_apis//build/bazel/remote/execution/v2:go_default_library",
         "@com_github_buildbarn_bb_remote_execution//pkg/proto/resourceusage:go_default_library",
         "@com_github_buildbarn_bb_storage//pkg/blobstore:go_default_library",
@@ -31,7 +29,6 @@ go_library(
         "@com_github_gorilla_mux//:go_default_library",
         "@com_github_grpc_ecosystem_go_grpc_middleware//util/metautils:go_default_library",
         "@com_github_kballard_go_shellquote//:go_default_library",
-        "@com_github_matttproud_golang_protobuf_extensions//pbutil:go_default_library",
         "@io_bazel_rules_go//proto/wkt:any_go_proto",
         "@io_bazel_rules_go//proto/wkt:duration_go_proto",
         "@io_bazel_rules_go//proto/wkt:timestamp_go_proto",
