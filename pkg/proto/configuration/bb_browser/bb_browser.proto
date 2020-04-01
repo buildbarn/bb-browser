@@ -3,6 +3,7 @@ syntax = "proto3";
 package buildbarn.configuration.bb_browser;
 
 import "pkg/proto/configuration/blobstore/blobstore.proto";
+import "pkg/proto/configuration/global/global.proto";
 
 option go_package = "github.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browser";
 
@@ -15,4 +16,7 @@ message ApplicationConfiguration {
 
   // Address on which to listen to expose the web service and metrics.
   string listen_address = 3;
+
+  // Common configuration options that apply to all Buildbarn binaries.
+  buildbarn.configuration.global.Configuration global = 4;
 }

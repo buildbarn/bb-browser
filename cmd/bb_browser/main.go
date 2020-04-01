@@ -15,6 +15,7 @@ import (
 	blobstore_configuration "github.com/buildbarn/bb-storage/pkg/blobstore/configuration"
 	"github.com/buildbarn/bb-storage/pkg/cas"
 	"github.com/buildbarn/bb-storage/pkg/digest"
+	"github.com/buildbarn/bb-storage/pkg/global"
 	"github.com/buildbarn/bb-storage/pkg/util"
 	"github.com/dustin/go-humanize"
 	"github.com/golang/protobuf/ptypes"
@@ -47,6 +48,9 @@ func main() {
 	var configuration bb_browser.ApplicationConfiguration
 	if err := util.UnmarshalConfigurationFromFile(os.Args[1], &configuration); err != nil {
 		log.Fatalf("Failed to read configuration from %s: %s", os.Args[1], err)
+	}
+	if err := global.ApplyConfiguration(configuration.Global); err != nil {
+		log.Fatal("Failed to apply global configuration options: ", err)
 	}
 
 	// Storage access.
