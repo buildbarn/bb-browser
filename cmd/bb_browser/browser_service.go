@@ -327,7 +327,7 @@ func (s *BrowserService) handleCommand(w http.ResponseWriter, req *http.Request)
 	}
 }
 
-func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Writer, digest digest.Digest, directory *remoteexecution.Directory, directoryPath string, getDirectory func(context.Context, digest.Digest) (*remoteexecution.Directory, error)) error {
+func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Writer, directoryDigest digest.Digest, directory *remoteexecution.Directory, directoryPath string, getDirectory func(context.Context, digest.Digest) (*remoteexecution.Directory, error), filesSeen map[string]string) error {
 	// Emit child directories.
 	for _, directoryNode := range directory.Directories {
 		childPath := path.Join(directoryPath, directoryNode.Name)
@@ -338,7 +338,7 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 		}); err != nil {
 			return err
 		}
-		childDigest, err := digest.NewDerivedDigest(directoryNode.Digest)
+		childDigest, err := directoryDigest.NewDerivedDigest(directoryNode.Digest)
 		if err != nil {
 			return err
 		}
@@ -346,7 +346,7 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 		if err != nil {
 			return err
 		}
-		if err := s.generateTarballDirectory(ctx, w, childDigest, childDirectory, childPath, getDirectory); err != nil {
+		if err := s.generateTarballDirectory(ctx, w, childDigest, childDirectory, childPath, getDirectory, filesSeen); err != nil {
 			return err
 		}
 	}
@@ -366,26 +366,56 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 
 	// Emit regular files.
 	for _, fileNode := range directory.Files {
-		childPath := path.Join(directoryPath, fileNode.Name)
-		mode := int64(0666)
-		if fileNode.IsExecutable {
-			mode = 0777
-		}
-		if err := w.WriteHeader(&tar.Header{
-			Typeflag: tar.TypeReg,
-			Name:     childPath,
-			Size:     fileNode.Digest.SizeBytes,
-			Mode:     mode,
-		}); err != nil {
-			return err
-		}
-
-		childDigest, err := digest.NewDerivedDigest(fileNode.Digest)
+		childDigest, err := directoryDigest.NewDerivedDigest(fileNode.Digest)
 		if err != nil {
 			return err
 		}
-		if err := s.contentAddressableStorageBlobAccess.Get(ctx, childDigest).IntoWriter(w); err != nil {
-			return err
+
+		childKey := childDigest.GetKey(digest.KeyWithoutInstance)
+		if fileNode.IsExecutable {
+			childKey += "+x"
+		} else {
+			childKey += "-x"
+		}
+
+		childPath := path.Join(directoryPath, fileNode.Name)
+		if linkPath, ok := filesSeen[childKey]; ok {
+			// This file was already returned previously.
+			// Emit a hardlink pointing to the first
+			// occurrence.
+			//
+			// Not only does this reduce the size of the
+			// tarball, it also makes the directory more
+			// representative of what it looks like when
+			// executed through bb_worker.
+			if err := w.WriteHeader(&tar.Header{
+				Typeflag: tar.TypeLink,
+				Name:     childPath,
+				Linkname: linkPath,
+			}); err != nil {
+				return err
+			}
+		} else {
+			// This is the first time we're returning this
+			// file. Actually add it to the archive.
+			mode := int64(0666)
+			if fileNode.IsExecutable {
+				mode = 0777
+			}
+			if err := w.WriteHeader(&tar.Header{
+				Typeflag: tar.TypeReg,
+				Name:     childPath,
+				Size:     fileNode.Digest.SizeBytes,
+				Mode:     mode,
+			}); err != nil {
+				return err
+			}
+
+			if err := s.contentAddressableStorageBlobAccess.Get(ctx, childDigest).IntoWriter(w); err != nil {
+				return err
+			}
+
+			filesSeen[childKey] = childPath
 		}
 	}
 	return nil
@@ -396,7 +426,8 @@ func (s *BrowserService) generateTarball(ctx context.Context, w http.ResponseWri
 	w.Header().Set("Content-Type", "application/gzip")
 	gzipWriter := gzip.NewWriter(w)
 	tarWriter := tar.NewWriter(gzipWriter)
-	if err := s.generateTarballDirectory(ctx, tarWriter, digest, directory, "", getDirectory); err != nil {
+	filesSeen := map[string]string{}
+	if err := s.generateTarballDirectory(ctx, tarWriter, digest, directory, "", getDirectory, filesSeen); err != nil {
 		// TODO(edsch): Any way to propagate this to the client?
 		log.Print(err)
 		panic(http.ErrAbortHandler)
