@@ -44,6 +44,12 @@ go_binary(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "templates",
+    srcs = glob(["templates/**"]),
+    visibility = ["//visibility:public"],
+)
+
 container_layer(
     name = "bb_browser_layer_executable",
     files = [":bb_browser"],
@@ -52,7 +58,7 @@ container_layer(
 container_layer(
     name = "bb_browser_layer_templates",
     data_path = ".",
-    files = glob(["templates/**"]),
+    files = [":templates"],
 )
 
 container_image(
