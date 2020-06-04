@@ -58,7 +58,7 @@ func main() {
 		log.Fatal("Failed to create blob access: ", err)
 	}
 
-	templates, err := template.New("templates").Funcs(template.FuncMap{
+	templates := template.New("templates").Funcs(template.FuncMap{
 		"asset_path": GetAssetPath,
 		"basename":   path.Base,
 		"duration_proto": func(pb *duration.Duration) *time.Duration {
@@ -132,9 +132,13 @@ func main() {
 			}
 			return t.Format(rfc3339Milli)
 		},
-	}).ParseGlob("templates/*")
-	if err != nil {
-		log.Fatal("Failed to parse templates: ", err)
+	})
+
+	for name, template := range TemplatesData {
+		templates, err = templates.New(name).Parse(template)
+		if err != nil {
+			log.Fatalf("Failed to parse template %#v: %s", name, err)
+		}
 	}
 
 	router := mux.NewRouter()

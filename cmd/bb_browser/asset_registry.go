@@ -3,10 +3,12 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"mime"
 	"net/http"
 	"net/url"
+	"path"
+	"path/filepath"
 
-	"github.com/buildbarn/bb-browser/cmd/bb_browser/assets"
 	"github.com/gorilla/mux"
 )
 
@@ -19,24 +21,22 @@ var (
 	registeredAssets = map[string]asset{}
 )
 
-func registerAsset(path string, body []byte, contentType string) {
-	hash := sha256.Sum256(body)
-	registeredAssets[path] = asset{
+func registerAsset(filename string, data []byte) {
+	hash := sha256.Sum256(data)
+	registeredAssets[path.Join("/", filename)] = asset{
 		cacheBustingKey: hex.EncodeToString(hash[:]),
 		handler: func(w http.ResponseWriter, req *http.Request) {
 			w.Header().Set("Cache-Control", "max-age=31536000")
-			w.Header().Set("Content-Type", contentType)
-			w.Write(body)
+			w.Header().Set("Content-Type", mime.TypeByExtension(filepath.Ext(filename)))
+			w.Write(data)
 		},
 	}
 }
 
 func init() {
-	registerAsset("/bootstrap.css", assets.BootstrapCSS, "text/css")
-	registerAsset("/bootstrap.js", assets.BootstrapJS, "application/javascript")
-	registerAsset("/favicon.png", assets.FaviconPNG, "image/png")
-	registerAsset("/jquery.js", assets.JQueryJS, "application/javascript")
-	registerAsset("/terminal.css", assets.TerminalCSS, "text/css")
+	for filename, data := range AssetsData {
+		registerAsset(filename, data)
+	}
 }
 
 // RegisterAssetEndpoints registers URL endpoints for static resources
