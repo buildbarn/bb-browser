@@ -1,47 +1,16 @@
-# gazelle:ignore
+load("@io_bazel_rules_go//go:def.bzl", "go_embed_data")
 
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
-load(":bundle_file.bzl", "bundle_file")
-
-go_library(
-    name = "go_default_library",
+go_embed_data(
+    name = "assets",
     srcs = [
-        ":BootstrapCSS",
-        ":BootstrapJS",
-        ":FaviconPNG",
-        ":JQueryJS",
-        ":TerminalCSS",
+        "favicon.png",
+        "@com_github_buildkite_terminal//assets:terminal.css",
+        "@com_github_twbs_bootstrap//:css/bootstrap.min.css",
+        "@com_github_twbs_bootstrap//:js/bootstrap.min.js",
+        "@com_jquery_jquery//file",
     ],
-    importpath = "github.com/buildbarn/bb-browser/cmd/bb_browser/assets",
-    visibility = ["//visibility:public"],
-)
-
-bundle_file(
-    name = "BootstrapCSS",
-    src = "@com_github_twbs_bootstrap//:css/bootstrap.min.css",
-    package = "assets",
-)
-
-bundle_file(
-    name = "BootstrapJS",
-    src = "@com_github_twbs_bootstrap//:js/bootstrap.min.js",
-    package = "assets",
-)
-
-bundle_file(
-    name = "FaviconPNG",
-    src = "favicon.png",
-    package = "assets",
-)
-
-bundle_file(
-    name = "JQueryJS",
-    src = "@com_jquery_jquery//file",
-    package = "assets",
-)
-
-bundle_file(
-    name = "TerminalCSS",
-    src = "@com_github_buildkite_terminal//assets:terminal.css",
-    package = "assets",
+    flatten = True,
+    package = "main",
+    var = "AssetsData",
+    visibility = ["//cmd/bb_browser:__pkg__"],
 )

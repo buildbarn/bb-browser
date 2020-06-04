@@ -1,5 +1,5 @@
 load("@com_github_buildbarn_bb_storage//tools:container.bzl", "container_push_official")
-load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_layer")
+load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
@@ -8,11 +8,12 @@ go_library(
         "asset_registry.go",
         "browser_service.go",
         "main.go",
+        "//cmd/bb_browser/assets",  # keep
+        "//cmd/bb_browser/templates",  # keep
     ],
     importpath = "github.com/buildbarn/bb-browser/cmd/bb_browser",
     visibility = ["//visibility:private"],
     deps = [
-        "//cmd/bb_browser/assets:go_default_library",
         "//pkg/proto/configuration/bb_browser:go_default_library",
         "@com_github_bazelbuild_remote_apis//build/bazel/remote/execution/v2:go_default_library",
         "@com_github_buildbarn_bb_remote_execution//pkg/proto/resourceusage:go_default_library",
@@ -44,25 +45,10 @@ go_binary(
     visibility = ["//visibility:public"],
 )
 
-container_layer(
-    name = "bb_browser_layer_executable",
-    files = [":bb_browser"],
-)
-
-container_layer(
-    name = "bb_browser_layer_templates",
-    data_path = ".",
-    files = glob(["templates/**"]),
-)
-
-container_image(
+go_image(
     name = "bb_browser_container",
-    base = "@go_image_static//image",
-    entrypoint = ["/bb_browser"],
-    layers = [
-        ":bb_browser_layer_executable",
-        ":bb_browser_layer_templates",
-    ],
+    embed = [":go_default_library"],
+    pure = "on",
     visibility = ["//visibility:public"],
 )
 

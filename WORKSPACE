@@ -47,6 +47,7 @@ http_archive(
 
 http_file(
     name = "com_jquery_jquery",
+    downloaded_file_path = "jquery.js",
     sha256 = "0497a8d2a9bde7db8c0466fae73e347a3258192811ed1108e3e096d5f34ac0e8",
     urls = ["https://code.jquery.com/jquery-3.4.0.min.js"],
 )
@@ -134,3 +135,7 @@ llvm_toolchain(
     name = "llvm_toolchain",
     llvm_version = "9.0.0",
 )
+
+load("@io_bazel_rules_go//extras:embed_data_deps.bzl", "go_embed_data_dependencies")
+
+go_embed_data_dependencies()
