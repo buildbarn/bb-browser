@@ -13,6 +13,7 @@ import (
 	blobstore_configuration "github.com/buildbarn/bb-storage/pkg/blobstore/configuration"
 	"github.com/buildbarn/bb-storage/pkg/cas"
 	"github.com/buildbarn/bb-storage/pkg/global"
+	bb_grpc "github.com/buildbarn/bb-storage/pkg/grpc"
 	"github.com/buildbarn/bb-storage/pkg/util"
 	"github.com/dustin/go-humanize"
 	"github.com/golang/protobuf/ptypes"
@@ -51,11 +52,13 @@ func main() {
 	}
 
 	// Storage access.
-	contentAddressableStorageBlobAccess, actionCacheBlobAccess, err := blobstore_configuration.CreateBlobAccessObjectsFromConfig(
+	grpcClientFactory := bb_grpc.NewDeduplicatingClientFactory(bb_grpc.BaseClientFactory)
+	contentAddressableStorage, actionCache, err := blobstore_configuration.NewCASAndACBlobAccessFromConfiguration(
 		configuration.Blobstore,
+		grpcClientFactory,
 		int(configuration.MaximumMessageSizeBytes))
 	if err != nil {
-		log.Fatal("Failed to create blob access: ", err)
+		log.Fatal(err)
 	}
 
 	templates := template.New("templates").Funcs(template.FuncMap{
@@ -144,10 +147,10 @@ func main() {
 	router := mux.NewRouter()
 	NewBrowserService(
 		cas.NewBlobAccessContentAddressableStorage(
-			contentAddressableStorageBlobAccess,
+			contentAddressableStorage,
 			int(configuration.MaximumMessageSizeBytes)),
-		contentAddressableStorageBlobAccess,
-		actionCacheBlobAccess,
+		contentAddressableStorage,
+		actionCache,
 		int(configuration.MaximumMessageSizeBytes),
 		templates,
 		router)

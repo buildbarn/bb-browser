@@ -107,8 +107,12 @@ func (s *BrowserService) handleAction(w http.ResponseWriter, req *http.Request) 
 	}
 
 	ctx := extractContextFromRequest(req)
-	actionResult, err := s.actionCache.Get(ctx, digest).ToActionResult(s.maximumMessageSizeBytes)
-	if err != nil && status.Code(err) != codes.NotFound {
+	var actionResult *remoteexecution.ActionResult
+	if m, err := s.actionCache.Get(ctx, digest).ToProto(
+		&remoteexecution.ActionResult{},
+		s.maximumMessageSizeBytes); err == nil {
+		actionResult = m.(*remoteexecution.ActionResult)
+	} else if status.Code(err) != codes.NotFound {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
