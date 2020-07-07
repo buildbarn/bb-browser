@@ -1,11 +1,11 @@
 {{if .}}
 	<tr>
-		<th style="width: 25%">{{.Name}}{{with .Digest}}<sup><a href="/file/{{.GetInstance}}/{{.GetHashString}}/{{.GetSizeBytes}}/log.txt">*</a></sup>{{end}}:</th>
+		<th style="width: 25%">{{.Name}}{{with .Digest}}<sup><a href="/file/{{.GetInstanceName}}/{{.GetHashString}}/{{.GetSizeBytes}}/log.txt">*</a></sup>{{end}}:</th>
 		<td class="width: 75%">
 			{{if .NotFound}}
 				The log file for this action could not be found.
 			{{else if .TooLarge}}
-				The {{with .Digest}}<a href="/file/{{.GetInstance}}/{{.GetHashString}}/{{.GetSizeBytes}}/log.txt">log file</a> for this action is too large to display ({{.GetSizeBytes}} bytes{{end}}).
+				The {{with .Digest}}<a href="/file/{{.GetInstanceName}}/{{.GetHashString}}/{{.GetSizeBytes}}/log.txt">log file</a> for this action is too large to display ({{.GetSizeBytes}} bytes{{end}}).
 			{{else}}
 				<div class="term-container">{{.HTML}}</div>
 			{{end}}
