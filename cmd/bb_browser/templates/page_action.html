@@ -1,4 +1,4 @@
-{{$instanceName := .InstanceName}}
+{{$instanceName := .ActionDigest.GetInstanceName}}
 {{$actionResult := .ExecuteResponse.GetResult}}
 {{$status := .ExecuteResponse.GetStatus}}
 
@@ -16,7 +16,12 @@
 	{{end}}
 {{end}}
 
-<h1 class="my-4">Action</h1>
+{{if .IsUncachedActionResult}}
+	<h1 class="my-4">Uncached action result</h1>
+	<h2 class="my-4">Action<sup><a href="/action/{{$instanceName}}/{{.ActionDigest.GetHashString}}/{{.ActionDigest.GetSizeBytes}}/">*</a></sup></h2>
+{{else}}
+	<h1 class="my-4">Action</h1>
+{{end}}
 
 {{if .Action}}
 <table class="table" style="table-layout: fixed">

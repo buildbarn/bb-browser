@@ -124,7 +124,7 @@ func (s *BrowserService) handleAction(w http.ResponseWriter, req *http.Request) 
 
 	s.handleActionCommon(w, req, digest, &remoteexecution.ExecuteResponse{
 		Result: actionResult,
-	})
+	}, false)
 }
 
 func (s *BrowserService) handleUncachedActionResult(w http.ResponseWriter, req *http.Request) {
@@ -144,7 +144,7 @@ func (s *BrowserService) handleUncachedActionResult(w http.ResponseWriter, req *
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	s.handleActionCommon(w, req, actionDigest, uncachedActionResult.ExecuteResponse)
+	s.handleActionCommon(w, req, actionDigest, uncachedActionResult.ExecuteResponse, true)
 }
 
 func (s *BrowserService) getLogInfoFromActionResult(ctx context.Context, name string, instanceName digest.InstanceName, logDigest *remoteexecution.Digest, rawLogBody []byte) (*logInfo, error) {
@@ -204,11 +204,12 @@ func (s *BrowserService) getLogInfoForDigest(ctx context.Context, name string, d
 	return nil, err
 }
 
-func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Request, actionDigest digest.Digest, executeResponse *remoteexecution.ExecuteResponse) {
+func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Request, actionDigest digest.Digest, executeResponse *remoteexecution.ExecuteResponse, isUncachedActionResult bool) {
 	instanceName := actionDigest.GetInstanceName()
 	actionInfo := struct {
-		InstanceName digest.InstanceName
-		Action       *remoteexecution.Action
+		IsUncachedActionResult bool
+		ActionDigest           digest.Digest
+		Action                 *remoteexecution.Action
 
 		Command *remoteexecution.Command
 
@@ -224,8 +225,9 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 		MissingDirectories []string
 		MissingFiles       []string
 	}{
-		InstanceName:    instanceName,
-		ExecuteResponse: executeResponse,
+		IsUncachedActionResult: isUncachedActionResult,
+		ActionDigest:           actionDigest,
+		ExecuteResponse:        executeResponse,
 	}
 
 	ctx := extractContextFromRequest(req)
