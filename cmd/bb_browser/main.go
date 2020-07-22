@@ -11,7 +11,6 @@ import (
 	"github.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browser"
 	"github.com/buildbarn/bb-remote-execution/pkg/proto/resourceusage"
 	blobstore_configuration "github.com/buildbarn/bb-storage/pkg/blobstore/configuration"
-	"github.com/buildbarn/bb-storage/pkg/cas"
 	"github.com/buildbarn/bb-storage/pkg/global"
 	bb_grpc "github.com/buildbarn/bb-storage/pkg/grpc"
 	"github.com/buildbarn/bb-storage/pkg/util"
@@ -146,9 +145,6 @@ func main() {
 
 	router := mux.NewRouter()
 	NewBrowserService(
-		cas.NewBlobAccessContentAddressableStorage(
-			contentAddressableStorage,
-			int(configuration.MaximumMessageSizeBytes)),
 		contentAddressableStorage,
 		actionCache,
 		int(configuration.MaximumMessageSizeBytes),

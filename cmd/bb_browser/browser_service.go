@@ -17,8 +17,8 @@ import (
 
 	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
 	"github.com/buildbarn/bb-storage/pkg/blobstore"
-	"github.com/buildbarn/bb-storage/pkg/cas"
 	"github.com/buildbarn/bb-storage/pkg/digest"
+	cas_proto "github.com/buildbarn/bb-storage/pkg/proto/cas"
 	"github.com/buildbarn/bb-storage/pkg/util"
 	"github.com/buildkite/terminal"
 	"github.com/golang/protobuf/proto"
@@ -58,22 +58,20 @@ func extractContextFromRequest(req *http.Request) context.Context {
 // can show the details of actions and download their input and output
 // files.
 type BrowserService struct {
-	contentAddressableStorage           cas.ContentAddressableStorage
-	contentAddressableStorageBlobAccess blobstore.BlobAccess
-	actionCache                         blobstore.BlobAccess
-	maximumMessageSizeBytes             int
-	templates                           *template.Template
+	contentAddressableStorage blobstore.BlobAccess
+	actionCache               blobstore.BlobAccess
+	maximumMessageSizeBytes   int
+	templates                 *template.Template
 }
 
 // NewBrowserService constructs a BrowserService that accesses storage
 // through a set of handles.
-func NewBrowserService(contentAddressableStorage cas.ContentAddressableStorage, contentAddressableStorageBlobAccess blobstore.BlobAccess, actionCache blobstore.BlobAccess, maximumMessageSizeBytes int, templates *template.Template, router *mux.Router) *BrowserService {
+func NewBrowserService(contentAddressableStorage blobstore.BlobAccess, actionCache blobstore.BlobAccess, maximumMessageSizeBytes int, templates *template.Template, router *mux.Router) *BrowserService {
 	s := &BrowserService{
-		contentAddressableStorage:           contentAddressableStorage,
-		contentAddressableStorageBlobAccess: contentAddressableStorageBlobAccess,
-		actionCache:                         actionCache,
-		maximumMessageSizeBytes:             maximumMessageSizeBytes,
-		templates:                           templates,
+		contentAddressableStorage: contentAddressableStorage,
+		actionCache:               actionCache,
+		maximumMessageSizeBytes:   maximumMessageSizeBytes,
+		templates:                 templates,
 	}
 	router.HandleFunc("/", s.handleWelcome)
 	router.HandleFunc("/action/{instanceName}/{hash}/{sizeBytes}/", s.handleAction)
@@ -134,11 +132,12 @@ func (s *BrowserService) handleUncachedActionResult(w http.ResponseWriter, req *
 		return
 	}
 	ctx := extractContextFromRequest(req)
-	uncachedActionResult, err := s.contentAddressableStorage.GetUncachedActionResult(ctx, digest)
+	m, err := s.contentAddressableStorage.Get(ctx, digest).ToProto(&cas_proto.UncachedActionResult{}, s.maximumMessageSizeBytes)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	uncachedActionResult := m.(*cas_proto.UncachedActionResult)
 	actionDigest, err := digest.GetInstanceName().NewDigestFromProto(uncachedActionResult.ActionDigest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -185,7 +184,7 @@ func (s *BrowserService) getLogInfoForDigest(ctx context.Context, name string, d
 		}, nil
 	}
 
-	data, err := s.contentAddressableStorageBlobAccess.Get(ctx, digest).ToByteSlice(maximumLogSizeBytes)
+	data, err := s.contentAddressableStorage.Get(ctx, digest).ToByteSlice(maximumLogSizeBytes)
 	if err == nil {
 		// Log found. Convert ANSI escape sequences to HTML.
 		return &logInfo{
@@ -250,8 +249,9 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 		}
 	}
 
-	action, err := s.contentAddressableStorage.GetAction(ctx, actionDigest)
+	actionMessage, err := s.contentAddressableStorage.Get(ctx, actionDigest).ToProto(&remoteexecution.Action{}, s.maximumMessageSizeBytes)
 	if err == nil {
+		action := actionMessage.(*remoteexecution.Action)
 		actionInfo.Action = action
 
 		commandDigest, err := instanceName.NewDigestFromProto(action.CommandDigest)
@@ -259,8 +259,9 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		command, err := s.contentAddressableStorage.GetCommand(ctx, commandDigest)
+		commandMessage, err := s.contentAddressableStorage.Get(ctx, commandDigest).ToProto(&remoteexecution.Command{}, s.maximumMessageSizeBytes)
 		if err == nil {
+			command := commandMessage.(*remoteexecution.Command)
 			actionInfo.Command = command
 
 			foundDirectories := map[string]bool{}
@@ -294,11 +295,11 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		directory, err := s.contentAddressableStorage.GetDirectory(ctx, inputRootDigest)
+		directoryMessage, err := s.contentAddressableStorage.Get(ctx, inputRootDigest).ToProto(&remoteexecution.Directory{}, s.maximumMessageSizeBytes)
 		if err == nil {
 			actionInfo.InputRoot = &directoryInfo{
 				Digest:    inputRootDigest,
-				Directory: directory,
+				Directory: directoryMessage.(*remoteexecution.Directory),
 			}
 		} else if status.Code(err) != codes.NotFound {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -309,7 +310,7 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	if action == nil && actionResult == nil {
+	if actionMessage == nil && actionResult == nil {
 		http.Error(w, "Could not find an action or action result", http.StatusNotFound)
 		return
 	}
@@ -327,11 +328,12 @@ func (s *BrowserService) handleCommand(w http.ResponseWriter, req *http.Request)
 	}
 
 	ctx := extractContextFromRequest(req)
-	command, err := s.contentAddressableStorage.GetCommand(ctx, digest)
+	commandMessage, err := s.contentAddressableStorage.Get(ctx, digest).ToProto(&remoteexecution.Command{}, s.maximumMessageSizeBytes)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	command := commandMessage.(*remoteexecution.Command)
 
 	if err := s.templates.ExecuteTemplate(w, "page_command.html", command); err != nil {
 		log.Print(err)
@@ -422,7 +424,7 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 				return err
 			}
 
-			if err := s.contentAddressableStorageBlobAccess.Get(ctx, childDigest).IntoWriter(w); err != nil {
+			if err := s.contentAddressableStorage.Get(ctx, childDigest).IntoWriter(w); err != nil {
 				return err
 			}
 
@@ -454,24 +456,31 @@ func (s *BrowserService) generateTarball(ctx context.Context, w http.ResponseWri
 }
 
 func (s *BrowserService) handleDirectory(w http.ResponseWriter, req *http.Request) {
-	digest, err := getDigestFromRequest(req)
+	directoryDigest, err := getDigestFromRequest(req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	ctx := extractContextFromRequest(req)
-	directory, err := s.contentAddressableStorage.GetDirectory(ctx, digest)
+	directoryMessage, err := s.contentAddressableStorage.Get(ctx, directoryDigest).ToProto(&remoteexecution.Directory{}, s.maximumMessageSizeBytes)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	directory := directoryMessage.(*remoteexecution.Directory)
 
 	if req.URL.Query().Get("format") == "tar" {
-		s.generateTarball(ctx, w, digest, directory, s.contentAddressableStorage.GetDirectory)
+		s.generateTarball(ctx, w, directoryDigest, directory, func(ctx context.Context, digest digest.Digest) (*remoteexecution.Directory, error) {
+			directoryMessage, err := s.contentAddressableStorage.Get(ctx, digest).ToProto(&remoteexecution.Directory{}, s.maximumMessageSizeBytes)
+			if err != nil {
+				return nil, err
+			}
+			return directoryMessage.(*remoteexecution.Directory), nil
+		})
 	} else {
 		if err := s.templates.ExecuteTemplate(w, "page_directory.html", directoryInfo{
-			Digest:    digest,
+			Digest:    directoryDigest,
 			Directory: directory,
 		}); err != nil {
 			log.Print(err)
@@ -487,7 +496,7 @@ func (s *BrowserService) handleFile(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ctx := extractContextFromRequest(req)
-	r := s.contentAddressableStorageBlobAccess.Get(ctx, digest).ToReader()
+	r := s.contentAddressableStorage.Get(ctx, digest).ToReader()
 	defer r.Close()
 
 	// Attempt to read the first chunk of data to see whether we can
@@ -519,11 +528,12 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ctx := extractContextFromRequest(req)
-	tree, err := s.contentAddressableStorage.GetTree(ctx, treeDigest)
+	treeMessage, err := s.contentAddressableStorage.Get(ctx, treeDigest).ToProto(&remoteexecution.Tree{}, s.maximumMessageSizeBytes)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	tree := treeMessage.(*remoteexecution.Tree)
 	instanceName := treeDigest.GetInstanceName()
 	treeInfo := struct {
 		InstanceName       digest.InstanceName
