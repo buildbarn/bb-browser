@@ -63,13 +63,13 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 git_repository(
     name = "com_github_buildbarn_bb_remote_execution",
-    commit = "c4f1ed5e7cc1aa6aa7df027405dabf9ef0f5a9c1",
+    commit = "bfa13158111c4a1b3995cd018046c0d3259c3236",
     remote = "https://github.com/buildbarn/bb-remote-execution.git",
 )
 
 git_repository(
     name = "com_github_buildbarn_bb_storage",
-    commit = "95d2eb7f5da44c166d8e3fccebc84a84f2c2c1a3",
+    commit = "fb2a1e6bee7c403cf2579613ca07fabf1478eb11",
     remote = "https://github.com/buildbarn/bb-storage.git",
 )
 
