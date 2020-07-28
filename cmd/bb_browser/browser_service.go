@@ -20,7 +20,7 @@ import (
 	"github.com/buildbarn/bb-storage/pkg/digest"
 	cas_proto "github.com/buildbarn/bb-storage/pkg/proto/cas"
 	"github.com/buildbarn/bb-storage/pkg/util"
-	"github.com/buildkite/terminal"
+	"github.com/buildkite/terminal-to-html"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
