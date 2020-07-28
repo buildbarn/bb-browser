@@ -4,7 +4,7 @@ go_embed_data(
     name = "assets",
     srcs = [
         "favicon.png",
-        "@com_github_buildkite_terminal//assets:terminal.css",
+        "@com_github_buildkite_terminal_to_html//assets:terminal.css",
         "@com_github_twbs_bootstrap//:css/bootstrap.min.css",
         "@com_github_twbs_bootstrap//:js/bootstrap.min.js",
         "@com_jquery_jquery//file",

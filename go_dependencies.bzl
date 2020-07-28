@@ -990,13 +990,6 @@ def go_dependencies():
         version = "v0.0.0-20200727211423-91336e951561",
     )
     go_repository(
-        name = "com_github_buildkite_terminal",
-        importpath = "github.com/buildkite/terminal",
-        patches = ["@com_github_buildbarn_bb_browser//:patches/com_github_buildkite_terminal/assets.diff"],
-        sum = "h1:DSjZqpghUwmMHrKkcH+IOCtIVBbV9lcE3UxXV2vRNfQ=",
-        version = "v3.1.0+incompatible",
-    )
-    go_repository(
         name = "com_github_dustin_go_humanize",
         importpath = "github.com/dustin/go-humanize",
         sum = "h1:VSnTsYCnlFHaM2/igO1h6X3HA71jcobQuxemgkq4zYo=",
@@ -1047,6 +1040,7 @@ def go_dependencies():
     go_repository(
         name = "com_github_buildkite_terminal_to_html",
         importpath = "github.com/buildkite/terminal-to-html",
+        patches = ["@com_github_buildbarn_bb_browser//:patches/com_github_buildkite_terminal_to_html/assets.diff"],
         sum = "h1:WdXzl7ZmYzCAz4pElZosPaUlRTW+qwVx/SkQSCa1jXs=",
         version = "v3.2.0+incompatible",
     )
