@@ -1040,6 +1040,7 @@ def go_dependencies():
     )
     go_repository(
         name = "com_github_buildkite_terminal_to_html",
+        build_extra_args = ["--exclude=cmd/terminal-to-html"],
         importpath = "github.com/buildkite/terminal-to-html",
         patches = ["@com_github_buildbarn_bb_browser//:patches/com_github_buildkite_terminal_to_html/assets.diff"],
         sum = "h1:WdXzl7ZmYzCAz4pElZosPaUlRTW+qwVx/SkQSCa1jXs=",
