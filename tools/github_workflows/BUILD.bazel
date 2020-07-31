@@ -9,3 +9,8 @@ jsonnet_to_json(
     ],
     deps = ["@com_github_buildbarn_bb_storage//tools/github_workflows:workflows_template"],
 )
+
+sh_test(
+    name = "noop_test",
+    srcs = ["noop_test.sh"],
+)
