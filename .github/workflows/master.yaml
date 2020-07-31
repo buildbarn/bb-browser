@@ -1,58 +1,177 @@
-name: master
-on:
-  push:
-    branches:
-    - master
-jobs:
-  build_and_test:
-    runs-on: ubuntu-latest
-    container: docker://l.gcr.io/google/bazel:2.1.0
-    steps:
-    - name: Check out source code
-      uses: actions/checkout@v1
-
-    - name: Buildifier
-      run: bazel run @com_github_bazelbuild_buildtools//:buildifier
-    - name: Gazelle
-      run: bazel run //:gazelle -- update-repos -from_file=go.mod -to_macro go_dependencies.bzl%go_dependencies -prune && bazel run //:gazelle
-    - name: Gofmt
-      run: bazel run @go_sdk//:bin/gofmt -- -s -w .
-    - name: Clang format
-      run: find . -name '*.proto' -exec bazel run @llvm_toolchain//:bin/clang-format -- -i {} +
-    - name: Test style conformance
-      run: git diff --exit-code HEAD --
-    - name: Golint
-      run: bazel run @org_golang_x_lint//golint -- -set_exit_status $(pwd)/...
-    - name: Check for ineffective assignments
-      run: bazel run @com_github_gordonklaus_ineffassign//:ineffassign $(pwd)
-
-    - name: Linux build
-      run: bazel build --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //...
-    - name: Upload bb_browser for Linux
-      uses: actions/upload-artifact@v2-preview
-      with:
-        name: bb_browser.linux_amd64
-        path: bazel-bin/cmd/bb_browser/linux_amd64_pure_stripped/bb_browser
-
-    - name: macOS build
-      run: bazel build --platforms=@io_bazel_rules_go//go/toolchain:darwin_amd64 //...
-    - name: Upload bb_browser for macOS
-      uses: actions/upload-artifact@v2-preview
-      with:
-        name: bb_browser.darwin_amd64
-        path: bazel-bin/cmd/bb_browser/darwin_amd64_pure_stripped/bb_browser
-
-    - name: FreeBSD build
-      run: bazel build --platforms=@io_bazel_rules_go//go/toolchain:freebsd_amd64 //cmd/bb_browser
-    - name: Upload bb_browser for FreeBSD
-      uses: actions/upload-artifact@v2-preview
-      with:
-        name: bb_browser.freebsd_amd64
-        path: bazel-bin/cmd/bb_browser/freebsd_amd64_pure_stripped/bb_browser
-
-    - name: Install Docker credentials
-      run: mkdir ~/.docker && echo "${DOCKER_CONFIG_JSON}" > ~/.docker/config.json
-      env:
-        DOCKER_CONFIG_JSON: ${{ secrets.DOCKER_CONFIG_JSON }}
-    - name: Push container bb-browser
-      run: bazel run //cmd/bb_browser:bb_browser_container_push
+{
+   "jobs": {
+      "build_and_test": {
+         "container": "docker://l.gcr.io/google/bazel:3.3.1",
+         "runs-on": "ubuntu-latest",
+         "steps": [
+            {
+               "name": "Check out source code",
+               "uses": "actions/checkout@v1"
+            },
+            {
+               "name": "Buildifier",
+               "run": "bazel run @com_github_bazelbuild_buildtools//:buildifier"
+            },
+            {
+               "name": "Gazelle",
+               "run": "bazel run //:gazelle -- update-repos -from_file=go.mod -to_macro go_dependencies.bzl%go_dependencies -prune && bazel run //:gazelle"
+            },
+            {
+               "name": "Gofmt",
+               "run": "bazel run @go_sdk//:bin/gofmt -- -s -w ."
+            },
+            {
+               "name": "Clang format",
+               "run": "find . -name '*.proto' -exec bazel run @llvm_toolchain//:bin/clang-format -- -i {} +"
+            },
+            {
+               "name": "GitHub workflows",
+               "run": "bazel build //tools/github_workflows && cp bazel-bin/tools/github_workflows/* .github/workflows"
+            },
+            {
+               "name": "Test style conformance",
+               "run": "git diff --exit-code HEAD --"
+            },
+            {
+               "name": "Golint",
+               "run": "bazel run @org_golang_x_lint//golint -- -set_exit_status $(pwd)/..."
+            },
+            {
+               "name": "Check for ineffective assignments",
+               "run": "bazel run @com_github_gordonklaus_ineffassign//:ineffassign $(pwd)"
+            },
+            {
+               "name": "linux_amd64: build and test",
+               "run": "bazel test --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //..."
+            },
+            {
+               "name": "linux_amd64: copy bb_browser",
+               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //cmd/bb_browser $(pwd)/bb_browser"
+            },
+            {
+               "name": "linux_amd64: upload bb_browser",
+               "uses": "actions/upload-artifact@v2-preview",
+               "with": {
+                  "name": "bb_browser.linux_amd64",
+                  "path": "bb_browser"
+               }
+            },
+            {
+               "name": "linux_amd64: copy bb_browser",
+               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //cmd/bb_browser $(pwd)/bb_browser"
+            },
+            {
+               "name": "linux_amd64: upload bb_browser",
+               "uses": "actions/upload-artifact@v2-preview",
+               "with": {
+                  "name": "bb_browser.linux_amd64",
+                  "path": "bb_browser"
+               }
+            },
+            {
+               "name": "darwin_amd64: build and test",
+               "run": "bazel build --platforms=@io_bazel_rules_go//go/toolchain:darwin_amd64 //..."
+            },
+            {
+               "name": "darwin_amd64: copy bb_browser",
+               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:darwin_amd64 //cmd/bb_browser $(pwd)/bb_browser"
+            },
+            {
+               "name": "darwin_amd64: upload bb_browser",
+               "uses": "actions/upload-artifact@v2-preview",
+               "with": {
+                  "name": "bb_browser.darwin_amd64",
+                  "path": "bb_browser"
+               }
+            },
+            {
+               "name": "darwin_amd64: copy bb_browser",
+               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:darwin_amd64 //cmd/bb_browser $(pwd)/bb_browser"
+            },
+            {
+               "name": "darwin_amd64: upload bb_browser",
+               "uses": "actions/upload-artifact@v2-preview",
+               "with": {
+                  "name": "bb_browser.darwin_amd64",
+                  "path": "bb_browser"
+               }
+            },
+            {
+               "name": "freebsd_amd64: build and test",
+               "run": "bazel build --platforms=@io_bazel_rules_go//go/toolchain:freebsd_amd64 //cmd/bb_browser //cmd/bb_browser"
+            },
+            {
+               "name": "freebsd_amd64: copy bb_browser",
+               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:freebsd_amd64 //cmd/bb_browser $(pwd)/bb_browser"
+            },
+            {
+               "name": "freebsd_amd64: upload bb_browser",
+               "uses": "actions/upload-artifact@v2-preview",
+               "with": {
+                  "name": "bb_browser.freebsd_amd64",
+                  "path": "bb_browser"
+               }
+            },
+            {
+               "name": "freebsd_amd64: copy bb_browser",
+               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:freebsd_amd64 //cmd/bb_browser $(pwd)/bb_browser"
+            },
+            {
+               "name": "freebsd_amd64: upload bb_browser",
+               "uses": "actions/upload-artifact@v2-preview",
+               "with": {
+                  "name": "bb_browser.freebsd_amd64",
+                  "path": "bb_browser"
+               }
+            },
+            {
+               "name": "windows_amd64: build and test",
+               "run": "bazel build --platforms=@io_bazel_rules_go//go/toolchain:windows_amd64 //..."
+            },
+            {
+               "name": "windows_amd64: copy bb_browser",
+               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:windows_amd64 //cmd/bb_browser $(pwd)/bb_browser.exe"
+            },
+            {
+               "name": "windows_amd64: upload bb_browser",
+               "uses": "actions/upload-artifact@v2-preview",
+               "with": {
+                  "name": "bb_browser.windows_amd64",
+                  "path": "bb_browser.exe"
+               }
+            },
+            {
+               "name": "windows_amd64: copy bb_browser",
+               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:windows_amd64 //cmd/bb_browser $(pwd)/bb_browser.exe"
+            },
+            {
+               "name": "windows_amd64: upload bb_browser",
+               "uses": "actions/upload-artifact@v2-preview",
+               "with": {
+                  "name": "bb_browser.windows_amd64",
+                  "path": "bb_browser.exe"
+               }
+            },
+            {
+               "env": {
+                  "DOCKER_CONFIG_JSON": "${{ secrets.DOCKER_CONFIG_JSON }}"
+               },
+               "name": "Install Docker credentials",
+               "run": "mkdir ~/.docker && echo \"${DOCKER_CONFIG_JSON}\" > ~/.docker/config.json"
+            },
+            {
+               "name": "Push container bb_browser:bb_browser",
+               "run": "bazel run //cmd/bb_browser:bb_browser_container_push"
+            }
+         ]
+      }
+   },
+   "name": "master",
+   "on": {
+      "push": {
+         "branches": [
+            "master"
+         ]
+      }
+   }
+}
