@@ -57,18 +57,6 @@
                }
             },
             {
-               "name": "linux_amd64: copy bb_browser",
-               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //cmd/bb_browser $(pwd)/bb_browser"
-            },
-            {
-               "name": "linux_amd64: upload bb_browser",
-               "uses": "actions/upload-artifact@v2-preview",
-               "with": {
-                  "name": "bb_browser.linux_amd64",
-                  "path": "bb_browser"
-               }
-            },
-            {
                "name": "darwin_amd64: build and test",
                "run": "bazel build --platforms=@io_bazel_rules_go//go/toolchain:darwin_amd64 //..."
             },
@@ -85,32 +73,8 @@
                }
             },
             {
-               "name": "darwin_amd64: copy bb_browser",
-               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:darwin_amd64 //cmd/bb_browser $(pwd)/bb_browser"
-            },
-            {
-               "name": "darwin_amd64: upload bb_browser",
-               "uses": "actions/upload-artifact@v2-preview",
-               "with": {
-                  "name": "bb_browser.darwin_amd64",
-                  "path": "bb_browser"
-               }
-            },
-            {
                "name": "freebsd_amd64: build and test",
-               "run": "bazel build --platforms=@io_bazel_rules_go//go/toolchain:freebsd_amd64 //cmd/bb_browser //cmd/bb_browser"
-            },
-            {
-               "name": "freebsd_amd64: copy bb_browser",
-               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:freebsd_amd64 //cmd/bb_browser $(pwd)/bb_browser"
-            },
-            {
-               "name": "freebsd_amd64: upload bb_browser",
-               "uses": "actions/upload-artifact@v2-preview",
-               "with": {
-                  "name": "bb_browser.freebsd_amd64",
-                  "path": "bb_browser"
-               }
+               "run": "bazel build --platforms=@io_bazel_rules_go//go/toolchain:freebsd_amd64 //cmd/bb_browser"
             },
             {
                "name": "freebsd_amd64: copy bb_browser",
@@ -127,18 +91,6 @@
             {
                "name": "windows_amd64: build and test",
                "run": "bazel build --platforms=@io_bazel_rules_go//go/toolchain:windows_amd64 //..."
-            },
-            {
-               "name": "windows_amd64: copy bb_browser",
-               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:windows_amd64 //cmd/bb_browser $(pwd)/bb_browser.exe"
-            },
-            {
-               "name": "windows_amd64: upload bb_browser",
-               "uses": "actions/upload-artifact@v2-preview",
-               "with": {
-                  "name": "bb_browser.windows_amd64",
-                  "path": "bb_browser.exe"
-               }
             },
             {
                "name": "windows_amd64: copy bb_browser",
