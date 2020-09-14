@@ -48,8 +48,8 @@ http_archive(
 http_file(
     name = "com_jquery_jquery",
     downloaded_file_path = "jquery.js",
-    sha256 = "0497a8d2a9bde7db8c0466fae73e347a3258192811ed1108e3e096d5f34ac0e8",
-    urls = ["https://code.jquery.com/jquery-3.4.0.min.js"],
+    sha256 = "f7f6a5894f1d19ddad6fa392b2ece2c5e578cbf7da4ea805b6885eb6985b6e3d",
+    urls = ["https://code.jquery.com/jquery-3.5.1.min.js"],
 )
 
 http_archive(
