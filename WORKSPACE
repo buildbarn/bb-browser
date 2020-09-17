@@ -59,15 +59,20 @@ http_archive(
     url = "https://github.com/buildbarn/bb-deployments/archive/cf505b7f363ce87798a367d6741b8f550a5e077a.tar.gz",
 )
 
-load("@io_bazel_rules_docker//repositories:repositories.bzl", container_repositories = "repositories")
-
-container_repositories()
-
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 
 go_rules_dependencies()
 
 go_register_toolchains()
+
+# gazelle:repository_macro go_dependencies.bzl%go_dependencies
+load("//:go_dependencies.bzl", "go_dependencies")
+
+go_dependencies()
+
+load("@io_bazel_rules_docker//repositories:repositories.bzl", container_repositories = "repositories")
+
+container_repositories()
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 
@@ -76,11 +81,6 @@ gazelle_dependencies()
 load("@io_bazel_rules_docker//go:image.bzl", _go_image_repos = "repositories")
 
 _go_image_repos()
-
-# gazelle:repository_macro go_dependencies.bzl%go_dependencies
-load("//:go_dependencies.bzl", "go_dependencies")
-
-go_dependencies()
 
 load("@com_github_bazelbuild_remote_apis//:repository_rules.bzl", "switched_rules_by_language")
 
