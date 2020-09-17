@@ -46,15 +46,15 @@ func main() {
 	if err := util.UnmarshalConfigurationFromFile(os.Args[1], &configuration); err != nil {
 		log.Fatalf("Failed to read configuration from %s: %s", os.Args[1], err)
 	}
-	if err := global.ApplyConfiguration(configuration.Global); err != nil {
+	lifecycleState, err := global.ApplyConfiguration(configuration.Global)
+	if err != nil {
 		log.Fatal("Failed to apply global configuration options: ", err)
 	}
 
 	// Storage access.
-	grpcClientFactory := bb_grpc.NewDeduplicatingClientFactory(bb_grpc.BaseClientFactory)
 	contentAddressableStorage, actionCache, err := blobstore_configuration.NewCASAndACBlobAccessFromConfiguration(
 		configuration.Blobstore,
-		grpcClientFactory,
+		bb_grpc.DefaultClientFactory,
 		int(configuration.MaximumMessageSizeBytes))
 	if err != nil {
 		log.Fatal(err)
@@ -151,6 +151,9 @@ func main() {
 		templates,
 		router)
 	RegisterAssetEndpoints(router)
-	util.RegisterAdministrativeHTTPEndpoints(router)
-	log.Fatal(http.ListenAndServe(configuration.ListenAddress, router))
+	go func() {
+		log.Fatal(http.ListenAndServe(configuration.ListenAddress, router))
+	}()
+
+	lifecycleState.MarkReadyAndWait()
 }

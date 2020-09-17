@@ -14,7 +14,7 @@ message ApplicationConfiguration {
   // Maximum Protobuf message size to unmarshal.
   int64 maximum_message_size_bytes = 2;
 
-  // Address on which to listen to expose the web service and metrics.
+  // Address on which to listen to expose the web service.
   string listen_address = 3;
 
   // Common configuration options that apply to all Buildbarn binaries.
