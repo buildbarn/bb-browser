@@ -66,7 +66,7 @@ type BrowserService struct {
 
 // NewBrowserService constructs a BrowserService that accesses storage
 // through a set of handles.
-func NewBrowserService(contentAddressableStorage blobstore.BlobAccess, actionCache blobstore.BlobAccess, maximumMessageSizeBytes int, templates *template.Template, router *mux.Router) *BrowserService {
+func NewBrowserService(contentAddressableStorage, actionCache blobstore.BlobAccess, maximumMessageSizeBytes int, templates *template.Template, router *mux.Router) *BrowserService {
 	s := &BrowserService{
 		contentAddressableStorage: contentAddressableStorage,
 		actionCache:               actionCache,

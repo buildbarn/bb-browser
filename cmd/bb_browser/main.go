@@ -103,7 +103,7 @@ func main() {
 			// Converts a timestamp to RFC3339 format.
 			return t.Format(rfc3339Milli)
 		},
-		"timestamp_proto_delta": func(pbPrevious *timestamp.Timestamp, pbNow *timestamp.Timestamp) *timestampDelta {
+		"timestamp_proto_delta": func(pbPrevious, pbNow *timestamp.Timestamp) *timestampDelta {
 			tNow, err := ptypes.Timestamp(pbNow)
 			if err != nil {
 				return nil

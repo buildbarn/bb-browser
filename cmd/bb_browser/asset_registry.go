@@ -17,9 +17,7 @@ type asset struct {
 	handler         func(w http.ResponseWriter, req *http.Request)
 }
 
-var (
-	registeredAssets = map[string]asset{}
-)
+var registeredAssets = map[string]asset{}
 
 func registerAsset(filename string, data []byte) {
 	hash := sha256.Sum256(data)
