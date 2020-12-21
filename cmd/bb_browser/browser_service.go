@@ -545,6 +545,7 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Construct map of all child directories.
+	digestFunction := treeDigest.GetDigestFunction()
 	children := map[string]*remoteexecution.Directory{}
 	for _, child := range tree.Children {
 		data, err := proto.Marshal(child)
@@ -552,7 +553,7 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		digestGenerator := treeDigest.NewGenerator()
+		digestGenerator := digestFunction.NewGenerator()
 		if _, err := digestGenerator.Write(data); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return

@@ -4,8 +4,8 @@ def go_dependencies():
     go_repository(
         name = "com_github_buildbarn_bb_storage",
         importpath = "github.com/buildbarn/bb-storage",
-        sum = "h1:f19huScWizGx+WRbCA51gaqKD59JBP78qQIGCSgik4k=",
-        version = "v0.0.0-20201104092644-c346ca331930",
+        sum = "h1:JXgLhx3wUXnSPlcnCBDm36ySqKqKe+ea/QXVOMhxynA=",
+        version = "v0.0.0-20201221055527-187d55fedd57",
     )
     go_repository(
         name = "com_github_bazelbuild_remote_apis",
@@ -42,6 +42,7 @@ def go_dependencies():
     go_repository(
         name = "com_github_grpc_ecosystem_go_grpc_prometheus",
         importpath = "github.com/grpc-ecosystem/go-grpc-prometheus",
+        patches = ["@com_github_buildbarn_bb_storage//:patches/com_github_grpc_ecosystem_go_grpc_prometheus/client-metrics-prevent-handled-twice.diff"],
         sum = "h1:Ovs26xHkKqVztRpIrF/92BcuyuQ/YW4NSIpoGtfXNho=",
         version = "v1.2.0",
     )
@@ -984,8 +985,8 @@ def go_dependencies():
     go_repository(
         name = "com_github_buildbarn_bb_remote_execution",
         importpath = "github.com/buildbarn/bb-remote-execution",
-        sum = "h1:12E+JEpYAnNMeK4PmPYCzShEMlRNKChkFWhs2bnlXlE=",
-        version = "v0.0.0-20201104093400-42313d3f74af",
+        sum = "h1:XpDwDAIp7J/9USta52DbdcsECFT8cCx4G60zP7hyTqA=",
+        version = "v0.0.0-20201221060855-7a66e7a22d72",
     )
     go_repository(
         name = "com_github_dustin_go_humanize",
@@ -1085,4 +1086,22 @@ def go_dependencies():
         importpath = "mvdan.cc/gofumpt",
         sum = "h1:QQ9mYdTscaVSaHC8A1wtLkECzvpD/YO2E2GyPvU1D/Y=",
         version = "v0.0.0-20201027171050-85d5401eb0f6",
+    )
+    go_repository(
+        name = "com_github_hanwen_go_fuse",
+        importpath = "github.com/hanwen/go-fuse",
+        sum = "h1:GxS9Zrn6c35/BnfiVsZVWmsG803xwE7eVRDvcf/BEVc=",
+        version = "v1.0.0",
+    )
+    go_repository(
+        name = "com_github_hanwen_go_fuse_v2",
+        importpath = "github.com/hanwen/go-fuse/v2",
+        sum = "h1:kpV28BKeSyVgZREItBLnaVBvOEwv2PuhNdKetwnvNHo=",
+        version = "v2.0.3",
+    )
+    go_repository(
+        name = "com_github_kylelemons_godebug",
+        importpath = "github.com/kylelemons/godebug",
+        sum = "h1:MtvEpTB6LX3vkb4ax0b5D2DHbNAUsen0Gx5wZoq3lV4=",
+        version = "v0.0.0-20170820004349-d65d576e9348",
     )

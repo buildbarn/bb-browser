@@ -125,6 +125,8 @@ github.com/buildbarn/bb-remote-execution v0.0.0-20201030194414-ee554d7a1207 h1:A
 github.com/buildbarn/bb-remote-execution v0.0.0-20201030194414-ee554d7a1207/go.mod h1:xXndT6R1CquE2sRgnmIPmrVjjeubT5UE1Z1mO0lioBs=
 github.com/buildbarn/bb-remote-execution v0.0.0-20201104093400-42313d3f74af h1:12E+JEpYAnNMeK4PmPYCzShEMlRNKChkFWhs2bnlXlE=
 github.com/buildbarn/bb-remote-execution v0.0.0-20201104093400-42313d3f74af/go.mod h1:0j+x52/IQDksnSobJzGS5bHuh5hc+dm3Q9hMkrI+OmM=
+github.com/buildbarn/bb-remote-execution v0.0.0-20201221060855-7a66e7a22d72 h1:XpDwDAIp7J/9USta52DbdcsECFT8cCx4G60zP7hyTqA=
+github.com/buildbarn/bb-remote-execution v0.0.0-20201221060855-7a66e7a22d72/go.mod h1:SNpCg0IWnsHGxM52KAXrrnDvUdoEfPuhoFBEVHR7DC8=
 github.com/buildbarn/bb-storage v0.0.0-20200727204530-50b8d8a407a4 h1:wQ/fktOzYf1V3K46Ij6gs4iUA5TpGJybugbM+4ZQMRA=
 github.com/buildbarn/bb-storage v0.0.0-20200727204530-50b8d8a407a4/go.mod h1:pFTRS3nbPR39WVDkBVFq0hFKff5bq0SumnIG2Uj9bJs=
 github.com/buildbarn/bb-storage v0.0.0-20200731111007-19f438a44dc5 h1:rCmsxpYy1V1Ddq3d2gfwKnn2TNXlcITQasg/hYz1H0Y=
@@ -139,6 +141,8 @@ github.com/buildbarn/bb-storage v0.0.0-20201030194121-a89a02790e5a h1:bLCzkRbH2U
 github.com/buildbarn/bb-storage v0.0.0-20201030194121-a89a02790e5a/go.mod h1:OacyIpoPMT5t2zdqnxrf/FhXgshrixyqtF9CdFz0uIc=
 github.com/buildbarn/bb-storage v0.0.0-20201104092644-c346ca331930 h1:f19huScWizGx+WRbCA51gaqKD59JBP78qQIGCSgik4k=
 github.com/buildbarn/bb-storage v0.0.0-20201104092644-c346ca331930/go.mod h1:qBYv0gmDMSubxaOMsaKDCbBvUhu4Rj6ZoOkU1X/12h8=
+github.com/buildbarn/bb-storage v0.0.0-20201221055527-187d55fedd57 h1:JXgLhx3wUXnSPlcnCBDm36ySqKqKe+ea/QXVOMhxynA=
+github.com/buildbarn/bb-storage v0.0.0-20201221055527-187d55fedd57/go.mod h1:qBYv0gmDMSubxaOMsaKDCbBvUhu4Rj6ZoOkU1X/12h8=
 github.com/buildkite/terminal v1.0.2 h1:V5ma56qaNn492G4FB+fV7od4vZtAcBUQ35CYmLUQrP8=
 github.com/buildkite/terminal v3.1.0+incompatible h1:DSjZqpghUwmMHrKkcH+IOCtIVBbV9lcE3UxXV2vRNfQ=
 github.com/buildkite/terminal v3.1.0+incompatible/go.mod h1:iQavkS6X0wlozOmO2rxHYt/9mE5Ij2XTk6yGcclx6hk=
@@ -267,6 +271,8 @@ github.com/grpc-ecosystem/go-grpc-middleware v1.2.0 h1:0IKlLyQ3Hs9nDaiK5cSHAGmcQ
 github.com/grpc-ecosystem/go-grpc-middleware v1.2.0/go.mod h1:mJzapYve32yjrKlk9GbyCZHuPgZsrbyIbyKhSzOpg6s=
 github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 h1:Ovs26xHkKqVztRpIrF/92BcuyuQ/YW4NSIpoGtfXNho=
 github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgfV/d3M/q6VIi02HzZEHgUlZvzk=
+github.com/hanwen/go-fuse v1.0.0/go.mod h1:unqXarDXqzAk0rt98O2tVndEPIpUgLD9+rwFisZH3Ok=
+github.com/hanwen/go-fuse/v2 v2.0.3/go.mod h1:0EQM6aH2ctVpvZ6a+onrQ/vaykxh2GH7hy3e13vzTUY=
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.1 h1:0hERBMJE1eitiLkihrMvRVBYAkpHzc/J3QdDN+dAcgU=
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
@@ -296,6 +302,7 @@ github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORN
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0 h1:45sCR5RtlFHMR4UwH9sdQ5TC8v0qDQCHnXt+kaKSTVE=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
+github.com/kylelemons/godebug v0.0.0-20170820004349-d65d576e9348/go.mod h1:B69LEHPfb2qLo0BaaOLcbitczOKLWTsrBG9LczfCD4k=
 github.com/lazybeaver/xorshift v0.0.0-20170702203709-ce511d4823dd h1:TfmftEfB1zJiDTFi3Qw1xlbEbfJPKUhEDC19clfBMb8=
 github.com/lazybeaver/xorshift v0.0.0-20170702203709-ce511d4823dd/go.mod h1:qXyNSomGEqu0M7ewNl3CLgle09PFHk8++5NrBWCz7+Q=
 github.com/lib/pq v1.1.1/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=

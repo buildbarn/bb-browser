@@ -42,7 +42,7 @@
             },
             {
                "name": "linux_amd64: build and test",
-               "run": "bazel test --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //..."
+               "run": "bazel test --test_output=errors --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //..."
             },
             {
                "name": "linux_amd64: copy bb_browser",
@@ -53,6 +53,54 @@
                "uses": "actions/upload-artifact@v2-preview",
                "with": {
                   "name": "bb_browser.linux_amd64",
+                  "path": "bb_browser"
+               }
+            },
+            {
+               "name": "linux_386: build and test",
+               "run": "bazel test --test_output=errors --platforms=@io_bazel_rules_go//go/toolchain:linux_386 //..."
+            },
+            {
+               "name": "linux_386: copy bb_browser",
+               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:linux_386 //cmd/bb_browser $(pwd)/bb_browser"
+            },
+            {
+               "name": "linux_386: upload bb_browser",
+               "uses": "actions/upload-artifact@v2-preview",
+               "with": {
+                  "name": "bb_browser.linux_386",
+                  "path": "bb_browser"
+               }
+            },
+            {
+               "name": "linux_arm: build and test",
+               "run": "bazel build --platforms=@io_bazel_rules_go//go/toolchain:linux_arm //..."
+            },
+            {
+               "name": "linux_arm: copy bb_browser",
+               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:linux_arm //cmd/bb_browser $(pwd)/bb_browser"
+            },
+            {
+               "name": "linux_arm: upload bb_browser",
+               "uses": "actions/upload-artifact@v2-preview",
+               "with": {
+                  "name": "bb_browser.linux_arm",
+                  "path": "bb_browser"
+               }
+            },
+            {
+               "name": "linux_arm64: build and test",
+               "run": "bazel build --platforms=@io_bazel_rules_go//go/toolchain:linux_arm64 //..."
+            },
+            {
+               "name": "linux_arm64: copy bb_browser",
+               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:linux_arm64 //cmd/bb_browser $(pwd)/bb_browser"
+            },
+            {
+               "name": "linux_arm64: upload bb_browser",
+               "uses": "actions/upload-artifact@v2-preview",
+               "with": {
+                  "name": "bb_browser.linux_arm64",
                   "path": "bb_browser"
                }
             },
