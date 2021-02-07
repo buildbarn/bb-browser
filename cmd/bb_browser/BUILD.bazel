@@ -3,7 +3,7 @@ load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "bb_browser_lib",
     srcs = [
         "asset_registry.go",
         "browser_service.go",
@@ -14,41 +14,41 @@ go_library(
     importpath = "github.com/buildbarn/bb-browser/cmd/bb_browser",
     visibility = ["//visibility:private"],
     deps = [
-        "//pkg/proto/configuration/bb_browser:go_default_library",
-        "@com_github_bazelbuild_remote_apis//build/bazel/remote/execution/v2:go_default_library",
-        "@com_github_buildbarn_bb_remote_execution//pkg/proto/resourceusage:go_default_library",
-        "@com_github_buildbarn_bb_storage//pkg/blobstore:go_default_library",
-        "@com_github_buildbarn_bb_storage//pkg/blobstore/configuration:go_default_library",
-        "@com_github_buildbarn_bb_storage//pkg/digest:go_default_library",
-        "@com_github_buildbarn_bb_storage//pkg/global:go_default_library",
-        "@com_github_buildbarn_bb_storage//pkg/grpc:go_default_library",
-        "@com_github_buildbarn_bb_storage//pkg/proto/cas:go_default_library",
-        "@com_github_buildbarn_bb_storage//pkg/util:go_default_library",
-        "@com_github_buildkite_terminal_to_html//:go_default_library",
-        "@com_github_dustin_go_humanize//:go_default_library",
+        "//pkg/proto/configuration/bb_browser",
+        "@com_github_bazelbuild_remote_apis//build/bazel/remote/execution/v2:execution",
+        "@com_github_buildbarn_bb_remote_execution//pkg/proto/resourceusage",
+        "@com_github_buildbarn_bb_storage//pkg/blobstore",
+        "@com_github_buildbarn_bb_storage//pkg/blobstore/configuration",
+        "@com_github_buildbarn_bb_storage//pkg/digest",
+        "@com_github_buildbarn_bb_storage//pkg/global",
+        "@com_github_buildbarn_bb_storage//pkg/grpc",
+        "@com_github_buildbarn_bb_storage//pkg/proto/cas",
+        "@com_github_buildbarn_bb_storage//pkg/util",
+        "@com_github_buildkite_terminal_to_html//:terminal-to-html",
+        "@com_github_dustin_go_humanize//:go-humanize",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",
-        "@com_github_gorilla_mux//:go_default_library",
-        "@com_github_grpc_ecosystem_go_grpc_middleware//util/metautils:go_default_library",
-        "@com_github_kballard_go_shellquote//:go_default_library",
+        "@com_github_gorilla_mux//:mux",
+        "@com_github_grpc_ecosystem_go_grpc_middleware//util/metautils",
+        "@com_github_kballard_go_shellquote//:go-shellquote",
         "@io_bazel_rules_go//proto/wkt:any_go_proto",
         "@io_bazel_rules_go//proto/wkt:duration_go_proto",
         "@io_bazel_rules_go//proto/wkt:timestamp_go_proto",
-        "@org_golang_google_grpc//codes:go_default_library",
-        "@org_golang_google_grpc//status:go_default_library",
+        "@org_golang_google_grpc//codes",
+        "@org_golang_google_grpc//status",
     ],
 )
 
 go_binary(
     name = "bb_browser",
-    embed = [":go_default_library"],
+    embed = [":bb_browser_lib"],
     pure = "on",
     visibility = ["//visibility:public"],
 )
 
 go_image(
     name = "bb_browser_container",
-    embed = [":go_default_library"],
+    embed = [":bb_browser_lib"],
     pure = "on",
     visibility = ["//visibility:public"],
 )

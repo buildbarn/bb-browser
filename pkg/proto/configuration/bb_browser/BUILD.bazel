@@ -18,13 +18,13 @@ go_proto_library(
     proto = ":bb_browser_proto",
     visibility = ["//visibility:public"],
     deps = [
-        "@com_github_buildbarn_bb_storage//pkg/proto/configuration/blobstore:go_default_library",
-        "@com_github_buildbarn_bb_storage//pkg/proto/configuration/global:go_default_library",
+        "@com_github_buildbarn_bb_storage//pkg/proto/configuration/blobstore",
+        "@com_github_buildbarn_bb_storage//pkg/proto/configuration/global",
     ],
 )
 
 go_library(
-    name = "go_default_library",
+    name = "bb_browser",
     embed = [":bb_browser_go_proto"],
     importpath = "github.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browser",
     visibility = ["//visibility:public"],
