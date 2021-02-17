@@ -166,6 +166,26 @@ The input root of this action could not be found.
 	</table>
 
 	{{range .AuxiliaryMetadata}}
+		{{with to_request_metadata .}}
+			<h3 class="my-4">Request metadata</h3>
+			<table class="table" style="table-layout: fixed">
+				{{with .ToolDetails}}
+					<tr>
+						<th style="width: 25%">Tool:</th>
+						<td style="width: 75%">{{.ToolName}} {{.ToolVersion}}</td>
+					</tr>
+				{{end}}
+				<tr>
+					<th style="width: 25%">Tool invocation ID:</th>
+					<td class="text-monospace" style="width: 75%">{{.ToolInvocationId}}</td>
+				</tr>
+				<tr>
+					<th style="width: 25%">Correlated invocations ID:</th>
+					<td class="text-monospace" style="width: 75%">{{.CorrelatedInvocationsId}}</td>
+				</tr>
+			</table>
+		{{end}}
+
 		{{with to_file_pool_resource_usage .}}
 			<h3 class="my-4">File pool resource usage</h3>
 			<table class="table" style="table-layout: fixed">

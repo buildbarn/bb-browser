@@ -8,6 +8,7 @@ import (
 	"path"
 	"time"
 
+	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
 	"github.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browser"
 	"github.com/buildbarn/bb-remote-execution/pkg/proto/resourceusage"
 	blobstore_configuration "github.com/buildbarn/bb-storage/pkg/blobstore/configuration"
@@ -93,6 +94,13 @@ func main() {
 		},
 		"to_posix_resource_usage": func(any *any.Any) *resourceusage.POSIXResourceUsage {
 			var pb resourceusage.POSIXResourceUsage
+			if ptypes.UnmarshalAny(any, &pb) != nil {
+				return nil
+			}
+			return &pb
+		},
+		"to_request_metadata": func(any *any.Any) *remoteexecution.RequestMetadata {
+			var pb remoteexecution.RequestMetadata
 			if ptypes.UnmarshalAny(any, &pb) != nil {
 				return nil
 			}
