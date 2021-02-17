@@ -347,7 +347,7 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 		if err := w.WriteHeader(&tar.Header{
 			Typeflag: tar.TypeDir,
 			Name:     childPath,
-			Mode:     0777,
+			Mode:     0o777,
 		}); err != nil {
 			return err
 		}
@@ -371,7 +371,7 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 			Typeflag: tar.TypeSymlink,
 			Name:     childPath,
 			Linkname: symlinkNode.Target,
-			Mode:     0777,
+			Mode:     0o777,
 		}); err != nil {
 			return err
 		}
@@ -411,9 +411,9 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 		} else {
 			// This is the first time we're returning this
 			// file. Actually add it to the archive.
-			mode := int64(0666)
+			mode := int64(0o666)
 			if fileNode.IsExecutable {
-				mode = 0777
+				mode = 0o777
 			}
 			if err := w.WriteHeader(&tar.Header{
 				Typeflag: tar.TypeReg,
