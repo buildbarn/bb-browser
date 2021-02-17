@@ -4,8 +4,8 @@ go 1.15
 
 require (
 	github.com/bazelbuild/remote-apis v0.0.0-20201209220655-9e72daff42c9
-	github.com/buildbarn/bb-remote-execution v0.0.0-20210207110010-0079051e8739 // indirect
-	github.com/buildbarn/bb-storage v0.0.0-20210207101039-9507e33a5caf
+	github.com/buildbarn/bb-remote-execution v0.0.0-20210215090229-45607d5e9a01 // indirect
+	github.com/buildbarn/bb-storage v0.0.0-20210215081330-49417e72a945
 	github.com/buildkite/terminal-to-html v3.2.0+incompatible
 	github.com/dustin/go-humanize v1.0.0
 	github.com/golang/protobuf v1.4.3

@@ -62,10 +62,10 @@ github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+Ce
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
-github.com/buildbarn/bb-remote-execution v0.0.0-20210207110010-0079051e8739 h1:82J71ARGjo1hddxbm1f0FpsFo2pFWDqTZpll/SEMsY8=
-github.com/buildbarn/bb-remote-execution v0.0.0-20210207110010-0079051e8739/go.mod h1:ZFlyBDmunySQl2HSBdlBWKRdY43+RpXzm2hud+67M9s=
-github.com/buildbarn/bb-storage v0.0.0-20210207101039-9507e33a5caf h1:jKsBURVQlxY7wh4GFqIrSaHdT/rMhaf+wZi5JnEP+Kg=
-github.com/buildbarn/bb-storage v0.0.0-20210207101039-9507e33a5caf/go.mod h1:ZENQ/+hUD3gUeJoNkHqVQTaMBsdr4rr9KVfvpBmTKao=
+github.com/buildbarn/bb-remote-execution v0.0.0-20210215090229-45607d5e9a01 h1:F/N29lYZwT3DK6FNdiRqPWoVQu5uvs6Q3ngo8IJBuus=
+github.com/buildbarn/bb-remote-execution v0.0.0-20210215090229-45607d5e9a01/go.mod h1:f8LH9j6W5Wo6xaEarfNZKNRS9a5/l5TkWPv75kUfCCc=
+github.com/buildbarn/bb-storage v0.0.0-20210215081330-49417e72a945 h1:78zt6LYgjdiW1s0rm5am1MaD7mPmoeLhlUJJgYGEwck=
+github.com/buildbarn/bb-storage v0.0.0-20210215081330-49417e72a945/go.mod h1:ZENQ/+hUD3gUeJoNkHqVQTaMBsdr4rr9KVfvpBmTKao=
 github.com/buildkite/terminal-to-html v1.0.2 h1:C/c6TcIGDM9+rqN08pfWSwzi28KqSdRxlFXcz6qwelc=
 github.com/buildkite/terminal-to-html v3.2.0+incompatible h1:WdXzl7ZmYzCAz4pElZosPaUlRTW+qwVx/SkQSCa1jXs=
 github.com/buildkite/terminal-to-html v3.2.0+incompatible/go.mod h1:BFFdFecOxCgjdcarqI+8izs6v85CU/1RA/4Bqh4GR7E=
@@ -195,7 +195,6 @@ github.com/googleapis/gax-go/v2 v2.0.5 h1:sjZBwGj9Jlw33ImPtvFviGYvseOtDM7hkSKB7+
 github.com/googleapis/gax-go/v2 v2.0.5/go.mod h1:DWXyrwAJ9X0FpwwEdw+IPEYBICEFu5mhpdKc/us6bOk=
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
 github.com/gordonklaus/ineffassign v0.0.0-20201223204552-cba2d2a1d5d9/go.mod h1:cuNKsD1zp2v6XfE/orVX2QE1LC+i254ceGcVeDT3pTU=
-github.com/gordonklaus/ineffassign v0.0.0-20210104184537-8eed68eb605f/go.mod h1:cuNKsD1zp2v6XfE/orVX2QE1LC+i254ceGcVeDT3pTU=
 github.com/gorilla/context v1.1.1/go.mod h1:kBGZzfjB9CEq2AlWe17Uuf7NDRt0dE0s8S51q0aT7Yg=
 github.com/gorilla/mux v1.6.2/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
 github.com/gorilla/mux v1.7.3/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
