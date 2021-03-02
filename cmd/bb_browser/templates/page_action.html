@@ -183,6 +183,24 @@ The input root of this action could not be found.
 					<th style="width: 25%">Correlated invocations ID:</th>
 					<td class="text-monospace" style="width: 75%">{{.CorrelatedInvocationsId}}</td>
 				</tr>
+				{{with .ActionMnemonic}}
+					<tr>
+						<th style="width: 25%">Action mnemonic:</th>
+						<td style="width: 75%">{{.}}</td>
+					</tr>
+				{{end}}
+				{{with .TargetId}}
+					<tr>
+						<th style="width: 25%">Target ID:</th>
+						<td style="width: 75%">{{.}}</td>
+					</tr>
+				{{end}}
+				{{with .ConfigurationId}}
+					<tr>
+						<th style="width: 25%">Configuration ID:</th>
+						<td style="width: 75%">{{.}}</td>
+					</tr>
+				{{end}}
 			</table>
 		{{end}}
 
