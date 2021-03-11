@@ -10,7 +10,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"path"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -18,6 +17,7 @@ import (
 	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
 	"github.com/buildbarn/bb-storage/pkg/blobstore"
 	"github.com/buildbarn/bb-storage/pkg/digest"
+	"github.com/buildbarn/bb-storage/pkg/filesystem/path"
 	cas_proto "github.com/buildbarn/bb-storage/pkg/proto/cas"
 	"github.com/buildbarn/bb-storage/pkg/util"
 	"github.com/buildkite/terminal-to-html"
@@ -340,13 +340,18 @@ func (s *BrowserService) handleCommand(w http.ResponseWriter, req *http.Request)
 	}
 }
 
-func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Writer, instanceName digest.InstanceName, directory *remoteexecution.Directory, directoryPath string, getDirectory func(context.Context, digest.Digest) (*remoteexecution.Directory, error), filesSeen map[string]string) error {
+func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Writer, instanceName digest.InstanceName, directory *remoteexecution.Directory, directoryPath *path.Trace, getDirectory func(context.Context, digest.Digest) (*remoteexecution.Directory, error), filesSeen map[string]string) error {
 	// Emit child directories.
 	for _, directoryNode := range directory.Directories {
-		childPath := path.Join(directoryPath, directoryNode.Name)
+		childName, ok := path.NewComponent(directoryNode.Name)
+		if !ok {
+			return status.Errorf(codes.InvalidArgument, "Directory %#v in directory %#v has an invalid name", directoryNode.Name, directoryPath.String())
+		}
+		childPath := directoryPath.Append(childName)
+
 		if err := w.WriteHeader(&tar.Header{
 			Typeflag: tar.TypeDir,
-			Name:     childPath,
+			Name:     childPath.String(),
 			Mode:     0o777,
 		}); err != nil {
 			return err
@@ -366,10 +371,15 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 
 	// Emit symlinks.
 	for _, symlinkNode := range directory.Symlinks {
-		childPath := path.Join(directoryPath, symlinkNode.Name)
+		childName, ok := path.NewComponent(symlinkNode.Name)
+		if !ok {
+			return status.Errorf(codes.InvalidArgument, "Symbolic link %#v in directory %#v has an invalid name", symlinkNode.Name, directoryPath.String())
+		}
+		childPath := directoryPath.Append(childName)
+
 		if err := w.WriteHeader(&tar.Header{
 			Typeflag: tar.TypeSymlink,
-			Name:     childPath,
+			Name:     childPath.String(),
 			Linkname: symlinkNode.Target,
 			Mode:     0o777,
 		}); err != nil {
@@ -379,6 +389,13 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 
 	// Emit regular files.
 	for _, fileNode := range directory.Files {
+		childName, ok := path.NewComponent(fileNode.Name)
+		if !ok {
+			return status.Errorf(codes.InvalidArgument, "File %#v in directory %#v has an invalid name", fileNode.Name, directoryPath.String())
+		}
+		childPath := directoryPath.Append(childName)
+		childPathString := childPath.String()
+
 		childDigest, err := instanceName.NewDigestFromProto(fileNode.Digest)
 		if err != nil {
 			return err
@@ -391,7 +408,6 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 			childKey += "-x"
 		}
 
-		childPath := path.Join(directoryPath, fileNode.Name)
 		if linkPath, ok := filesSeen[childKey]; ok {
 			// This file was already returned previously.
 			// Emit a hardlink pointing to the first
@@ -403,7 +419,7 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 			// executed through bb_worker.
 			if err := w.WriteHeader(&tar.Header{
 				Typeflag: tar.TypeLink,
-				Name:     childPath,
+				Name:     childPathString,
 				Linkname: linkPath,
 			}); err != nil {
 				return err
@@ -417,7 +433,7 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 			}
 			if err := w.WriteHeader(&tar.Header{
 				Typeflag: tar.TypeReg,
-				Name:     childPath,
+				Name:     childPathString,
 				Size:     fileNode.Digest.SizeBytes,
 				Mode:     mode,
 			}); err != nil {
@@ -428,7 +444,7 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 				return err
 			}
 
-			filesSeen[childKey] = childPath
+			filesSeen[childKey] = childPathString
 		}
 	}
 	return nil
@@ -440,7 +456,7 @@ func (s *BrowserService) generateTarball(ctx context.Context, w http.ResponseWri
 	gzipWriter := gzip.NewWriter(w)
 	tarWriter := tar.NewWriter(gzipWriter)
 	filesSeen := map[string]string{}
-	if err := s.generateTarballDirectory(ctx, tarWriter, digest.GetInstanceName(), directory, "", getDirectory, filesSeen); err != nil {
+	if err := s.generateTarballDirectory(ctx, tarWriter, digest.GetInstanceName(), directory, nil, getDirectory, filesSeen); err != nil {
 		// TODO(edsch): Any way to propagate this to the client?
 		log.Print(err)
 		panic(http.ErrAbortHandler)
