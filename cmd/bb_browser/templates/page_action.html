@@ -242,8 +242,8 @@ The input root of this action could not be found.
 				<tr>
 					<th style="width: 25%">CPU time:</th>
 					<td style="width: 75%">
-						{{with duration_proto .UserTime}}{{.}}{{else}}?{{end}} user,
-						{{with duration_proto .SystemTime}}{{.}}{{else}}?{{end}} system
+						{{.UserTime.AsDuration}} user,
+						{{.SystemTime.AsDuration}} system
 					</td>
 				</tr>
 				{{with .MaximumResidentSetSize}}

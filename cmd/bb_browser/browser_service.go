@@ -21,12 +21,12 @@ import (
 	cas_proto "github.com/buildbarn/bb-storage/pkg/proto/cas"
 	"github.com/buildbarn/bb-storage/pkg/util"
 	"github.com/buildkite/terminal-to-html"
-	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 )
 
 func getDigestFromRequest(req *http.Request) (digest.Digest, error) {

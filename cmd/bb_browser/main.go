@@ -16,12 +16,11 @@ import (
 	bb_grpc "github.com/buildbarn/bb-storage/pkg/grpc"
 	"github.com/buildbarn/bb-storage/pkg/util"
 	"github.com/dustin/go-humanize"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
-	"github.com/golang/protobuf/ptypes/duration"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/gorilla/mux"
 	"github.com/kballard/go-shellquote"
+
+	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -64,14 +63,6 @@ func main() {
 	templates := template.New("templates").Funcs(template.FuncMap{
 		"asset_path": GetAssetPath,
 		"basename":   path.Base,
-		"duration_proto": func(pb *duration.Duration) *time.Duration {
-			// Converts a Protobuf duration to Go's native type.
-			d, err := ptypes.Duration(pb)
-			if err != nil {
-				return nil
-			}
-			return &d
-		},
 		"humanize_bytes": func(v interface{}) string {
 			switch i := v.(type) {
 			case uint64:
@@ -85,23 +76,23 @@ func main() {
 		"inc": func(n int) int {
 			return n + 1
 		},
-		"to_file_pool_resource_usage": func(any *any.Any) *resourceusage.FilePoolResourceUsage {
+		"to_file_pool_resource_usage": func(any *anypb.Any) *resourceusage.FilePoolResourceUsage {
 			var pb resourceusage.FilePoolResourceUsage
-			if ptypes.UnmarshalAny(any, &pb) != nil {
+			if any.UnmarshalTo(&pb) != nil {
 				return nil
 			}
 			return &pb
 		},
-		"to_posix_resource_usage": func(any *any.Any) *resourceusage.POSIXResourceUsage {
+		"to_posix_resource_usage": func(any *anypb.Any) *resourceusage.POSIXResourceUsage {
 			var pb resourceusage.POSIXResourceUsage
-			if ptypes.UnmarshalAny(any, &pb) != nil {
+			if any.UnmarshalTo(&pb) != nil {
 				return nil
 			}
 			return &pb
 		},
-		"to_request_metadata": func(any *any.Any) *remoteexecution.RequestMetadata {
+		"to_request_metadata": func(any *anypb.Any) *remoteexecution.RequestMetadata {
 			var pb remoteexecution.RequestMetadata
-			if ptypes.UnmarshalAny(any, &pb) != nil {
+			if any.UnmarshalTo(&pb) != nil {
 				return nil
 			}
 			return &pb
@@ -111,19 +102,19 @@ func main() {
 			// Converts a timestamp to RFC3339 format.
 			return t.Format(rfc3339Milli)
 		},
-		"timestamp_proto_delta": func(pbPrevious, pbNow *timestamp.Timestamp) *timestampDelta {
-			tNow, err := ptypes.Timestamp(pbNow)
-			if err != nil {
+		"timestamp_proto_delta": func(pbPrevious, pbNow *timestamppb.Timestamp) *timestampDelta {
+			if err := pbNow.CheckValid(); err != nil {
 				return nil
 			}
-			tPrevious, err := ptypes.Timestamp(pbPrevious)
-			if err != nil {
+			tNow := pbNow.AsTime()
+			if err := pbPrevious.CheckValid(); err != nil {
 				// Time may be parsed, but no split time
 				// is available.
 				return &timestampDelta{
 					Time: tNow,
 				}
 			}
+			tPrevious := pbPrevious.AsTime()
 			if tNow.Equal(tPrevious) {
 				// Don't display the split time, as
 				// there is no difference.
@@ -134,13 +125,12 @@ func main() {
 				DurationFromPrevious: tNow.Sub(tPrevious),
 			}
 		},
-		"timestamp_proto_rfc3339": func(pb *timestamp.Timestamp) string {
+		"timestamp_proto_rfc3339": func(pb *timestamppb.Timestamp) string {
 			// Converts a Protobuf timestamp to RFC 3339 format.
-			t, err := ptypes.Timestamp(pb)
-			if err != nil {
+			if pb.CheckValid() != nil {
 				return ""
 			}
-			return t.Format(rfc3339Milli)
+			return pb.AsTime().Format(rfc3339Milli)
 		},
 	})
 
