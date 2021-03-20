@@ -12,6 +12,7 @@ import (
 	"github.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browser"
 	"github.com/buildbarn/bb-remote-execution/pkg/proto/resourceusage"
 	blobstore_configuration "github.com/buildbarn/bb-storage/pkg/blobstore/configuration"
+	"github.com/buildbarn/bb-storage/pkg/digest"
 	"github.com/buildbarn/bb-storage/pkg/global"
 	bb_grpc "github.com/buildbarn/bb-storage/pkg/grpc"
 	"github.com/buildbarn/bb-storage/pkg/util"
@@ -141,12 +142,21 @@ func main() {
 		}
 	}
 
+	// Prefix to add to instance names that are placed in bb_clientd
+	// pathname strings.
+	bbClientdInstanceNamePrefix, err := digest.NewInstanceName(configuration.BbClientdInstanceNamePrefix)
+	if err != nil {
+		log.Fatalf("Invalid instance name %#v: %s", configuration.BbClientdInstanceNamePrefix, err)
+	}
+	bbClientdInstanceNamePatcher := digest.NewInstanceNamePatcher(digest.EmptyInstanceName, bbClientdInstanceNamePrefix)
+
 	router := mux.NewRouter()
 	NewBrowserService(
 		contentAddressableStorage,
 		actionCache,
 		int(configuration.MaximumMessageSizeBytes),
 		templates,
+		bbClientdInstanceNamePatcher,
 		router)
 	RegisterAssetEndpoints(router)
 	go func() {

@@ -19,4 +19,14 @@ message ApplicationConfiguration {
 
   // Common configuration options that apply to all Buildbarn binaries.
   buildbarn.configuration.global.Configuration global = 4;
+
+  // Prefix that needs to be added to instance names that are part of
+  // bb_clientd pathname strings.
+  //
+  // bb_browser's web interface contains buttons that can be used to
+  // generate paths of objects in bb_clientd and copy them to the
+  // clipboard. Because most setups of bb_clientd use
+  // DemultiplexingBlobAccess, it may be necessary to add a prefix to
+  // the REv2 instance name that's embedded in the pathname string.
+  string bb_clientd_instance_name_prefix = 5;
 }

@@ -31,4 +31,6 @@
 	{{end}}
 </table>
 
+<a class="btn btn-primary" href="javascript:navigator.clipboard.writeText(&quot;{{.BBClientdPath | js}}&quot;)" role="button">Copy bb_clientd path to clipboard</a>
+
 <a class="btn btn-primary" href="/directory/{{$instanceName}}/{{.Digest.GetHashString}}/{{.Digest.GetSizeBytes}}/?format=tar" role="button">Download as tarball</a>
