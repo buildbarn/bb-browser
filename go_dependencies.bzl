@@ -107,8 +107,8 @@ def go_dependencies():
     go_repository(
         name = "com_github_buildbarn_bb_storage",
         importpath = "github.com/buildbarn/bb-storage",
-        sum = "h1:4qFNCIy/VM3qfYilX+O4nE8Lm5pjSjvtiJvJlZMY2uo=",
-        version = "v0.0.0-20210311095322-ee65b012ed13",
+        sum = "h1:9rFx9GfzkhSzR7/DEYp0tfs3a8F9UJYheGnsCIerQ2o=",
+        version = "v0.0.0-20210320151132-97a3adf543a9",
     )
     go_repository(
         name = "com_github_buildkite_terminal_to_html",

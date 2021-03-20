@@ -78,6 +78,8 @@ github.com/buildbarn/bb-storage v0.0.0-20210226075542-a0427981f170 h1:Cie80Hfb3J
 github.com/buildbarn/bb-storage v0.0.0-20210226075542-a0427981f170/go.mod h1:ZENQ/+hUD3gUeJoNkHqVQTaMBsdr4rr9KVfvpBmTKao=
 github.com/buildbarn/bb-storage v0.0.0-20210311095322-ee65b012ed13 h1:4qFNCIy/VM3qfYilX+O4nE8Lm5pjSjvtiJvJlZMY2uo=
 github.com/buildbarn/bb-storage v0.0.0-20210311095322-ee65b012ed13/go.mod h1:cKr3o2BPePMTiy7rHT6l2h4D3rE/usn79wmMRATC36k=
+github.com/buildbarn/bb-storage v0.0.0-20210320151132-97a3adf543a9 h1:9rFx9GfzkhSzR7/DEYp0tfs3a8F9UJYheGnsCIerQ2o=
+github.com/buildbarn/bb-storage v0.0.0-20210320151132-97a3adf543a9/go.mod h1:cKr3o2BPePMTiy7rHT6l2h4D3rE/usn79wmMRATC36k=
 github.com/buildkite/terminal-to-html v1.0.2 h1:C/c6TcIGDM9+rqN08pfWSwzi28KqSdRxlFXcz6qwelc=
 github.com/buildkite/terminal-to-html v3.2.0+incompatible h1:WdXzl7ZmYzCAz4pElZosPaUlRTW+qwVx/SkQSCa1jXs=
 github.com/buildkite/terminal-to-html v3.2.0+incompatible/go.mod h1:BFFdFecOxCgjdcarqI+8izs6v85CU/1RA/4Bqh4GR7E=
