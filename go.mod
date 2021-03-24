@@ -1,6 +1,6 @@
 module github.com/buildbarn/bb-browser
 
-go 1.15
+go 1.16
 
 replace github.com/gordonklaus/ineffassign => github.com/gordonklaus/ineffassign v0.0.0-20201223204552-cba2d2a1d5d9
 
