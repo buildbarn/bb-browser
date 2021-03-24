@@ -77,6 +77,13 @@ func main() {
 		"inc": func(n int) int {
 			return n + 1
 		},
+		"to_monetary_resource_usage": func(any *anypb.Any) *resourceusage.MonetaryResourceUsage {
+			var pb resourceusage.MonetaryResourceUsage
+			if err := any.UnmarshalTo(&pb); err != nil {
+				return nil
+			}
+			return &pb
+		},
 		"to_file_pool_resource_usage": func(any *anypb.Any) *resourceusage.FilePoolResourceUsage {
 			var pb resourceusage.FilePoolResourceUsage
 			if any.UnmarshalTo(&pb) != nil {
