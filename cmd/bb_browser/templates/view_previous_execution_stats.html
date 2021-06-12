@@ -1,0 +1,35 @@
+<table class="table" style="table-layout: fixed">
+	{{range $sizeClass, $perSizeClassStats := .Stats.SizeClasses}}
+		<tr>
+			<th style="width: 25%">Outcomes on size class {{$sizeClass}}:</th>
+			<td style="width: 75%">
+				{{range .PreviousExecutions}}
+					{{with to_outcome_failed .}}
+						<span class="badge bg-danger text-light">Failed</span>
+					{{end}}
+					{{with to_outcome_timed_out .}}
+						<span class="badge bg-warning text-dark" style="white-space: nowrap">
+							Timed out: {{.}}
+						</span>
+					{{end}}
+					{{with to_outcome_succeeded .}}
+						<span class="badge bg-success text-light" style="white-space: nowrap">
+							Succeeded: {{.}}
+						</span>
+					{{end}}
+				{{end}}
+				<br><b>Initial PageRank probability:</b> {{.InitialPageRankProbability}}
+			</td>
+		</tr>
+	{{end}}
+	<tr>
+		<th style="width: 25%">Scatter plot of outcomes:</th>
+		<td style="width: 75%">{{.ScatterPlot}}</td>
+	</tr>
+	{{with timestamp_proto_rfc3339 .Stats.LastSeenFailure}}
+		<tr>
+			<th style="width: 25%">Last seen failure:</th>
+			<td style="width: 75%">{{.}}</td>
+		</tr>
+	{{end}}
+</table>

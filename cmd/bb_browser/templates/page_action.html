@@ -298,4 +298,9 @@ The input root of this action could not be found.
 	{{end}}
 {{end}}
 
+{{with .PreviousExecutionStats}}
+	<h2 class="my-4">Previous execution stats<sup><a href="../../previous_execution_stats/{{.ReducedActionDigest.GetHashString}}-{{.ReducedActionDigest.GetSizeBytes}}/">*</a></sup></h2>
+	{{template "view_previous_execution_stats.html" .}}
+{{end}}
+
 {{template "footer.html"}}

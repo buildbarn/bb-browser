@@ -7,9 +7,12 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"image/color"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -19,6 +22,7 @@ import (
 	"github.com/buildbarn/bb-storage/pkg/digest"
 	"github.com/buildbarn/bb-storage/pkg/filesystem/path"
 	cas_proto "github.com/buildbarn/bb-storage/pkg/proto/cas"
+	"github.com/buildbarn/bb-storage/pkg/proto/iscc"
 	"github.com/buildbarn/bb-storage/pkg/util"
 	"github.com/buildkite/terminal-to-html"
 	"github.com/gorilla/mux"
@@ -67,6 +71,7 @@ func extractContextFromRequest(req *http.Request) context.Context {
 type BrowserService struct {
 	contentAddressableStorage    blobstore.BlobAccess
 	actionCache                  blobstore.BlobAccess
+	initialSizeClassCache        blobstore.BlobAccess
 	maximumMessageSizeBytes      int
 	templates                    *template.Template
 	bbClientdInstanceNamePatcher digest.InstanceNamePatcher
@@ -88,6 +93,7 @@ func NewBrowserService(contentAddressableStorage, actionCache, initialSizeClassC
 	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/command/{hash}-{sizeBytes}/", s.handleCommand)
 	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/directory/{hash}-{sizeBytes}/", s.handleDirectory)
 	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/file/{hash}-{sizeBytes}/{name}", s.handleFile)
+	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/previous_execution_stats/{hash}-{sizeBytes}/", s.handlePreviousExecutionStats)
 	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/tree/{hash}-{sizeBytes}/{subdirectory:(?:.*/)?}", s.handleTree)
 	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/uncached_action_result/{hash}-{sizeBytes}/", s.handleUncachedActionResult)
 	return s
@@ -274,6 +280,8 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 		OutputFiles        []*remoteexecution.OutputFile
 		MissingDirectories []string
 		MissingFiles       []string
+
+		PreviousExecutionStats *previousExecutionStatsInfo
 	}{
 		IsUncachedActionResult: isUncachedActionResult,
 		ActionDigest:           actionDigest,
@@ -353,6 +361,19 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 				Directory:     directoryMessage.(*remoteexecution.Directory),
 				BBClientdPath: formatBBClientdPath(s.getBBClientdBlobPath(inputRootDigest, directoryDirectoryComponent)),
 			}
+		} else if status.Code(err) != codes.NotFound {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		reducedActionDigest, err := blobstore.ISCCGetReducedActionDigest(actionDigest.GetDigestFunction(), action)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		previousExecutionStatsInfo, err := s.getPreviousExecutionStatsInfo(ctx, reducedActionDigest)
+		if err == nil {
+			actionInfo.PreviousExecutionStats = previousExecutionStatsInfo
 		} else if status.Code(err) != codes.NotFound {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -587,6 +608,147 @@ func (s *BrowserService) handleFile(w http.ResponseWriter, req *http.Request) {
 	}
 	w.Write(first[:n])
 	io.Copy(w, r)
+}
+
+// previousExecutionStatsInfo contains the information that we display
+// for PreviousExecutionStats messages stored in the Initial Size Class
+// Cache (ISCC).
+type previousExecutionStatsInfo struct {
+	ReducedActionDigest digest.Digest
+	Stats               *iscc.PreviousExecutionStats
+	ScatterPlot         template.HTML
+}
+
+func (s *BrowserService) getPreviousExecutionStatsInfo(ctx context.Context, reducedActionDigest digest.Digest) (*previousExecutionStatsInfo, error) {
+	previousExecutionStatsMessage, err := s.initialSizeClassCache.Get(ctx, reducedActionDigest).
+		ToProto(&iscc.PreviousExecutionStats{}, s.maximumMessageSizeBytes)
+	if err != nil {
+		return nil, err
+	}
+	previousExecutionStats := previousExecutionStatsMessage.(*iscc.PreviousExecutionStats)
+
+	// Obtain list of size classes in increasing order.
+	sizeClasses := make(sizeClassList, 0, len(previousExecutionStats.SizeClasses))
+	for sizeClass := range previousExecutionStats.SizeClasses {
+		sizeClasses = append(sizeClasses, sizeClass)
+	}
+	sort.Sort(sizeClasses)
+
+	// Convert outcomes into samples of a scatter plot. Add some
+	// jitter on the X axis to make it easier to tell individual
+	// outcomes apart.
+	rng := rand.New(rand.NewSource(0x4630324434464134))
+	var successes, timeouts, failures plotter.XYs
+	for idx, sizeClass := range sizeClasses {
+		perSizeClassStats := previousExecutionStats.SizeClasses[sizeClass]
+		for _, previousExecution := range perSizeClassStats.PreviousExecutions {
+			switch outcome := previousExecution.Outcome.(type) {
+			case *iscc.PreviousExecution_Succeeded:
+				successes = append(successes, plotter.XY{
+					X: float64(idx) + (rng.Float64()-0.5)/3,
+					Y: outcome.Succeeded.AsDuration().Seconds(),
+				})
+			case *iscc.PreviousExecution_TimedOut:
+				timeouts = append(timeouts, plotter.XY{
+					X: float64(idx) + (rng.Float64()-0.5)/3,
+					Y: outcome.TimedOut.AsDuration().Seconds(),
+				})
+			case *iscc.PreviousExecution_Failed:
+				failures = append(failures, plotter.XY{
+					X: float64(idx) + (rng.Float64()-0.5)/3,
+				})
+			}
+		}
+	}
+
+	// Place all three groups of samples in the scatter plot.
+	p := plot.New()
+	p.X.Min = -0.5
+	p.X.Max = float64(len(sizeClasses)) - 0.5
+	p.Y.Label.Text = "Execution time (s)"
+	p.Y.Min = 0
+
+	scatterSuccess, err := plotter.NewScatter(successes)
+	if err != nil {
+		return nil, err
+	}
+	scatterSuccess.Color = color.RGBA{R: 40, G: 167, B: 69, A: 255}
+	scatterSuccess.Radius = vg.Points(5)
+	scatterSuccess.Shape = draw.PlusGlyph{}
+	p.Add(scatterSuccess)
+
+	scatterTimeout, err := plotter.NewScatter(timeouts)
+	if err != nil {
+		return nil, err
+	}
+	scatterTimeout.Color = color.RGBA{R: 255, G: 193, B: 7, A: 255}
+	scatterTimeout.Radius = vg.Points(2.5)
+	scatterTimeout.Shape = draw.CircleGlyph{}
+	p.Add(scatterTimeout)
+
+	scatterFailed, err := plotter.NewScatter(failures)
+	if err != nil {
+		return nil, err
+	}
+	scatterFailed.Color = color.RGBA{R: 220, G: 53, B: 69, A: 255}
+	scatterFailed.Radius = vg.Points(5)
+	scatterFailed.Shape = draw.CrossGlyph{}
+	p.Add(scatterFailed)
+
+	sizeClassLabels := make([]string, 0, len(sizeClasses))
+	for _, sizeClass := range sizeClasses {
+		sizeClassLabels = append(sizeClassLabels, fmt.Sprintf("Size class %d", sizeClass))
+	}
+	p.NominalX(sizeClassLabels...)
+
+	// Convert the resulting scatter plot to SVG.
+	var graph strings.Builder
+	writerTo, err := p.WriterTo(vg.Length(len(sizeClasses)+1)*3*vg.Centimeter, 10*vg.Centimeter, "svg")
+	if err != nil {
+		return nil, err
+	}
+	if _, err := writerTo.WriteTo(&graph); err != nil {
+		return nil, err
+	}
+
+	return &previousExecutionStatsInfo{
+		ReducedActionDigest: reducedActionDigest,
+		Stats:               previousExecutionStats,
+		ScatterPlot:         template.HTML(graph.String()),
+	}, nil
+}
+
+type sizeClassList []uint32
+
+func (l sizeClassList) Len() int {
+	return len(l)
+}
+
+func (l sizeClassList) Less(i, j int) bool {
+	return l[i] < l[j]
+}
+
+func (l sizeClassList) Swap(i, j int) {
+	l[i], l[j] = l[j], l[i]
+}
+
+func (s *BrowserService) handlePreviousExecutionStats(w http.ResponseWriter, req *http.Request) {
+	digest, err := getDigestFromRequest(req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	ctx := extractContextFromRequest(req)
+	statsInfo, err := s.getPreviousExecutionStatsInfo(ctx, digest)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := s.templates.ExecuteTemplate(w, "page_previous_execution_stats.html", statsInfo); err != nil {
+		log.Print(err)
+	}
 }
 
 func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {

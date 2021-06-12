@@ -24,6 +24,7 @@ go_library(
         "@com_github_buildbarn_bb_storage//pkg/global",
         "@com_github_buildbarn_bb_storage//pkg/grpc",
         "@com_github_buildbarn_bb_storage//pkg/proto/cas",
+        "@com_github_buildbarn_bb_storage//pkg/proto/iscc",
         "@com_github_buildbarn_bb_storage//pkg/util",
         "@com_github_buildkite_terminal_to_html//:terminal-to-html",
         "@com_github_dustin_go_humanize//:go-humanize",
@@ -35,6 +36,10 @@ go_library(
         "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//types/known/anypb",
         "@org_golang_google_protobuf//types/known/timestamppb",
+        "@org_gonum_v1_plot//:plot",
+        "@org_gonum_v1_plot//plotter",
+        "@org_gonum_v1_plot//vg",
+        "@org_gonum_v1_plot//vg/draw",
     ],
 )
 

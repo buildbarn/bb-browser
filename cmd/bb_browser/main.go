@@ -12,15 +12,19 @@ import (
 	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
 	"github.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browser"
 	"github.com/buildbarn/bb-remote-execution/pkg/proto/resourceusage"
+	"github.com/buildbarn/bb-storage/pkg/blobstore"
 	blobstore_configuration "github.com/buildbarn/bb-storage/pkg/blobstore/configuration"
 	"github.com/buildbarn/bb-storage/pkg/digest"
 	"github.com/buildbarn/bb-storage/pkg/global"
 	bb_grpc "github.com/buildbarn/bb-storage/pkg/grpc"
+	"github.com/buildbarn/bb-storage/pkg/proto/iscc"
 	"github.com/buildbarn/bb-storage/pkg/util"
 	"github.com/dustin/go-humanize"
 	"github.com/gorilla/mux"
 	"github.com/kballard/go-shellquote"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -61,6 +65,20 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	var initialSizeClassCache blobstore.BlobAccess
+	if configuration.InitialSizeClassCache == nil {
+		initialSizeClassCache = blobstore.NewErrorBlobAccess(status.Error(codes.NotFound, "No Initial Size Class Cache configured"))
+	} else {
+		info, err := blobstore_configuration.NewBlobAccessFromConfiguration(
+			configuration.InitialSizeClassCache,
+			blobstore_configuration.NewISCCBlobAccessCreator(
+				bb_grpc.DefaultClientFactory,
+				int(configuration.MaximumMessageSizeBytes)))
+		if err != nil {
+			log.Fatal("Failed to create Initial Size Class Cache: ", err)
+		}
+		initialSizeClassCache = info.BlobAccess
+	}
 
 	routePrefix := path.Join("/", configuration.RoutePrefix)
 	if !strings.HasSuffix(routePrefix, "/") {
@@ -84,6 +102,28 @@ func main() {
 		},
 		"inc": func(n int) int {
 			return n + 1
+		},
+		"to_outcome_failed": func(previousExecution *iscc.PreviousExecution) bool {
+			_, ok := previousExecution.Outcome.(*iscc.PreviousExecution_Failed)
+			return ok
+		},
+		"to_outcome_timed_out": func(previousExecution *iscc.PreviousExecution) *time.Duration {
+			if outcome, ok := previousExecution.Outcome.(*iscc.PreviousExecution_TimedOut); ok {
+				if outcome.TimedOut.CheckValid() == nil {
+					d := outcome.TimedOut.AsDuration()
+					return &d
+				}
+			}
+			return nil
+		},
+		"to_outcome_succeeded": func(previousExecution *iscc.PreviousExecution) *time.Duration {
+			if outcome, ok := previousExecution.Outcome.(*iscc.PreviousExecution_Succeeded); ok {
+				if outcome.Succeeded.CheckValid() == nil {
+					d := outcome.Succeeded.AsDuration()
+					return &d
+				}
+			}
+			return nil
 		},
 		"to_monetary_resource_usage": func(any *anypb.Any) *resourceusage.MonetaryResourceUsage {
 			var pb resourceusage.MonetaryResourceUsage

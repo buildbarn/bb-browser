@@ -33,4 +33,12 @@ message ApplicationConfiguration {
   // DemultiplexingBlobAccess, it may be necessary to add a prefix to
   // the REv2 instance name that's embedded in the pathname string.
   string bb_clientd_instance_name_prefix = 5;
+
+  // The Initial Size Class Cache (ISCC) where execution times of
+  // previous invocations of actions are stored. bb_browser is capable
+  // of displaying this information on pages of actions.
+  //
+  // When this option is not set, no statistics will be shown.
+  buildbarn.configuration.blobstore.BlobAccessConfiguration
+      initial_size_class_cache = 6;
 }

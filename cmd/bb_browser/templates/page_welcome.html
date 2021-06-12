@@ -34,6 +34,12 @@ are part of Buildbarn will generate these URLs where applicable.</p>
 		Serves a file stored in the CAS.</p>
 	</li>
 	<li>
+		<p><span class="text-monospace">${instance_name}/blobs/previous_execution_stats/${hash}-${size_bytes}/</span><br/>
+		Extension: displays information about outcomes of previous
+		executions of similar actions. This information is extracted from
+		Buildbarn's Initial Size Class Cache (ISCC).</p>
+	</li>
+	<li>
 		<p><span class="text-monospace">${instance_name}/blobs/tree/${hash}-${size_bytes}/${subdirectory}/</span><br/>
 		Displays information about a Tree (output directory tree) stored in
 		the CAS.</p>
