@@ -87,6 +87,8 @@ github.com/bazelbuild/remote-apis v0.0.0-20210301152524-6345202a036a h1:oGlwXSE0
 github.com/bazelbuild/remote-apis v0.0.0-20210301152524-6345202a036a/go.mod h1:9Y+1FnaNUGVV6wKE0Jdh+mguqDUsyd9uUqokalrC7DQ=
 github.com/bazelbuild/remote-apis v0.0.0-20210309154856-0943dc4e70e1 h1:uo4qhIV+4gbJ3NY6/4nRCE4AS70xy/wgknQ2bPZS4+k=
 github.com/bazelbuild/remote-apis v0.0.0-20210309154856-0943dc4e70e1/go.mod h1:9Y+1FnaNUGVV6wKE0Jdh+mguqDUsyd9uUqokalrC7DQ=
+github.com/bazelbuild/remote-apis v0.0.0-20210505181611-ce7036ef5417 h1:5BTb1xvdd0Lbe4Y2/Ib5J5kYV9Btp02hkmB4QZrKnjo=
+github.com/bazelbuild/remote-apis v0.0.0-20210505181611-ce7036ef5417/go.mod h1:9Y+1FnaNUGVV6wKE0Jdh+mguqDUsyd9uUqokalrC7DQ=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
@@ -99,6 +101,8 @@ github.com/buildbarn/bb-remote-execution v0.0.0-20210311112654-b7fe7ed3dfce h1:q
 github.com/buildbarn/bb-remote-execution v0.0.0-20210311112654-b7fe7ed3dfce/go.mod h1:zYoXNsb467Sk7W2CvhV39xuil19ySgVV3/Wu7cqXCeA=
 github.com/buildbarn/bb-remote-execution v0.0.0-20210324152229-c826ba0d7234 h1:RK3SfYR+vOyu0HwM1fY6BSxYB3cEzrgTmw9/MZKfces=
 github.com/buildbarn/bb-remote-execution v0.0.0-20210324152229-c826ba0d7234/go.mod h1:4+GriiK0/byFzj3N/8WRsHY+5glzDXDesrYCkhN7AkQ=
+github.com/buildbarn/bb-remote-execution v0.0.0-20210612211840-40946a11cb84 h1:3EOVQgZZW0fIfOHKfc2C9pbKQ0mqaF6TabxZMHMkW5M=
+github.com/buildbarn/bb-remote-execution v0.0.0-20210612211840-40946a11cb84/go.mod h1:d2pGiC/CiDmeWEEY9ZMP2l9I8mxntOjV8/3cb3gHniE=
 github.com/buildbarn/bb-storage v0.0.0-20210226075542-a0427981f170 h1:Cie80Hfb3JBwWYDCdLNe1G9gubnVv/HIF7P+C32G0nY=
 github.com/buildbarn/bb-storage v0.0.0-20210226075542-a0427981f170/go.mod h1:ZENQ/+hUD3gUeJoNkHqVQTaMBsdr4rr9KVfvpBmTKao=
 github.com/buildbarn/bb-storage v0.0.0-20210311095322-ee65b012ed13 h1:4qFNCIy/VM3qfYilX+O4nE8Lm5pjSjvtiJvJlZMY2uo=
@@ -107,6 +111,8 @@ github.com/buildbarn/bb-storage v0.0.0-20210320151132-97a3adf543a9 h1:9rFx9Gfzkh
 github.com/buildbarn/bb-storage v0.0.0-20210320151132-97a3adf543a9/go.mod h1:cKr3o2BPePMTiy7rHT6l2h4D3rE/usn79wmMRATC36k=
 github.com/buildbarn/bb-storage v0.0.0-20210324135539-5317965db548 h1:QDVEIHSRA3hOPUNbg3+fAWPyg9BwB1VPvI1m7EMZA+Y=
 github.com/buildbarn/bb-storage v0.0.0-20210324135539-5317965db548/go.mod h1:gXy43HysZulMwoh8ZtZY9UNKFWebb3ZWT+XDQJlO/wk=
+github.com/buildbarn/bb-storage v0.0.0-20210612140245-0c202af9f01f h1:jwUj0UXbAgxy1Nl3sKu9plzfB1+ifeV1Oj2jRBwwIfE=
+github.com/buildbarn/bb-storage v0.0.0-20210612140245-0c202af9f01f/go.mod h1:LIJQSG4Q7SGpcAxVY95rtiBDDr4NMTlfS19Qfq/9MUE=
 github.com/buildkite/terminal-to-html v1.0.2 h1:C/c6TcIGDM9+rqN08pfWSwzi28KqSdRxlFXcz6qwelc=
 github.com/buildkite/terminal-to-html v3.2.0+incompatible h1:WdXzl7ZmYzCAz4pElZosPaUlRTW+qwVx/SkQSCa1jXs=
 github.com/buildkite/terminal-to-html v3.2.0+incompatible/go.mod h1:BFFdFecOxCgjdcarqI+8izs6v85CU/1RA/4Bqh4GR7E=
