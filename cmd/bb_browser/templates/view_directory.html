@@ -1,5 +1,3 @@
-{{$instanceName := .Digest.GetInstanceName}}
-
 <table class="table">
 	<thead>
 		<tr>
@@ -12,7 +10,7 @@
 		<tr class="text-monospace">
 			<td style="white-space: nowrap">drwxr-xr-x</td>
 			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
-			<td style="width: 100%"><a href="/directory/{{$instanceName}}/{{.Digest.Hash}}/{{.Digest.SizeBytes}}/">{{.Name}}</a>/</td>
+			<td style="width: 100%"><a href="../../directory/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/">{{.Name}}</a>/</td>
 		</tr>
 	{{end}}
 	{{range .Directory.Symlinks}}
@@ -26,11 +24,11 @@
 		<tr class="text-monospace">
 			<td style="white-space: nowrap">-r-{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}</td>
 			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
-			<td style="width: 100%"><a href="/file/{{$instanceName}}/{{.Digest.Hash}}/{{.Digest.SizeBytes}}/{{.Name}}">{{.Name}}</a></td>
+			<td style="width: 100%"><a href="../../file/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/{{.Name}}">{{.Name}}</a></td>
 		</tr>
 	{{end}}
 </table>
 
 <a class="btn btn-primary" href="javascript:navigator.clipboard.writeText(&quot;{{.BBClientdPath | js}}&quot;)" role="button">Copy bb_clientd path to clipboard</a>
 
-<a class="btn btn-primary" href="/directory/{{$instanceName}}/{{.Digest.GetHashString}}/{{.Digest.GetSizeBytes}}/?format=tar" role="button">Download as tarball</a>
+<a class="btn btn-primary" href="../../directory/{{.Digest.GetHashString}}-{{.Digest.GetSizeBytes}}/?format=tar" role="button">Download as tarball</a>

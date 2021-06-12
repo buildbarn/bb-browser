@@ -2,7 +2,7 @@
 
 <h1 class="my-4">Output directory</h1>
 
-{{$instanceName := .InstanceName}}
+{{$rootDirectory := .RootDirectory}}
 
 <table class="table">
 	<thead>
@@ -37,7 +37,7 @@
 		<tr class="text-monospace">
 			<td style="white-space: nowrap">-rw{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}</td>
 			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
-			<td style="width: 100%"><a href="/file/{{$instanceName}}/{{.Digest.Hash}}/{{.Digest.SizeBytes}}/{{.Name}}">{{.Name}}</a></td>
+			<td style="width: 100%"><a href="{{$rootDirectory}}/../../file/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/{{.Name}}">{{.Name}}</a></td>
 		</tr>
 	{{end}}
 </table>

@@ -17,6 +17,10 @@ message ApplicationConfiguration {
   // Address on which to listen to expose the web service.
   string listen_address = 3;
 
+  // The path under which the web service needs to be exposed. When left
+  // empty, the web service will be exposed at "/".
+  string route_prefix = 7;
+
   // Common configuration options that apply to all Buildbarn binaries.
   buildbarn.configuration.global.Configuration global = 4;
 

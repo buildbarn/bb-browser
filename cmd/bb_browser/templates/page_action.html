@@ -1,4 +1,3 @@
-{{$instanceName := .ActionDigest.GetInstanceName}}
 {{$actionResult := .ExecuteResponse.GetResult}}
 {{$status := .ExecuteResponse.GetStatus}}
 
@@ -18,7 +17,7 @@
 
 {{if .IsUncachedActionResult}}
 	<h1 class="my-4">Uncached action result</h1>
-	<h2 class="my-4">Action<sup><a href="/action/{{$instanceName}}/{{.ActionDigest.GetHashString}}/{{.ActionDigest.GetSizeBytes}}/">*</a></sup></h2>
+	<h2 class="my-4">Action<sup><a href="../../action/{{.ActionDigest.GetHashString}}-{{.ActionDigest.GetSizeBytes}}/">*</a></sup></h2>
 {{else}}
 	<h1 class="my-4">Action</h1>
 {{end}}
@@ -38,7 +37,7 @@
 This action could not be found.
 {{end}}
 
-<h2 class="my-4">Command{{if .Action}}<sup><a href="/command/{{$instanceName}}/{{.Action.CommandDigest.Hash}}/{{.Action.CommandDigest.SizeBytes}}/">*</a></sup>{{end}}</h2>
+<h2 class="my-4">Command{{if .Action}}<sup><a href="../../command/{{.Action.CommandDigest.Hash}}-{{.Action.CommandDigest.SizeBytes}}/">*</a></sup>{{end}}</h2>
 
 {{if .Command}}
 {{template "view_command.html" .Command}}
@@ -75,7 +74,7 @@ The command of this action could not be found.
 The action result of this action could not be found.
 {{end}}
 
-<h2 class="my-4">Input files{{if .Action}}<sup><a href="/directory/{{$instanceName}}/{{.Action.InputRootDigest.Hash}}/{{.Action.InputRootDigest.SizeBytes}}/">*</a></sup>{{end}}</h2>
+<h2 class="my-4">Input files{{if .Action}}<sup><a href="../../directory/{{.Action.InputRootDigest.Hash}}-{{.Action.InputRootDigest.SizeBytes}}/">*</a></sup>{{end}}</h2>
 
 {{if .InputRoot}}
 {{template "view_directory.html" .InputRoot}}
@@ -97,7 +96,7 @@ The input root of this action could not be found.
 		<tr class="text-monospace">
 			<td style="white-space: nowrap">drwxr-xr-x</td>
 			<td style="text-align: right">{{.TreeDigest.SizeBytes}}</td>
-			<td style="width: 100%"><a class="text-success" href="/tree/{{$instanceName}}/{{.TreeDigest.Hash}}/{{.TreeDigest.SizeBytes}}/">{{.Path}}</a>/</td>
+			<td style="width: 100%"><a class="text-success" href="../../tree/{{.TreeDigest.Hash}}-{{.TreeDigest.SizeBytes}}/">{{.Path}}</a>/</td>
 		</tr>
 	{{end}}
 	{{range .OutputSymlinks}}
@@ -111,7 +110,7 @@ The input root of this action could not be found.
 		<tr class="text-monospace">
 			<td style="white-space: nowrap">-rw{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}</td>
 			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
-			<td style="width: 100%"><a class="text-success" href="/file/{{$instanceName}}/{{.Digest.Hash}}/{{.Digest.SizeBytes}}/{{basename .Path}}">{{.Path}}</a></td>
+			<td style="width: 100%"><a class="text-success" href="../../file/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/{{basename .Path}}">{{.Path}}</a></td>
 		</tr>
 	{{end}}
 	{{range .MissingDirectories}}

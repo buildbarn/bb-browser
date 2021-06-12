@@ -15,31 +15,31 @@ are part of Buildbarn will generate these URLs where applicable.</p>
 
 <ul>
 	<li>
-		<p><span class="text-monospace">/action/${instance}/${hash}/${size}/</span><br/>
+		<p><span class="text-monospace">${instance_name}/blobs/action/${hash}-${size_bytes}/</span><br/>
 		Displays information about an Action and its associated Command
 		stored in the CAS. If available, displays information about the
 		Action's associated ActionResult stored in the AC.</p>
 	</li>
 	<li>
-		<p><span class="text-monospace">/command/${instance}/${hash}/${size}/</span><br/>
+		<p><span class="text-monospace">${instance_name}/blobs/command/${hash}-${size_bytes}/</span><br/>
 		Displays information about a Command stored in the CAS.</p>
 	</li>
 	<li>
-		<p><span class="text-monospace">/directory/${instance}/${hash}/${size}/</span><br/>
+		<p><span class="text-monospace">${instance_name}/blobs/directory/${hash}-${size_bytes}/</span><br/>
 		Displays information about a Directory (input directory) stored in
 		the CAS.</p>
 	</li>
 	<li>
-		<p><span class="text-monospace">/file/${instance}/${hash}/${size}/${filename}</span><br/>
+		<p><span class="text-monospace">${instance_name}/blobs/file/${hash}-${size_bytes}/${filename}</span><br/>
 		Serves a file stored in the CAS.</p>
 	</li>
 	<li>
-		<p><span class="text-monospace">/tree/${instance}/${hash}/${size}/${subdirectory}</span><br/>
+		<p><span class="text-monospace">${instance_name}/blobs/tree/${hash}-${size_bytes}/${subdirectory}/</span><br/>
 		Displays information about a Tree (output directory tree) stored in
 		the CAS.</p>
 	</li>
 	<li>
-		<p><span class="text-monospace">/uncached_action_result/${instance}/${hash}/${size}/</span><br/>
+		<p><span class="text-monospace">${instance_name}/blobs/uncached_action_result/${hash}/${size_bytes}/</span><br/>
 		Extension: displays information about an ActionResult that was not
 		permitted to be stored in the AC, but was stored in the CAS instead.
 		Buildbarn stores ActionResult messages for failed build actions in

@@ -28,13 +28,19 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/vg"
+	"gonum.org/v1/plot/vg/draw"
 )
 
 func getDigestFromRequest(req *http.Request) (digest.Digest, error) {
 	vars := mux.Vars(req)
-	instanceName, err := digest.NewInstanceName(vars["instanceName"])
+	instanceNameStr := strings.TrimSuffix(vars["instanceName"], "/")
+	instanceName, err := digest.NewInstanceName(instanceNameStr)
 	if err != nil {
-		return digest.BadDigest, util.StatusWrapf(err, "Invalid instance name %#v", vars["instanceName"])
+		return digest.BadDigest, util.StatusWrapf(err, "Invalid instance name %#v", instanceNameStr)
 	}
 	sizeBytes, err := strconv.ParseInt(vars["sizeBytes"], 10, 64)
 	if err != nil {
@@ -68,21 +74,22 @@ type BrowserService struct {
 
 // NewBrowserService constructs a BrowserService that accesses storage
 // through a set of handles.
-func NewBrowserService(contentAddressableStorage, actionCache blobstore.BlobAccess, maximumMessageSizeBytes int, templates *template.Template, bbClientdInstanceNamePatcher digest.InstanceNamePatcher, router *mux.Router) *BrowserService {
+func NewBrowserService(contentAddressableStorage, actionCache, initialSizeClassCache blobstore.BlobAccess, maximumMessageSizeBytes int, templates *template.Template, bbClientdInstanceNamePatcher digest.InstanceNamePatcher, router *mux.Router) *BrowserService {
 	s := &BrowserService{
 		contentAddressableStorage:    contentAddressableStorage,
 		actionCache:                  actionCache,
+		initialSizeClassCache:        initialSizeClassCache,
 		maximumMessageSizeBytes:      maximumMessageSizeBytes,
 		templates:                    templates,
 		bbClientdInstanceNamePatcher: bbClientdInstanceNamePatcher,
 	}
 	router.HandleFunc("/", s.handleWelcome)
-	router.HandleFunc("/action/{instanceName}/{hash}/{sizeBytes}/", s.handleAction)
-	router.HandleFunc("/command/{instanceName}/{hash}/{sizeBytes}/", s.handleCommand)
-	router.HandleFunc("/directory/{instanceName}/{hash}/{sizeBytes}/", s.handleDirectory)
-	router.HandleFunc("/file/{instanceName}/{hash}/{sizeBytes}/{name}", s.handleFile)
-	router.HandleFunc("/tree/{instanceName}/{hash}/{sizeBytes}/{subdirectory:(?:.*/)?}", s.handleTree)
-	router.HandleFunc("/uncached_action_result/{instanceName}/{hash}/{sizeBytes}/", s.handleUncachedActionResult)
+	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/action/{hash}-{sizeBytes}/", s.handleAction)
+	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/command/{hash}-{sizeBytes}/", s.handleCommand)
+	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/directory/{hash}-{sizeBytes}/", s.handleDirectory)
+	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/file/{hash}-{sizeBytes}/{name}", s.handleFile)
+	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/tree/{hash}-{sizeBytes}/{subdirectory:(?:.*/)?}", s.handleTree)
+	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/uncached_action_result/{hash}-{sizeBytes}/", s.handleUncachedActionResult)
 	return s
 }
 
@@ -598,13 +605,12 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 	tree := treeMessage.(*remoteexecution.Tree)
 	instanceName := treeDigest.GetInstanceName()
 	treeInfo := struct {
-		InstanceName       digest.InstanceName
 		Directory          *remoteexecution.Directory
 		HasParentDirectory bool
 		BBClientdPath      string
+		RootDirectory      string
 	}{
-		InstanceName: instanceName,
-		Directory:    tree.Root,
+		Directory: tree.Root,
 	}
 
 	// Construct map of all child directories.
@@ -625,9 +631,14 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// In case additional directory components are provided, we need
-	// to traverse the directories stored within.
+	// to traverse the directories stored within. While there,
+	// compute the inverse (i.e., "../../.."). This gets passed to
+	// the template, so that we can still emit relative links to
+	// other pages.
 	bbClientdPath := s.getBBClientdBlobPath(treeDigest, treeDirectoryComponent)
 	directoryDigest := treeDigest
+	rootDirectory, scopeWalker := path.EmptyBuilder.Join(path.VoidScopeWalker)
+	rootDirectoryWalker, _ := scopeWalker.OnScope(false)
 	for _, component := range strings.FieldsFunc(
 		mux.Vars(req)["subdirectory"],
 		func(r rune) bool { return r == '/' }) {
@@ -637,6 +648,7 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		bbClientdPath = bbClientdPath.Append(pathComponent)
+		rootDirectoryWalker, _ = rootDirectoryWalker.OnUp()
 
 		// Find child with matching name.
 		childNode := func() *remoteexecution.DirectoryNode {
@@ -667,6 +679,7 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 		treeInfo.Directory = childDirectory
 	}
 	treeInfo.BBClientdPath = formatBBClientdPath(bbClientdPath)
+	treeInfo.RootDirectory = rootDirectory.String()
 
 	if req.URL.Query().Get("format") == "tar" {
 		s.generateTarball(

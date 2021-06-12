@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
@@ -61,9 +62,16 @@ func main() {
 		log.Fatal(err)
 	}
 
+	routePrefix := path.Join("/", configuration.RoutePrefix)
+	if !strings.HasSuffix(routePrefix, "/") {
+		routePrefix += "/"
+	}
+
 	templates := template.New("templates").Funcs(template.FuncMap{
-		"asset_path": GetAssetPath,
-		"basename":   path.Base,
+		"asset_path": func(filename string) string {
+			return GetAssetPath(routePrefix, filename)
+		},
+		"basename": path.Base,
 		"humanize_bytes": func(v interface{}) string {
 			switch i := v.(type) {
 			case uint64:
@@ -158,14 +166,16 @@ func main() {
 	bbClientdInstanceNamePatcher := digest.NewInstanceNamePatcher(digest.EmptyInstanceName, bbClientdInstanceNamePrefix)
 
 	router := mux.NewRouter()
+	subrouter := router.PathPrefix(routePrefix).Subrouter()
 	NewBrowserService(
 		contentAddressableStorage,
 		actionCache,
+		initialSizeClassCache,
 		int(configuration.MaximumMessageSizeBytes),
 		templates,
 		bbClientdInstanceNamePatcher,
-		router)
-	RegisterAssetEndpoints(router)
+		subrouter)
+	RegisterAssetEndpoints(subrouter)
 	go func() {
 		log.Fatal(http.ListenAndServe(configuration.ListenAddress, router))
 	}()
