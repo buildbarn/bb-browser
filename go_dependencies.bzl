@@ -113,14 +113,14 @@ def go_dependencies():
     go_repository(
         name = "com_github_buildbarn_bb_remote_execution",
         importpath = "github.com/buildbarn/bb-remote-execution",
-        sum = "h1:3EOVQgZZW0fIfOHKfc2C9pbKQ0mqaF6TabxZMHMkW5M=",
-        version = "v0.0.0-20210612211840-40946a11cb84",
+        sum = "h1:duq88MYxfX9fCK+BUmkVT+lnv1sQ7h19cwgyV11OFXc=",
+        version = "v0.0.0-20210707063042-660e11b459e4",
     )
     go_repository(
         name = "com_github_buildbarn_bb_storage",
         importpath = "github.com/buildbarn/bb-storage",
-        sum = "h1:jwUj0UXbAgxy1Nl3sKu9plzfB1+ifeV1Oj2jRBwwIfE=",
-        version = "v0.0.0-20210612140245-0c202af9f01f",
+        sum = "h1:UMwD7gQa/OKD75YTP9AwM3ORB1AQwNF5Y/kjBbMD0+8=",
+        version = "v0.0.0-20210705183121-7ac375cd5e2f",
     )
     go_repository(
         name = "com_github_buildkite_terminal_to_html",
@@ -471,8 +471,8 @@ def go_dependencies():
     go_repository(
         name = "com_github_golang_snappy",
         importpath = "github.com/golang/snappy",
-        sum = "h1:woRePGFeVFfLKN/pOkfl+p/TAqKOfFu+7KPlMVpok/w=",
-        version = "v0.0.0-20180518054509-2e65f85255db",
+        sum = "h1:fHPg5GQYlCeLIPB9BZqMVR5nR9A+IM5zcgeTdjMYmLA=",
+        version = "v0.0.3",
     )
     go_repository(
         name = "com_github_google_btree",
@@ -801,6 +801,12 @@ def go_dependencies():
         importpath = "github.com/kisielk/gotool",
         sum = "h1:AV2c/EiW3KqPNT9ZKl07ehoAGi4C5/01Cfbblndcapg=",
         version = "v1.0.0",
+    )
+    go_repository(
+        name = "com_github_klauspost_compress",
+        importpath = "github.com/klauspost/compress",
+        sum = "h1:wXr2uRxZTJXHLly6qhJabee5JqIhTRoLBhDOA74hDEQ=",
+        version = "v1.13.1",
     )
     go_repository(
         name = "com_github_knetic_govaluate",
@@ -1623,8 +1629,8 @@ def go_dependencies():
     go_repository(
         name = "org_golang_x_sys",
         importpath = "golang.org/x/sys",
-        sum = "h1:EZ2mChiOa8udjfp6rRmswTbtZN/QzUQp4ptM4rnjHvc=",
-        version = "v0.0.0-20210320140829-1e4c9ba3b0c4",
+        sum = "h1:RqytpXGR1iVNX7psjB3ff8y7sNFinVFvkx1c8SjBkio=",
+        version = "v0.0.0-20210616094352-59db8d763f22",
     )
     go_repository(
         name = "org_golang_x_term",

@@ -109,6 +109,8 @@ github.com/buildbarn/bb-remote-execution v0.0.0-20210324152229-c826ba0d7234 h1:R
 github.com/buildbarn/bb-remote-execution v0.0.0-20210324152229-c826ba0d7234/go.mod h1:4+GriiK0/byFzj3N/8WRsHY+5glzDXDesrYCkhN7AkQ=
 github.com/buildbarn/bb-remote-execution v0.0.0-20210612211840-40946a11cb84 h1:3EOVQgZZW0fIfOHKfc2C9pbKQ0mqaF6TabxZMHMkW5M=
 github.com/buildbarn/bb-remote-execution v0.0.0-20210612211840-40946a11cb84/go.mod h1:d2pGiC/CiDmeWEEY9ZMP2l9I8mxntOjV8/3cb3gHniE=
+github.com/buildbarn/bb-remote-execution v0.0.0-20210707063042-660e11b459e4 h1:duq88MYxfX9fCK+BUmkVT+lnv1sQ7h19cwgyV11OFXc=
+github.com/buildbarn/bb-remote-execution v0.0.0-20210707063042-660e11b459e4/go.mod h1:GRZlSALW4aLbVCT/RY72sfEhcyyzJqfkHWVSsFrr90o=
 github.com/buildbarn/bb-storage v0.0.0-20210226075542-a0427981f170 h1:Cie80Hfb3JBwWYDCdLNe1G9gubnVv/HIF7P+C32G0nY=
 github.com/buildbarn/bb-storage v0.0.0-20210226075542-a0427981f170/go.mod h1:ZENQ/+hUD3gUeJoNkHqVQTaMBsdr4rr9KVfvpBmTKao=
 github.com/buildbarn/bb-storage v0.0.0-20210311095322-ee65b012ed13 h1:4qFNCIy/VM3qfYilX+O4nE8Lm5pjSjvtiJvJlZMY2uo=
@@ -119,6 +121,8 @@ github.com/buildbarn/bb-storage v0.0.0-20210324135539-5317965db548 h1:QDVEIHSRA3
 github.com/buildbarn/bb-storage v0.0.0-20210324135539-5317965db548/go.mod h1:gXy43HysZulMwoh8ZtZY9UNKFWebb3ZWT+XDQJlO/wk=
 github.com/buildbarn/bb-storage v0.0.0-20210612140245-0c202af9f01f h1:jwUj0UXbAgxy1Nl3sKu9plzfB1+ifeV1Oj2jRBwwIfE=
 github.com/buildbarn/bb-storage v0.0.0-20210612140245-0c202af9f01f/go.mod h1:LIJQSG4Q7SGpcAxVY95rtiBDDr4NMTlfS19Qfq/9MUE=
+github.com/buildbarn/bb-storage v0.0.0-20210705183121-7ac375cd5e2f h1:UMwD7gQa/OKD75YTP9AwM3ORB1AQwNF5Y/kjBbMD0+8=
+github.com/buildbarn/bb-storage v0.0.0-20210705183121-7ac375cd5e2f/go.mod h1:MbFobKMEL5vQhOFnChTQQhbuOszTsq2zOwl2JJ93Kmc=
 github.com/buildkite/terminal-to-html v1.0.2 h1:C/c6TcIGDM9+rqN08pfWSwzi28KqSdRxlFXcz6qwelc=
 github.com/buildkite/terminal-to-html v3.2.0+incompatible h1:WdXzl7ZmYzCAz4pElZosPaUlRTW+qwVx/SkQSCa1jXs=
 github.com/buildkite/terminal-to-html v3.2.0+incompatible/go.mod h1:BFFdFecOxCgjdcarqI+8izs6v85CU/1RA/4Bqh4GR7E=
@@ -279,6 +283,8 @@ github.com/golang/protobuf v1.5.1 h1:jAbXjIeW2ZSW2AwFxlGTDoc2CjI2XujLkV3ArsZFCvc
 github.com/golang/protobuf v1.5.1/go.mod h1:DopwsBzvsk0Fs44TXzsVbJyPhcCPeIwnvohx4u74HPM=
 github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db h1:woRePGFeVFfLKN/pOkfl+p/TAqKOfFu+7KPlMVpok/w=
 github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEWrmP2Q=
+github.com/golang/snappy v0.0.3 h1:fHPg5GQYlCeLIPB9BZqMVR5nR9A+IM5zcgeTdjMYmLA=
+github.com/golang/snappy v0.0.3/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEWrmP2Q=
 github.com/google/btree v0.0.0-20180813153112-4030bb1f1f0c/go.mod h1:lNA+9X1NB3Zf8V7Ke586lFgjr2dZNuvo3lPJSGZ5JPQ=
 github.com/google/btree v1.0.0 h1:0udJVsspx3VBr5FwtLhQQtuAsVc79tTq0ocGIPAU6qo=
 github.com/google/btree v1.0.0/go.mod h1:lNA+9X1NB3Zf8V7Ke586lFgjr2dZNuvo3lPJSGZ5JPQ=
@@ -420,6 +426,8 @@ github.com/kisielk/errcheck v1.1.0 h1:ZqfnKyx9KGpRcW04j5nnPDgRgoXUeLh2YFBeFzphcA
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/gotool v1.0.0 h1:AV2c/EiW3KqPNT9ZKl07ehoAGi4C5/01Cfbblndcapg=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
+github.com/klauspost/compress v1.13.1 h1:wXr2uRxZTJXHLly6qhJabee5JqIhTRoLBhDOA74hDEQ=
+github.com/klauspost/compress v1.13.1/go.mod h1:8dP1Hq4DHOhN9w426knH3Rhby4rFm6D8eO+e+Dq5Gzg=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/konsorten/go-windows-terminal-sequences v1.0.3 h1:CE8S1cTafDpPvMhIxNJKvHsGVBgn1xWYf1NbHQhywc8=
 github.com/konsorten/go-windows-terminal-sequences v1.0.3/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
@@ -866,6 +874,8 @@ golang.org/x/sys v0.0.0-20210309074719-68d13333faf2 h1:46ULzRKLh1CwgRq2dC5SlBzEq
 golang.org/x/sys v0.0.0-20210309074719-68d13333faf2/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20210320140829-1e4c9ba3b0c4 h1:EZ2mChiOa8udjfp6rRmswTbtZN/QzUQp4ptM4rnjHvc=
 golang.org/x/sys v0.0.0-20210320140829-1e4c9ba3b0c4/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 h1:RqytpXGR1iVNX7psjB3ff8y7sNFinVFvkx1c8SjBkio=
+golang.org/x/sys v0.0.0-20210616094352-59db8d763f22/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1 h1:v+OssWQX+hTHEmOBgwxdZxK4zHq3yOs8F9J7mk0PY8E=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=

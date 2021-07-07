@@ -6,8 +6,8 @@ replace github.com/gordonklaus/ineffassign => github.com/gordonklaus/ineffassign
 
 require (
 	github.com/bazelbuild/remote-apis v0.0.0-20210505181611-ce7036ef5417
-	github.com/buildbarn/bb-remote-execution v0.0.0-20210612211840-40946a11cb84 // indirect
-	github.com/buildbarn/bb-storage v0.0.0-20210612140245-0c202af9f01f
+	github.com/buildbarn/bb-remote-execution v0.0.0-20210707063042-660e11b459e4 // indirect
+	github.com/buildbarn/bb-storage v0.0.0-20210705183121-7ac375cd5e2f
 	github.com/buildkite/terminal-to-html v3.2.0+incompatible
 	github.com/dustin/go-humanize v1.0.0
 	github.com/gorilla/mux v1.8.0
