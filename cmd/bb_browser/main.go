@@ -125,6 +125,13 @@ func main() {
 			}
 			return nil
 		},
+		"to_build_executor_resource_usage": func(any *anypb.Any) *resourceusage.BuildExecutorResourceUsage {
+			var pb resourceusage.BuildExecutorResourceUsage
+			if err := any.UnmarshalTo(&pb); err != nil {
+				return nil
+			}
+			return &pb
+		},
 		"to_monetary_resource_usage": func(any *anypb.Any) *resourceusage.MonetaryResourceUsage {
 			var pb resourceusage.MonetaryResourceUsage
 			if err := any.UnmarshalTo(&pb); err != nil {
