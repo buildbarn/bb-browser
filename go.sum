@@ -111,6 +111,8 @@ github.com/buildbarn/bb-remote-execution v0.0.0-20210612211840-40946a11cb84 h1:3
 github.com/buildbarn/bb-remote-execution v0.0.0-20210612211840-40946a11cb84/go.mod h1:d2pGiC/CiDmeWEEY9ZMP2l9I8mxntOjV8/3cb3gHniE=
 github.com/buildbarn/bb-remote-execution v0.0.0-20210707063042-660e11b459e4 h1:duq88MYxfX9fCK+BUmkVT+lnv1sQ7h19cwgyV11OFXc=
 github.com/buildbarn/bb-remote-execution v0.0.0-20210707063042-660e11b459e4/go.mod h1:GRZlSALW4aLbVCT/RY72sfEhcyyzJqfkHWVSsFrr90o=
+github.com/buildbarn/bb-remote-execution v0.0.0-20210728143612-89ced182379d h1:FtwqEY+YDr9MSLJkQxfYMqjUdz+ogH2fartN9YY4U+M=
+github.com/buildbarn/bb-remote-execution v0.0.0-20210728143612-89ced182379d/go.mod h1:c6bR5rFkjtmS4WCOaIV50ozjkZVCKyp4uSJjg+aIgPA=
 github.com/buildbarn/bb-storage v0.0.0-20210226075542-a0427981f170 h1:Cie80Hfb3JBwWYDCdLNe1G9gubnVv/HIF7P+C32G0nY=
 github.com/buildbarn/bb-storage v0.0.0-20210226075542-a0427981f170/go.mod h1:ZENQ/+hUD3gUeJoNkHqVQTaMBsdr4rr9KVfvpBmTKao=
 github.com/buildbarn/bb-storage v0.0.0-20210311095322-ee65b012ed13 h1:4qFNCIy/VM3qfYilX+O4nE8Lm5pjSjvtiJvJlZMY2uo=
@@ -123,6 +125,8 @@ github.com/buildbarn/bb-storage v0.0.0-20210612140245-0c202af9f01f h1:jwUj0UXbAg
 github.com/buildbarn/bb-storage v0.0.0-20210612140245-0c202af9f01f/go.mod h1:LIJQSG4Q7SGpcAxVY95rtiBDDr4NMTlfS19Qfq/9MUE=
 github.com/buildbarn/bb-storage v0.0.0-20210705183121-7ac375cd5e2f h1:UMwD7gQa/OKD75YTP9AwM3ORB1AQwNF5Y/kjBbMD0+8=
 github.com/buildbarn/bb-storage v0.0.0-20210705183121-7ac375cd5e2f/go.mod h1:MbFobKMEL5vQhOFnChTQQhbuOszTsq2zOwl2JJ93Kmc=
+github.com/buildbarn/bb-storage v0.0.0-20210728140852-f461572d4fe0 h1:iY+DK9h+p4LoSlits2GxxNQpaWR3bS+KdERguqFdme4=
+github.com/buildbarn/bb-storage v0.0.0-20210728140852-f461572d4fe0/go.mod h1:MbFobKMEL5vQhOFnChTQQhbuOszTsq2zOwl2JJ93Kmc=
 github.com/buildkite/terminal-to-html v1.0.2 h1:C/c6TcIGDM9+rqN08pfWSwzi28KqSdRxlFXcz6qwelc=
 github.com/buildkite/terminal-to-html v3.2.0+incompatible h1:WdXzl7ZmYzCAz4pElZosPaUlRTW+qwVx/SkQSCa1jXs=
 github.com/buildkite/terminal-to-html v3.2.0+incompatible/go.mod h1:BFFdFecOxCgjdcarqI+8izs6v85CU/1RA/4Bqh4GR7E=

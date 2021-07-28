@@ -113,14 +113,14 @@ def go_dependencies():
     go_repository(
         name = "com_github_buildbarn_bb_remote_execution",
         importpath = "github.com/buildbarn/bb-remote-execution",
-        sum = "h1:duq88MYxfX9fCK+BUmkVT+lnv1sQ7h19cwgyV11OFXc=",
-        version = "v0.0.0-20210707063042-660e11b459e4",
+        sum = "h1:FtwqEY+YDr9MSLJkQxfYMqjUdz+ogH2fartN9YY4U+M=",
+        version = "v0.0.0-20210728143612-89ced182379d",
     )
     go_repository(
         name = "com_github_buildbarn_bb_storage",
         importpath = "github.com/buildbarn/bb-storage",
-        sum = "h1:UMwD7gQa/OKD75YTP9AwM3ORB1AQwNF5Y/kjBbMD0+8=",
-        version = "v0.0.0-20210705183121-7ac375cd5e2f",
+        sum = "h1:iY+DK9h+p4LoSlits2GxxNQpaWR3bS+KdERguqFdme4=",
+        version = "v0.0.0-20210728140852-f461572d4fe0",
     )
     go_repository(
         name = "com_github_buildkite_terminal_to_html",
