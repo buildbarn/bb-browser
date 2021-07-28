@@ -26,10 +26,10 @@ import (
 	"github.com/buildbarn/bb-storage/pkg/util"
 	"github.com/buildkite/terminal-to-html"
 	"github.com/gorilla/mux"
-	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"github.com/kballard/go-shellquote"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
@@ -54,14 +54,15 @@ func getDigestFromRequest(req *http.Request) (digest.Digest, error) {
 }
 
 // Generates a Context from an incoming HTTP request, forwarding any
-// 'Authorization' header as gRPC 'authorization' metadata.
+// request headers as gRPC metadata.
 func extractContextFromRequest(req *http.Request) context.Context {
-	ctx := req.Context()
-	md := metautils.ExtractIncoming(ctx)
-	if authorization := req.Header.Get("Authorization"); authorization != "" {
-		md.Set("authorization", authorization)
+	var pairs []string
+	for key, values := range req.Header {
+		for _, value := range values {
+			pairs = append(pairs, key, value)
+		}
 	}
-	return md.ToIncoming(ctx)
+	return metadata.NewIncomingContext(req.Context(), metadata.Pairs(pairs...))
 }
 
 // BrowserService implements a web service that can be used to explore
