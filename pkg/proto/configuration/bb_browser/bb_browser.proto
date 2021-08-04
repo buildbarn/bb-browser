@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package buildbarn.configuration.bb_browser;
 
+import "pkg/proto/configuration/auth/auth.proto";
 import "pkg/proto/configuration/blobstore/blobstore.proto";
 import "pkg/proto/configuration/global/global.proto";
 
@@ -41,4 +42,9 @@ message ApplicationConfiguration {
   // When this option is not set, no statistics will be shown.
   buildbarn.configuration.blobstore.BlobAccessConfiguration
       initial_size_class_cache = 6;
+
+  // Authorization requirements applied to objects read through the
+  // web service from the Content Addressable Storage (CAS),
+  // Action Cache (AC) and Initial Size Class Cache (ISCC).
+  buildbarn.configuration.auth.AuthorizerConfiguration authorizer = 8;
 }

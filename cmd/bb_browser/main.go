@@ -12,6 +12,7 @@ import (
 	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
 	"github.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browser"
 	"github.com/buildbarn/bb-remote-execution/pkg/proto/resourceusage"
+	"github.com/buildbarn/bb-storage/pkg/auth"
 	"github.com/buildbarn/bb-storage/pkg/blobstore"
 	blobstore_configuration "github.com/buildbarn/bb-storage/pkg/blobstore/configuration"
 	"github.com/buildbarn/bb-storage/pkg/digest"
@@ -65,6 +66,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	authorizerFactory := auth.DefaultAuthorizerFactory
+	authorizer, err := authorizerFactory.NewAuthorizerFromConfiguration(configuration.Authorizer)
+	if err != nil {
+		log.Fatal("Failed to create authorizer: ", err)
+	}
+
+	// nil the put and findMissing authorizers - bb-browser shouldn't ever use these APIs.
+	contentAddressableStorage = blobstore.NewAuthorizingBlobAccess(contentAddressableStorage, authorizer, nil, nil)
+	actionCache = blobstore.NewAuthorizingBlobAccess(actionCache, authorizer, nil, nil)
+
 	var initialSizeClassCache blobstore.BlobAccess
 	if configuration.InitialSizeClassCache == nil {
 		initialSizeClassCache = blobstore.NewErrorBlobAccess(status.Error(codes.NotFound, "No Initial Size Class Cache configured"))
@@ -77,7 +89,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Failed to create Initial Size Class Cache: ", err)
 		}
-		initialSizeClassCache = info.BlobAccess
+		initialSizeClassCache = blobstore.NewAuthorizingBlobAccess(info.BlobAccess, authorizer, nil, nil)
 	}
 
 	routePrefix := path.Join("/", configuration.RoutePrefix)
