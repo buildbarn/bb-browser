@@ -17,7 +17,7 @@
 
 {{if .IsUncachedActionResult}}
 	<h1 class="my-4">Uncached action result</h1>
-	<h2 class="my-4">Action<sup><a href="../../action/{{.ActionDigest.GetHashString}}-{{.ActionDigest.GetSizeBytes}}/">*</a></sup></h2>
+	<h2 class="my-4">Action<sup><a class="text-decoration-none" href="../../action/{{.ActionDigest.GetHashString}}-{{.ActionDigest.GetSizeBytes}}/">*</a></sup></h2>
 {{else}}
 	<h1 class="my-4">Action</h1>
 {{end}}
@@ -37,7 +37,7 @@
 This action could not be found.
 {{end}}
 
-<h2 class="my-4">Command{{if .Action}}<sup><a href="../../command/{{.Action.CommandDigest.Hash}}-{{.Action.CommandDigest.SizeBytes}}/">*</a></sup>{{end}}</h2>
+<h2 class="my-4">Command{{if .Action}}<sup><a class="text-decoration-none" href="../../command/{{.Action.CommandDigest.Hash}}-{{.Action.CommandDigest.SizeBytes}}/">*</a></sup>{{end}}</h2>
 
 {{if .Command}}
 {{template "view_command.html" .Command}}
@@ -74,7 +74,7 @@ The command of this action could not be found.
 The action result of this action could not be found.
 {{end}}
 
-<h2 class="my-4">Input files{{if .Action}}<sup><a href="../../directory/{{.Action.InputRootDigest.Hash}}-{{.Action.InputRootDigest.SizeBytes}}/">*</a></sup>{{end}}</h2>
+<h2 class="my-4">Input files{{if .Action}}<sup><a class="text-decoration-none" href="../../directory/{{.Action.InputRootDigest.Hash}}-{{.Action.InputRootDigest.SizeBytes}}/">*</a></sup>{{end}}</h2>
 
 {{if .InputRoot}}
 {{template "view_directory.html" .InputRoot}}
@@ -93,35 +93,35 @@ The input root of this action could not be found.
 		</tr>
 	</thead>
 	{{range .OutputDirectories}}
-		<tr class="text-monospace">
+		<tr class="font-monospace">
 			<td style="white-space: nowrap">drwxr-xr-x</td>
 			<td style="text-align: right">{{.TreeDigest.SizeBytes}}</td>
 			<td style="width: 100%"><a class="text-success" href="../../tree/{{.TreeDigest.Hash}}-{{.TreeDigest.SizeBytes}}/">{{.Path}}</a>/</td>
 		</tr>
 	{{end}}
 	{{range .OutputSymlinks}}
-		<tr class="text-monospace">
+		<tr class="font-monospace">
 			<td>lrwxrwxrwx</td>
 			<td></td>
 			<td style="width: 100%"><span class="text-success">{{.Path}}</span> -&gt; {{.Target}}</td>
 		</tr>
 	{{end}}
 	{{range .OutputFiles}}
-		<tr class="text-monospace">
+		<tr class="font-monospace">
 			<td style="white-space: nowrap">-rw{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}</td>
 			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
 			<td style="width: 100%"><a class="text-success" href="../../file/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/{{basename .Path}}">{{.Path}}</a></td>
 		</tr>
 	{{end}}
 	{{range .MissingDirectories}}
-		<tr class="text-monospace">
+		<tr class="font-monospace">
 			<td style="white-space: nowrap">drwxr-xr-x</td>
 			<td></td>
 			<td style="width: 100%"><s class="text-danger">{{.}}</s>/</td>
 		</tr>
 	{{end}}
 	{{range .MissingFiles}}
-		<tr class="text-monospace">
+		<tr class="font-monospace">
 			<td style="white-space: nowrap">-rw-r--r--</td>
 			<td></td>
 			<td style="width: 100%"><s class="text-danger">{{.}}</s></td>
@@ -176,11 +176,11 @@ The input root of this action could not be found.
 				{{end}}
 				<tr>
 					<th style="width: 25%">Tool invocation ID:</th>
-					<td class="text-monospace" style="width: 75%">{{.ToolInvocationId}}</td>
+					<td class="font-monospace" style="width: 75%">{{.ToolInvocationId}}</td>
 				</tr>
 				<tr>
 					<th style="width: 25%">Correlated invocations ID:</th>
-					<td class="text-monospace" style="width: 75%">{{.CorrelatedInvocationsId}}</td>
+					<td class="font-monospace" style="width: 75%">{{.CorrelatedInvocationsId}}</td>
 				</tr>
 				{{with .ActionMnemonic}}
 					<tr>
@@ -309,7 +309,7 @@ The input root of this action could not be found.
 {{end}}
 
 {{with .PreviousExecutionStats}}
-	<h2 class="my-4">Previous execution stats<sup><a href="../../previous_execution_stats/{{.ReducedActionDigest.GetHashString}}-{{.ReducedActionDigest.GetSizeBytes}}/">*</a></sup></h2>
+	<h2 class="my-4">Previous execution stats<sup><a class="text-decoration-none" href="../../previous_execution_stats/{{.ReducedActionDigest.GetHashString}}-{{.ReducedActionDigest.GetSizeBytes}}/">*</a></sup></h2>
 	{{template "view_previous_execution_stats.html" .}}
 {{end}}
 

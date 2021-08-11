@@ -1,6 +1,6 @@
 {{if .}}
 	<tr>
-		<th style="width: 25%">{{.Name}}{{with .Digest}}<sup><a href="../../file/{{.GetHashString}}-{{.GetSizeBytes}}/log.txt">*</a></sup>{{end}}:</th>
+		<th style="width: 25%">{{.Name}}{{with .Digest}}<sup><a class="text-decoration-none" href="../../file/{{.GetHashString}}-{{.GetSizeBytes}}/log.txt">*</a></sup>{{end}}:</th>
 		<td class="width: 75%">
 			{{if .NotFound}}
 				The log file for this action could not be found.

@@ -2,7 +2,7 @@
 	{{template "view_arguments.html" .Arguments}}
 	<tr>
 		<th style="width: 25%">Environment variables:</th>
-		<td class="text-monospace" style="width: 75%; overflow-x: scroll; white-space: nowrap">
+		<td class="font-monospace" style="width: 75%; overflow-x: scroll; white-space: nowrap">
 			{{range .EnvironmentVariables}}
 				<b>{{.Name}}</b>={{shellquote .Value}}<br/>
 			{{end}}
@@ -10,7 +10,7 @@
 	</tr>
 	<tr>
 		<th style="style: 25%">Working directory:</th>
-		<td class="text-monospace" style="width: 75%">{{if .WorkingDirectory}}{{.WorkingDirectory}}{{else}}.{{end}}</td>
+		<td class="font-monospace" style="width: 75%">{{if .WorkingDirectory}}{{.WorkingDirectory}}{{else}}.{{end}}</td>
 	</tr>
 	{{if .Platform}}
 		<tr>

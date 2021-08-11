@@ -30,9 +30,9 @@ http_archive(
 http_archive(
     name = "com_github_twbs_bootstrap",
     build_file_content = """exports_files(["css/bootstrap.min.css", "js/bootstrap.min.js"])""",
-    sha256 = "888ffd30b7e192381e2f6a948ca04669fdcc2ccc2ba016de00d38c8e30793323",
-    strip_prefix = "bootstrap-4.3.1-dist",
-    urls = ["https://github.com/twbs/bootstrap/releases/download/v4.3.1/bootstrap-4.3.1-dist.zip"],
+    sha256 = "395342b2974e3350560e65752d36aab6573652b11cc6cb5ef79a2e5e83ad64b1",
+    strip_prefix = "bootstrap-5.1.0-dist",
+    urls = ["https://github.com/twbs/bootstrap/releases/download/v5.1.0/bootstrap-5.1.0-dist.zip"],
 )
 
 http_file(
