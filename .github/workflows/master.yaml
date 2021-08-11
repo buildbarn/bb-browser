@@ -1,9 +1,12 @@
 {
    "jobs": {
       "build_and_test": {
-         "container": "docker://l.gcr.io/google/bazel:3.5.0",
          "runs-on": "ubuntu-latest",
          "steps": [
+            {
+               "name": "Installing Bazel",
+               "run": "curl -L https://github.com/bazelbuild/bazel/releases/download/4.1.0/bazel-4.1.0-linux-x86_64 > ~/bazel && chmod +x ~/bazel && echo ~ >> ${GITHUB_PATH}"
+            },
             {
                "name": "Check out source code",
                "uses": "actions/checkout@v1"
@@ -58,7 +61,7 @@
             },
             {
                "name": "linux_amd64: copy bb_browser",
-               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //cmd/bb_browser $(pwd)/bb_browser"
+               "run": "rm -f bb_browser && bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //cmd/bb_browser $(pwd)/bb_browser"
             },
             {
                "name": "linux_amd64: upload bb_browser",
@@ -74,7 +77,7 @@
             },
             {
                "name": "linux_386: copy bb_browser",
-               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:linux_386 //cmd/bb_browser $(pwd)/bb_browser"
+               "run": "rm -f bb_browser && bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:linux_386 //cmd/bb_browser $(pwd)/bb_browser"
             },
             {
                "name": "linux_386: upload bb_browser",
@@ -90,7 +93,7 @@
             },
             {
                "name": "linux_arm: copy bb_browser",
-               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:linux_arm //cmd/bb_browser $(pwd)/bb_browser"
+               "run": "rm -f bb_browser && bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:linux_arm //cmd/bb_browser $(pwd)/bb_browser"
             },
             {
                "name": "linux_arm: upload bb_browser",
@@ -106,7 +109,7 @@
             },
             {
                "name": "linux_arm64: copy bb_browser",
-               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:linux_arm64 //cmd/bb_browser $(pwd)/bb_browser"
+               "run": "rm -f bb_browser && bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:linux_arm64 //cmd/bb_browser $(pwd)/bb_browser"
             },
             {
                "name": "linux_arm64: upload bb_browser",
@@ -122,7 +125,7 @@
             },
             {
                "name": "darwin_amd64: copy bb_browser",
-               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:darwin_amd64 //cmd/bb_browser $(pwd)/bb_browser"
+               "run": "rm -f bb_browser && bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:darwin_amd64 //cmd/bb_browser $(pwd)/bb_browser"
             },
             {
                "name": "darwin_amd64: upload bb_browser",
@@ -138,7 +141,7 @@
             },
             {
                "name": "darwin_arm64: copy bb_browser",
-               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:darwin_arm64 //cmd/bb_browser $(pwd)/bb_browser"
+               "run": "rm -f bb_browser && bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:darwin_arm64 //cmd/bb_browser $(pwd)/bb_browser"
             },
             {
                "name": "darwin_arm64: upload bb_browser",
@@ -154,7 +157,7 @@
             },
             {
                "name": "freebsd_amd64: copy bb_browser",
-               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:freebsd_amd64 //cmd/bb_browser $(pwd)/bb_browser"
+               "run": "rm -f bb_browser && bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:freebsd_amd64 //cmd/bb_browser $(pwd)/bb_browser"
             },
             {
                "name": "freebsd_amd64: upload bb_browser",
@@ -170,7 +173,7 @@
             },
             {
                "name": "windows_amd64: copy bb_browser",
-               "run": "bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:windows_amd64 //cmd/bb_browser $(pwd)/bb_browser.exe"
+               "run": "rm -f bb_browser.exe && bazel run --run_under cp --platforms=@io_bazel_rules_go//go/toolchain:windows_amd64 //cmd/bb_browser $(pwd)/bb_browser.exe"
             },
             {
                "name": "windows_amd64: upload bb_browser",
@@ -185,7 +188,7 @@
                   "DOCKER_CONFIG_JSON": "${{ secrets.DOCKER_CONFIG_JSON }}"
                },
                "name": "Install Docker credentials",
-               "run": "mkdir ~/.docker && echo \"${DOCKER_CONFIG_JSON}\" > ~/.docker/config.json"
+               "run": "mkdir -p ~/.docker && echo \"${DOCKER_CONFIG_JSON}\" > ~/.docker/config.json"
             },
             {
                "name": "Push container bb_browser:bb_browser",
