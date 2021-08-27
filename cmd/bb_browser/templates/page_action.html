@@ -15,8 +15,8 @@
 	{{end}}
 {{end}}
 
-{{if .IsUncachedActionResult}}
-	<h1 class="my-4">Uncached action result</h1>
+{{if .IsHistoricalExecuteResponse}}
+	<h1 class="my-4">Historical execute response</h1>
 	<h2 class="my-4">Action<sup><a class="text-decoration-none" href="../../action/{{.ActionDigest.GetHashString}}-{{.ActionDigest.GetSizeBytes}}/">*</a></sup></h2>
 {{else}}
 	<h1 class="my-4">Action</h1>

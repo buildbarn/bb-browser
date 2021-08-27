@@ -96,7 +96,7 @@ func NewBrowserService(contentAddressableStorage, actionCache, initialSizeClassC
 	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/file/{hash}-{sizeBytes}/{name}", s.handleFile)
 	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/previous_execution_stats/{hash}-{sizeBytes}/", s.handlePreviousExecutionStats)
 	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/tree/{hash}-{sizeBytes}/{subdirectory:(?:.*/)?}", s.handleTree)
-	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/uncached_action_result/{hash}-{sizeBytes}/", s.handleUncachedActionResult)
+	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/historical_execute_response/{hash}-{sizeBytes}/", s.handleHistoricalExecuteResponse)
 	return s
 }
 
@@ -183,25 +183,25 @@ func (s *BrowserService) handleAction(w http.ResponseWriter, req *http.Request) 
 	}, false)
 }
 
-func (s *BrowserService) handleUncachedActionResult(w http.ResponseWriter, req *http.Request) {
+func (s *BrowserService) handleHistoricalExecuteResponse(w http.ResponseWriter, req *http.Request) {
 	digest, err := getDigestFromRequest(req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	ctx := extractContextFromRequest(req)
-	m, err := s.contentAddressableStorage.Get(ctx, digest).ToProto(&cas_proto.UncachedActionResult{}, s.maximumMessageSizeBytes)
+	m, err := s.contentAddressableStorage.Get(ctx, digest).ToProto(&cas_proto.HistoricalExecuteResponse{}, s.maximumMessageSizeBytes)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	uncachedActionResult := m.(*cas_proto.UncachedActionResult)
-	actionDigest, err := digest.GetInstanceName().NewDigestFromProto(uncachedActionResult.ActionDigest)
+	historicalExecuteResponse := m.(*cas_proto.HistoricalExecuteResponse)
+	actionDigest, err := digest.GetInstanceName().NewDigestFromProto(historicalExecuteResponse.ActionDigest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	s.handleActionCommon(w, req, actionDigest, uncachedActionResult.ExecuteResponse, true)
+	s.handleActionCommon(w, req, actionDigest, historicalExecuteResponse.ExecuteResponse, true)
 }
 
 func (s *BrowserService) getLogInfoFromActionResult(ctx context.Context, name string, instanceName digest.InstanceName, logDigest *remoteexecution.Digest, rawLogBody []byte) (*logInfo, error) {
@@ -261,12 +261,12 @@ func (s *BrowserService) getLogInfoForDigest(ctx context.Context, name string, d
 	return nil, err
 }
 
-func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Request, actionDigest digest.Digest, executeResponse *remoteexecution.ExecuteResponse, isUncachedActionResult bool) {
+func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Request, actionDigest digest.Digest, executeResponse *remoteexecution.ExecuteResponse, isHistoricalExecuteResponse bool) {
 	instanceName := actionDigest.GetInstanceName()
 	actionInfo := struct {
-		IsUncachedActionResult bool
-		ActionDigest           digest.Digest
-		Action                 *remoteexecution.Action
+		IsHistoricalExecuteResponse bool
+		ActionDigest                digest.Digest
+		Action                      *remoteexecution.Action
 
 		Command *remoteexecution.Command
 
@@ -284,9 +284,9 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 
 		PreviousExecutionStats *previousExecutionStatsInfo
 	}{
-		IsUncachedActionResult: isUncachedActionResult,
-		ActionDigest:           actionDigest,
-		ExecuteResponse:        executeResponse,
+		IsHistoricalExecuteResponse: isHistoricalExecuteResponse,
+		ActionDigest:                actionDigest,
+		ExecuteResponse:             executeResponse,
 	}
 
 	ctx := extractContextFromRequest(req)
