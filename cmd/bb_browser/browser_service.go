@@ -21,6 +21,7 @@ import (
 	"github.com/buildbarn/bb-storage/pkg/blobstore"
 	"github.com/buildbarn/bb-storage/pkg/digest"
 	"github.com/buildbarn/bb-storage/pkg/filesystem/path"
+	bb_http "github.com/buildbarn/bb-storage/pkg/http"
 	cas_proto "github.com/buildbarn/bb-storage/pkg/proto/cas"
 	"github.com/buildbarn/bb-storage/pkg/proto/iscc"
 	"github.com/buildbarn/bb-storage/pkg/util"
@@ -107,6 +108,15 @@ var (
 	treeDirectoryComponent      = path.MustNewComponent("tree")
 )
 
+func (s *BrowserService) renderError(w http.ResponseWriter, err error) {
+	st := status.Convert(err)
+	w.WriteHeader(bb_http.StatusCodeFromGRPCCode(st.Code()))
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	if err := s.templates.ExecuteTemplate(w, "error.html", st); err != nil {
+		log.Print(err)
+	}
+}
+
 // getBBClientdBlobPath returns a relative path of the shape
 // "${instanceName}/blobs/${blobType}/${hash}-${sizeBytes}". This
 // corresponds to the pathname scheme that can be used to access
@@ -163,7 +173,7 @@ type logInfo struct {
 func (s *BrowserService) handleAction(w http.ResponseWriter, req *http.Request) {
 	digest, err := getDigestFromRequest(req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		s.renderError(w, err)
 		return
 	}
 
@@ -174,7 +184,7 @@ func (s *BrowserService) handleAction(w http.ResponseWriter, req *http.Request) 
 		s.maximumMessageSizeBytes); err == nil {
 		actionResult = m.(*remoteexecution.ActionResult)
 	} else if status.Code(err) != codes.NotFound {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		s.renderError(w, err)
 		return
 	}
 
@@ -186,19 +196,19 @@ func (s *BrowserService) handleAction(w http.ResponseWriter, req *http.Request) 
 func (s *BrowserService) handleHistoricalExecuteResponse(w http.ResponseWriter, req *http.Request) {
 	digest, err := getDigestFromRequest(req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		s.renderError(w, err)
 		return
 	}
 	ctx := extractContextFromRequest(req)
 	m, err := s.contentAddressableStorage.Get(ctx, digest).ToProto(&cas_proto.HistoricalExecuteResponse{}, s.maximumMessageSizeBytes)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		s.renderError(w, err)
 		return
 	}
 	historicalExecuteResponse := m.(*cas_proto.HistoricalExecuteResponse)
 	actionDigest, err := digest.GetInstanceName().NewDigestFromProto(historicalExecuteResponse.ActionDigest)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		s.renderError(w, err)
 		return
 	}
 	s.handleActionCommon(w, req, actionDigest, historicalExecuteResponse.ExecuteResponse, true)
@@ -299,12 +309,12 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 		var err error
 		actionInfo.StdoutInfo, err = s.getLogInfoFromActionResult(ctx, "Standard output", instanceName, actionResult.StdoutDigest, actionResult.StdoutRaw)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			s.renderError(w, err)
 			return
 		}
 		actionInfo.StderrInfo, err = s.getLogInfoFromActionResult(ctx, "Standard error", instanceName, actionResult.StderrDigest, actionResult.StderrRaw)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			s.renderError(w, err)
 			return
 		}
 	}
@@ -316,7 +326,7 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 
 		commandDigest, err := instanceName.NewDigestFromProto(action.CommandDigest)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			s.renderError(w, err)
 			return
 		}
 		commandMessage, err := s.contentAddressableStorage.Get(ctx, commandDigest).ToProto(&remoteexecution.Command{}, s.maximumMessageSizeBytes)
@@ -346,13 +356,13 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 				}
 			}
 		} else if status.Code(err) != codes.NotFound {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			s.renderError(w, err)
 			return
 		}
 
 		inputRootDigest, err := instanceName.NewDigestFromProto(action.InputRootDigest)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			s.renderError(w, err)
 			return
 		}
 		directoryMessage, err := s.contentAddressableStorage.Get(ctx, inputRootDigest).ToProto(&remoteexecution.Directory{}, s.maximumMessageSizeBytes)
@@ -363,29 +373,29 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 				BBClientdPath: formatBBClientdPath(s.getBBClientdBlobPath(inputRootDigest, directoryDirectoryComponent)),
 			}
 		} else if status.Code(err) != codes.NotFound {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			s.renderError(w, err)
 			return
 		}
 
 		reducedActionDigest, err := blobstore.ISCCGetReducedActionDigest(actionDigest.GetDigestFunction(), action)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			s.renderError(w, err)
 			return
 		}
 		previousExecutionStatsInfo, err := s.getPreviousExecutionStatsInfo(ctx, reducedActionDigest)
 		if err == nil {
 			actionInfo.PreviousExecutionStats = previousExecutionStatsInfo
 		} else if status.Code(err) != codes.NotFound {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			s.renderError(w, err)
 			return
 		}
 	} else if status.Code(err) != codes.NotFound {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		s.renderError(w, err)
 		return
 	}
 
 	if actionMessage == nil && actionResult == nil {
-		http.Error(w, "Could not find an action or action result", http.StatusNotFound)
+		s.renderError(w, status.Error(codes.NotFound, "Could not find an action or action result"))
 		return
 	}
 
@@ -397,14 +407,14 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 func (s *BrowserService) handleCommand(w http.ResponseWriter, req *http.Request) {
 	digest, err := getDigestFromRequest(req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		s.renderError(w, err)
 		return
 	}
 
 	ctx := extractContextFromRequest(req)
 	commandMessage, err := s.contentAddressableStorage.Get(ctx, digest).ToProto(&remoteexecution.Command{}, s.maximumMessageSizeBytes)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		s.renderError(w, err)
 		return
 	}
 	command := commandMessage.(*remoteexecution.Command)
@@ -548,14 +558,14 @@ func (s *BrowserService) generateTarball(ctx context.Context, w http.ResponseWri
 func (s *BrowserService) handleDirectory(w http.ResponseWriter, req *http.Request) {
 	directoryDigest, err := getDigestFromRequest(req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		s.renderError(w, err)
 		return
 	}
 
 	ctx := extractContextFromRequest(req)
 	directoryMessage, err := s.contentAddressableStorage.Get(ctx, directoryDigest).ToProto(&remoteexecution.Directory{}, s.maximumMessageSizeBytes)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		s.renderError(w, err)
 		return
 	}
 	directory := directoryMessage.(*remoteexecution.Directory)
@@ -582,7 +592,7 @@ func (s *BrowserService) handleDirectory(w http.ResponseWriter, req *http.Reques
 func (s *BrowserService) handleFile(w http.ResponseWriter, req *http.Request) {
 	digest, err := getDigestFromRequest(req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		s.renderError(w, err)
 		return
 	}
 
@@ -596,8 +606,7 @@ func (s *BrowserService) handleFile(w http.ResponseWriter, req *http.Request) {
 	var first [4096]byte
 	n, err := r.Read(first[:])
 	if err != nil && err != io.EOF {
-		// TODO(edsch): Convert error code.
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		s.renderError(w, err)
 		return
 	}
 
@@ -736,14 +745,14 @@ func (l sizeClassList) Swap(i, j int) {
 func (s *BrowserService) handlePreviousExecutionStats(w http.ResponseWriter, req *http.Request) {
 	digest, err := getDigestFromRequest(req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		s.renderError(w, err)
 		return
 	}
 
 	ctx := extractContextFromRequest(req)
 	statsInfo, err := s.getPreviousExecutionStatsInfo(ctx, digest)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		s.renderError(w, err)
 		return
 	}
 
@@ -755,14 +764,14 @@ func (s *BrowserService) handlePreviousExecutionStats(w http.ResponseWriter, req
 func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 	treeDigest, err := getDigestFromRequest(req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		s.renderError(w, err)
 		return
 	}
 
 	ctx := extractContextFromRequest(req)
 	treeMessage, err := s.contentAddressableStorage.Get(ctx, treeDigest).ToProto(&remoteexecution.Tree{}, s.maximumMessageSizeBytes)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		s.renderError(w, err)
 		return
 	}
 	tree := treeMessage.(*remoteexecution.Tree)
@@ -782,12 +791,12 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 	for _, child := range tree.Children {
 		data, err := proto.Marshal(child)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			s.renderError(w, err)
 			return
 		}
 		digestGenerator := digestFunction.NewGenerator()
 		if _, err := digestGenerator.Write(data); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			s.renderError(w, err)
 			return
 		}
 		children[digestGenerator.Sum().GetKey(digest.KeyWithoutInstance)] = child
@@ -807,7 +816,7 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 		func(r rune) bool { return r == '/' }) {
 		pathComponent, ok := path.NewComponent(component)
 		if !ok {
-			http.Error(w, fmt.Sprintf("Path contains invalid component %#v", component), http.StatusNotFound)
+			s.renderError(w, status.Errorf(codes.InvalidArgument, "Path contains invalid component %#v"))
 			return
 		}
 		bbClientdPath = bbClientdPath.Append(pathComponent)
@@ -823,19 +832,19 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 			return nil
 		}()
 		if childNode == nil {
-			http.Error(w, "Subdirectory in tree not found", http.StatusNotFound)
+			s.renderError(w, status.Error(codes.NotFound, "Subdirectory in tree not found"))
 			return
 		}
 
 		// Find corresponding child directory message.
 		directoryDigest, err = instanceName.NewDigestFromProto(childNode.Digest)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			s.renderError(w, err)
 			return
 		}
 		childDirectory, ok := children[directoryDigest.GetKey(digest.KeyWithoutInstance)]
 		if !ok {
-			http.Error(w, "Failed to find child node in tree", http.StatusBadRequest)
+			s.renderError(w, status.Error(codes.InvalidArgument, "Failed to find child node in tree"))
 			return
 		}
 		treeInfo.HasParentDirectory = true
