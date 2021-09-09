@@ -22,16 +22,28 @@
 	<h1 class="my-4">Action</h1>
 {{end}}
 
-{{if .Action}}
+{{with .Action}}
 <table class="table" style="table-layout: fixed">
-	<tr>
-		<th style="width: 25%">Timeout:</th>
-		<td style="width: 75%">{{if .Action.Timeout}}{{.Action.Timeout.Seconds}} seconds{{else}}∞{{end}}</td>
-	</tr>
+	{{with .Timeout}}
+		<tr>
+			<th style="width: 25%">Timeout:</th>
+			<td style="width: 75%">{{.AsDuration}}</td>
+		</tr>
+	{{end}}
 	<tr>
 		<th style="width: 25%">Do not cache:</th>
-		<td style="width: 75%">{{if .Action.DoNotCache}}yes{{else}}no{{end}}</td>
+		<td style="width: 75%">{{if .DoNotCache}}yes{{else}}no{{end}}</td>
 	</tr>
+	{{with .Platform}}
+		<tr>
+			<th style="width: 25%">Platform properties:</th>
+			<td style="width: 75%">
+				{{range .Properties}}
+					<span class="badge bg-primary text-nowrap">{{.Name}}={{.Value | printf "%#v"}}</span>
+				{{end}}
+			</td>
+		</tr>
+	{{end}}
 </table>
 {{else}}
 This action could not be found.
