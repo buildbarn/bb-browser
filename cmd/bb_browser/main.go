@@ -1,6 +1,8 @@
 package main
 
 import (
+	"embed"
+	"encoding/base64"
 	"html/template"
 	"log"
 	"net/http"
@@ -43,6 +45,15 @@ type timestampDelta struct {
 	Time                 time.Time
 	DurationFromPrevious time.Duration
 }
+
+var (
+	//go:embed templates
+	templatesFS embed.FS
+	//go:embed stylesheet.css
+	stylesheet template.CSS
+	//go:embed favicon.png
+	favicon []byte
+)
 
 func main() {
 	if len(os.Args) != 2 {
@@ -96,11 +107,10 @@ func main() {
 		routePrefix += "/"
 	}
 
-	templates := template.New("templates").Funcs(template.FuncMap{
-		"asset_path": func(filename string) string {
-			return GetAssetPath(routePrefix, filename)
-		},
-		"basename": path.Base,
+	faviconURL := template.URL("data:image/png;base64," + base64.URLEncoding.EncodeToString(favicon))
+	templates, err := template.New("templates").Funcs(template.FuncMap{
+		"basename":    path.Base,
+		"favicon_url": func() template.URL { return faviconURL },
 		"humanize_bytes": func(v interface{}) string {
 			switch i := v.(type) {
 			case uint64:
@@ -114,6 +124,7 @@ func main() {
 		"inc": func(n int) int {
 			return n + 1
 		},
+		"stylesheet": func() template.CSS { return stylesheet },
 		"to_outcome_failed": func(previousExecution *iscc.PreviousExecution) bool {
 			_, ok := previousExecution.Outcome.(*iscc.PreviousExecution_Failed)
 			return ok
@@ -206,13 +217,9 @@ func main() {
 			}
 			return pb.AsTime().Format(rfc3339Milli)
 		},
-	})
-
-	for name, template := range TemplatesData {
-		templates, err = templates.New(name).Parse(template)
-		if err != nil {
-			log.Fatalf("Failed to parse template %#v: %s", name, err)
-		}
+	}).ParseFS(templatesFS, "templates/*.html")
+	if err != nil {
+		log.Fatal("Failed to parse HTML templates: ", err)
 	}
 
 	// Prefix to add to instance names that are placed in bb_clientd
@@ -233,7 +240,6 @@ func main() {
 		templates,
 		bbClientdInstanceNamePatcher,
 		subrouter)
-	RegisterAssetEndpoints(subrouter)
 	go func() {
 		log.Fatal(http.ListenAndServe(configuration.ListenAddress, router))
 	}()

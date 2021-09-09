@@ -28,13 +28,6 @@ http_archive(
     ],
 )
 
-http_file(
-    name = "com_jquery_jquery",
-    downloaded_file_path = "jquery.js",
-    sha256 = "f7f6a5894f1d19ddad6fa392b2ece2c5e578cbf7da4ea805b6885eb6985b6e3d",
-    urls = ["https://code.jquery.com/jquery-3.5.1.min.js"],
-)
-
 http_archive(
     name = "com_github_buildbarn_bb_deployments",
     sha256 = "cf910624a50d3f1f4c8af98d96f4ff7cbdd51f2c107315ac835256776a41df1c",
@@ -100,10 +93,6 @@ llvm_toolchain(
     name = "llvm_toolchain",
     llvm_version = "9.0.0",
 )
-
-load("@io_bazel_rules_go//extras:embed_data_deps.bzl", "go_embed_data_dependencies")
-
-go_embed_data_dependencies()
 
 http_archive(
     name = "io_bazel_rules_jsonnet",

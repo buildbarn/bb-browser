@@ -5,11 +5,27 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "bb_browser_lib",
     srcs = [
-        "asset_registry.go",
         "browser_service.go",
         "main.go",
-        "//cmd/bb_browser/assets",  # keep
-        "//cmd/bb_browser/templates",  # keep
+    ],
+    embedsrcs = [
+        "favicon.png",
+        "stylesheet.css",
+        "templates/error.html",
+        "templates/footer.html",
+        "templates/header.html",
+        "templates/page_action.html",
+        "templates/page_command.html",
+        "templates/page_directory.html",
+        "templates/page_previous_execution_stats.html",
+        "templates/page_tree.html",
+        "templates/page_welcome.html",
+        "templates/view_action_timestamp_delta.html",
+        "templates/view_arguments.html",
+        "templates/view_command.html",
+        "templates/view_directory.html",
+        "templates/view_log.html",
+        "templates/view_previous_execution_stats.html",
     ],
     importpath = "github.com/buildbarn/bb-browser/cmd/bb_browser",
     visibility = ["//visibility:private"],
@@ -23,6 +39,7 @@ go_library(
         "@com_github_buildbarn_bb_storage//pkg/digest",
         "@com_github_buildbarn_bb_storage//pkg/filesystem/path",
         "@com_github_buildbarn_bb_storage//pkg/global",
+        "@com_github_buildbarn_bb_storage//pkg/http",
         "@com_github_buildbarn_bb_storage//pkg/proto/cas",
         "@com_github_buildbarn_bb_storage//pkg/proto/iscc",
         "@com_github_buildbarn_bb_storage//pkg/util",
@@ -41,6 +58,29 @@ go_library(
         "@org_gonum_v1_plot//vg",
         "@org_gonum_v1_plot//vg/draw",
     ],
+)
+
+filegroup(
+    name = "templates",
+    srcs = glob(["templates/*.html"]),
+)
+
+# Create a copy of Bootstrap that only contains the style attributes
+# used by the HTML templates. Also include the classes needed by
+# terminal-to-html.
+genrule(
+    name = "stylesheet",
+    srcs = [
+        "@com_github_buildkite_terminal_to_html//assets:terminal.css",
+        "@com_github_twbs_bootstrap//:css/bootstrap.min.css",
+        ":templates",
+    ],
+    outs = ["stylesheet.css"],
+    cmd = " && ".join([
+        "$(location @npm//purgecss/bin:purgecss) --css $(location @com_github_twbs_bootstrap//:css/bootstrap.min.css) --content $(locations templates) --output $@ --safelist bg-secondary",
+        "cat $(location @com_github_buildkite_terminal_to_html//assets:terminal.css) >> $@",
+    ]),
+    tools = ["@npm//purgecss/bin:purgecss"],
 )
 
 go_binary(
