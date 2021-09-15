@@ -148,7 +148,15 @@ The input root of this action could not be found.
 		{{with .Worker}}
 			<tr>
 				<th style="width: 25%">Worker:</th>
-				<td style="width: 75%">{{.}}</td>
+				<td style="width: 75%">
+					{{with to_worker_id .}}
+						{{range $key, $value := .}}
+							<span class="badge bg-primary text-nowrap">{{$key}}={{$value | printf "%#v"}}</span>
+						{{end}}
+					{{else}}
+						{{.}}
+					{{end}}
+				</td>
 			</tr>
 		{{end}}
 		<tr>

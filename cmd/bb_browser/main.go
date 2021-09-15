@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"encoding/base64"
+	"encoding/json"
 	"html/template"
 	"log"
 	"net/http"
@@ -181,6 +182,13 @@ func main() {
 				return nil
 			}
 			return &pb
+		},
+		"to_worker_id": func(worker string) map[string]string {
+			var workerID map[string]string
+			if json.Unmarshal([]byte(worker), &workerID) != nil {
+				return nil
+			}
+			return workerID
 		},
 		"shellquote": shellquote.Join,
 		"timestamp_rfc3339": func(t time.Time) string {
