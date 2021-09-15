@@ -8,12 +8,12 @@
 						<span class="badge bg-danger text-light">Failed</span>
 					{{end}}
 					{{with to_outcome_timed_out .}}
-						<span class="badge bg-warning text-dark" style="white-space: nowrap">
+						<span class="badge bg-warning text-dark text-nowrap">
 							Timed out: {{.}}
 						</span>
 					{{end}}
 					{{with to_outcome_succeeded .}}
-						<span class="badge bg-success text-light" style="white-space: nowrap">
+						<span class="badge bg-success text-light text-nowrap">
 							Succeeded: {{.}}
 						</span>
 					{{end}}

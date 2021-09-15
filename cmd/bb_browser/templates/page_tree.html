@@ -14,15 +14,15 @@
 	</thead>
 	{{if .HasParentDirectory}}
 		<tr class="font-monospace">
-			<td style="white-space: nowrap">drwxr-xr-x</td>
+			<td class="text-nowrap">drwxr-xr-x</td>
 			<td></td>
 			<td style="width: 100%"><a href="..">..</a>/</td>
 		</tr>
 	{{end}}
 	{{range .Directory.Directories}}
 		<tr class="font-monospace">
-			<td style="white-space: nowrap">drwxr-xr-x</td>
-			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
+			<td class="text-nowrap">drwxr-xr-x</td>
+			<td class="text-end">{{.Digest.SizeBytes}}</td>
 			<td style="width: 100%"><a href="{{.Name}}/">{{.Name}}</a>/</td>
 		</tr>
 	{{end}}
@@ -35,8 +35,8 @@
 	{{end}}
 	{{range .Directory.Files}}
 		<tr class="font-monospace">
-			<td style="white-space: nowrap">-rw{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}</td>
-			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
+			<td class="text-nowrap">-rw{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}</td>
+			<td class="text-end">{{.Digest.SizeBytes}}</td>
 			<td style="width: 100%"><a href="{{$rootDirectory}}/../../file/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/{{.Name}}">{{.Name}}</a></td>
 		</tr>
 	{{end}}

@@ -5,9 +5,9 @@
 			{{$firstArgument := true}}
 			{{range .}}
 				{{if $firstArgument}}
-					<b style="white-space: nowrap">{{shellquote .}}</b>
+					<b class="text-nowrap">{{shellquote .}}</b>
 				{{else}}
-					<span style="white-space: nowrap">{{shellquote .}}</span>
+					<span class="text-nowrap">{{shellquote .}}</span>
 				{{end}}
 				{{$firstArgument = false}}
 			{{end}}

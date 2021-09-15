@@ -8,8 +8,8 @@
 	</thead>
 	{{range .Directory.Directories}}
 		<tr class="font-monospace">
-			<td style="white-space: nowrap">drwxr-xr-x</td>
-			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
+			<td class="text-nowrap">drwxr-xr-x</td>
+			<td class="text-end">{{.Digest.SizeBytes}}</td>
 			<td style="width: 100%"><a href="../../directory/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/">{{.Name}}</a>/</td>
 		</tr>
 	{{end}}
@@ -22,8 +22,8 @@
 	{{end}}
 	{{range .Directory.Files}}
 		<tr class="font-monospace">
-			<td style="white-space: nowrap">-r-{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}</td>
-			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
+			<td class="text-nowrap">-r-{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}</td>
+			<td class="text-end">{{.Digest.SizeBytes}}</td>
 			<td style="width: 100%"><a href="../../file/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/{{.Name}}">{{.Name}}</a></td>
 		</tr>
 	{{end}}
