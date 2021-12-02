@@ -182,6 +182,12 @@ The input root of this action could not be found.
 				Worker completed the action, including all stages.
 			</td>
 		</tr>
+		{{with .VirtualExecutionDuration}}
+			<tr>
+				<th style="width: 25%">Virtual execution duration:</th>
+				<td style="width: 75%">{{.AsDuration}}</td>
+			</tr>
+		{{end}}
 	</table>
 
 	{{range .AuxiliaryMetadata}}
@@ -220,16 +226,6 @@ The input root of this action could not be found.
 						<td style="width: 75%">{{.}}</td>
 					</tr>
 				{{end}}
-			</table>
-		{{end}}
-
-		{{with to_build_executor_resource_usage .}}
-			<h3 class="my-4">Build executor resource usage</h3>
-			<table class="table" style="table-layout: fixed">
-				<tr>
-					<th style="width: 25%">Execution timeout compensation:</th>
-					<td style="width: 75%">{{.ExecutionTimeoutCompensation.AsDuration}}</td>
-				</tr>
 			</table>
 		{{end}}
 
