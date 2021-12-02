@@ -1,6 +1,6 @@
 workspace(name = "com_github_buildbarn_bb_browser")
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "io_bazel_rules_docker",
@@ -11,40 +11,32 @@ http_archive(
 
 http_archive(
     name = "io_bazel_rules_go",
-    patches = ["//:patches/io_bazel_rules_go/upstream-pr-2936.diff"],
-    sha256 = "8e968b5fcea1d2d64071872b12737bbb5514524ee5f0a4f54f5920266c261acb",
+    sha256 = "2b1641428dff9018f9e85c0384f03ec6c10660d935b750e3fa1492a281a53b0f",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.28.0/rules_go-v0.28.0.zip",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.28.0/rules_go-v0.28.0.zip",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.29.0/rules_go-v0.29.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.29.0/rules_go-v0.29.0.zip",
     ],
 )
 
 http_archive(
     name = "bazel_gazelle",
-    sha256 = "62ca106be173579c0a167deb23358fdfe71ffa1e4cfdddf5582af26520f1c66f",
+    sha256 = "de69a09dc70417580aabf20a28619bb3ef60d038470c7cf8442fafcf627c21cb",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.23.0/bazel-gazelle-v0.23.0.tar.gz",
-        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.23.0/bazel-gazelle-v0.23.0.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.24.0/bazel-gazelle-v0.24.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.24.0/bazel-gazelle-v0.24.0.tar.gz",
     ],
 )
 
-http_archive(
-    name = "com_github_buildbarn_bb_deployments",
-    sha256 = "cf910624a50d3f1f4c8af98d96f4ff7cbdd51f2c107315ac835256776a41df1c",
-    strip_prefix = "bb-deployments-cf505b7f363ce87798a367d6741b8f550a5e077a",
-    url = "https://github.com/buildbarn/bb-deployments/archive/cf505b7f363ce87798a367d6741b8f550a5e077a.tar.gz",
-)
+# gazelle:repository_macro go_dependencies.bzl%go_dependencies
+load(":go_dependencies.bzl", "go_dependencies")
+
+go_dependencies()
 
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 
 go_rules_dependencies()
 
-go_register_toolchains(version = "1.16")
-
-# gazelle:repository_macro go_dependencies.bzl%go_dependencies
-load("//:go_dependencies.bzl", "go_dependencies")
-
-go_dependencies()
+go_register_toolchains(version = "1.17.2")
 
 load("@io_bazel_rules_docker//repositories:repositories.bzl", container_repositories = "repositories")
 
@@ -127,7 +119,11 @@ http_archive(
     urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/3.7.0/rules_nodejs-3.7.0.tar.gz"],
 )
 
-load("@build_bazel_rules_nodejs//:index.bzl", "npm_install")
+load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "npm_install")
+
+node_repositories(
+    node_version = "16.4.1",
+)
 
 npm_install(
     name = "npm",
