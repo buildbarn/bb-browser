@@ -108,35 +108,35 @@ The input root of this action could not be found.
 		<tr class="font-monospace">
 			<td style="white-space: nowrap">drwxr-xr-x</td>
 			<td style="text-align: right">{{.TreeDigest.SizeBytes}}</td>
-			<td style="width: 100%"><a class="text-success" href="../../tree/{{.TreeDigest.Hash}}-{{.TreeDigest.SizeBytes}}/">{{.Path}}</a>/</td>
+			<td style="width: 100%; word-break: break-all"><a class="text-success" href="../../tree/{{.TreeDigest.Hash}}-{{.TreeDigest.SizeBytes}}/">{{.Path}}</a>/</td>
 		</tr>
 	{{end}}
 	{{range .OutputSymlinks}}
 		<tr class="font-monospace">
 			<td>lrwxrwxrwx</td>
 			<td></td>
-			<td style="width: 100%"><span class="text-success">{{.Path}}</span> -&gt; {{.Target}}</td>
+			<td style="width: 100%; word-break: break-all"><span class="text-success">{{.Path}}</span> -&gt; {{.Target}}</td>
 		</tr>
 	{{end}}
 	{{range .OutputFiles}}
 		<tr class="font-monospace">
 			<td style="white-space: nowrap">-rw{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}</td>
 			<td style="text-align: right">{{.Digest.SizeBytes}}</td>
-			<td style="width: 100%"><a class="text-success" href="../../file/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/{{basename .Path}}">{{.Path}}</a></td>
+			<td style="width: 100%; word-break: break-all"><a class="text-success" href="../../file/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/{{basename .Path}}">{{.Path}}</a></td>
 		</tr>
 	{{end}}
 	{{range .MissingDirectories}}
 		<tr class="font-monospace">
 			<td style="white-space: nowrap">drwxr-xr-x</td>
 			<td></td>
-			<td style="width: 100%"><s class="text-danger">{{.}}</s>/</td>
+			<td style="width: 100%; word-break: break-all"><s class="text-danger">{{.}}</s>/</td>
 		</tr>
 	{{end}}
 	{{range .MissingFiles}}
 		<tr class="font-monospace">
 			<td style="white-space: nowrap">-rw-r--r--</td>
 			<td></td>
-			<td style="width: 100%"><s class="text-danger">{{.}}</s></td>
+			<td style="width: 100%; word-break: break-all"><s class="text-danger">{{.}}</s></td>
 		</tr>
 	{{end}}
 </table>
@@ -217,7 +217,7 @@ The input root of this action could not be found.
 				{{with .TargetId}}
 					<tr>
 						<th style="width: 25%">Target ID:</th>
-						<td style="width: 75%">{{.}}</td>
+						<td style="width: 75%; word-break: break-all">{{.}}</td>
 					</tr>
 				{{end}}
 				{{with .ConfigurationId}}
