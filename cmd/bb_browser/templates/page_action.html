@@ -51,8 +51,8 @@ This action could not be found.
 
 <h2 class="my-4">Command{{if .Action}}<sup><a class="text-decoration-none" href="../../command/{{.Action.CommandDigest.Hash}}-{{.Action.CommandDigest.SizeBytes}}/">*</a></sup>{{end}}</h2>
 
-{{if .Command}}
-{{template "view_command.html" .Command}}
+{{with .Command}}
+{{template "view_command.html" .}}
 {{else}}
 The command of this action could not be found.
 {{end}}
