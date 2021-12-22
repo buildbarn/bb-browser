@@ -1,6 +1,6 @@
 <table class="table" style="table-layout: fixed">
-	{{template "view_arguments.html" .Arguments}}
-	{{with .EnvironmentVariables}}
+	{{template "view_arguments.html" .Command.Arguments}}
+	{{with .Command.EnvironmentVariables}}
 		<tr>
 			<th style="width: 25%">Environment variables:</th>
 			<td class="font-monospace text-nowrap" style="width: 75%; overflow-x: scroll">
@@ -10,10 +10,14 @@
 			</td>
 		</tr>
 	{{end}}
-	{{with .WorkingDirectory}}
+	{{with .Command.WorkingDirectory}}
 		<tr>
 			<th style="style: 25%">Working directory:</th>
 			<td class="font-monospace" style="width: 75%">{{.}}</td>
 		</tr>
 	{{end}}
 </table>
+
+<a class="btn btn-primary" href="javascript:navigator.clipboard.writeText(&quot;{{.BBClientdPath | js}}&quot;)" role="button">Copy bb_clientd path of shell script to clipboard</a>
+
+<a class="btn btn-primary" href="../../command/{{.Digest.GetHashString}}-{{.Digest.GetSizeBytes}}/?format=sh" role="button">Download as shell script</a>

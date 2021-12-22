@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/tar"
+	"bufio"
 	"compress/gzip"
 	"context"
 	"errors"
@@ -18,6 +19,7 @@ import (
 	"unicode/utf8"
 
 	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
+	"github.com/buildbarn/bb-remote-execution/pkg/builder"
 	"github.com/buildbarn/bb-storage/pkg/blobstore"
 	"github.com/buildbarn/bb-storage/pkg/digest"
 	"github.com/buildbarn/bb-storage/pkg/filesystem/path"
@@ -103,6 +105,7 @@ func NewBrowserService(contentAddressableStorage, actionCache, initialSizeClassC
 
 var (
 	invalidReplacementComponent = path.MustNewComponent("???")
+	commandDirectoryComponent   = path.MustNewComponent("command")
 	blobsDirectoryComponent     = path.MustNewComponent("blobs")
 	directoryDirectoryComponent = path.MustNewComponent("directory")
 	treeDirectoryComponent      = path.MustNewComponent("tree")
@@ -154,6 +157,12 @@ func (s *BrowserService) handleWelcome(w http.ResponseWriter, req *http.Request)
 	if err := s.templates.ExecuteTemplate(w, "page_welcome.html", nil); err != nil {
 		log.Print(err)
 	}
+}
+
+type commandInfo struct {
+	Digest        digest.Digest
+	Command       *remoteexecution.Command
+	BBClientdPath string
 }
 
 type directoryInfo struct {
@@ -278,7 +287,7 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 		ActionDigest                digest.Digest
 		Action                      *remoteexecution.Action
 
-		Command *remoteexecution.Command
+		Command *commandInfo
 
 		ExecuteResponse *remoteexecution.ExecuteResponse
 		StdoutInfo      *logInfo
@@ -332,7 +341,11 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 		commandMessage, err := s.contentAddressableStorage.Get(ctx, commandDigest).ToProto(&remoteexecution.Command{}, s.maximumMessageSizeBytes)
 		if err == nil {
 			command := commandMessage.(*remoteexecution.Command)
-			actionInfo.Command = command
+			actionInfo.Command = &commandInfo{
+				Digest:        commandDigest,
+				Command:       command,
+				BBClientdPath: formatBBClientdPath(s.getBBClientdBlobPath(commandDigest, commandDirectoryComponent)),
+			}
 
 			foundDirectories := map[string]bool{}
 			for _, outputDirectory := range actionInfo.OutputDirectories {
@@ -419,8 +432,25 @@ func (s *BrowserService) handleCommand(w http.ResponseWriter, req *http.Request)
 	}
 	command := commandMessage.(*remoteexecution.Command)
 
-	if err := s.templates.ExecuteTemplate(w, "page_command.html", command); err != nil {
-		log.Print(err)
+	if req.URL.Query().Get("format") == "sh" {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		bw := bufio.NewWriter(w)
+		if err := builder.ConvertCommandToShellScript(command, bw); err != nil {
+			log.Print(err)
+			panic(http.ErrAbortHandler)
+		}
+		if err := bw.Flush(); err != nil {
+			log.Print(err)
+			panic(http.ErrAbortHandler)
+		}
+	} else {
+		if err := s.templates.ExecuteTemplate(w, "page_command.html", commandInfo{
+			Digest:        digest,
+			Command:       command,
+			BBClientdPath: formatBBClientdPath(s.getBBClientdBlobPath(digest, commandDirectoryComponent)),
+		}); err != nil {
+			log.Print(err)
+		}
 	}
 }
 

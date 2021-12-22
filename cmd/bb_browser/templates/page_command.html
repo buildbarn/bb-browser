@@ -14,14 +14,14 @@
 			<th scope="col" style="width: 100%">Filename</th>
 		</tr>
 	</thead>
-	{{range .OutputDirectories}}
+	{{range .Command.OutputDirectories}}
 		<tr class="font-monospace">
 			<td class="text-nowrap">drwxr-xr-x</td>
 			<td></td>
 			<td style="width: 100%; word-break: break-all">{{.}}/</td>
 		</tr>
 	{{end}}
-	{{range .OutputFiles}}
+	{{range .Command.OutputFiles}}
 		<tr class="font-monospace">
 			<td class="text-nowrap">-rw-r--r--</td>
 			<td></td>
