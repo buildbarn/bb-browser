@@ -22,9 +22,9 @@
 	<h1 class="my-4">Action</h1>
 {{end}}
 
-{{with .Action}}
+{{if .Action}}
 <table class="table" style="table-layout: fixed">
-	{{with .Timeout}}
+	{{with .Action.Timeout}}
 		<tr>
 			<th style="width: 25%">Timeout:</th>
 			<td style="width: 75%">{{.AsDuration}}</td>
@@ -32,15 +32,25 @@
 	{{end}}
 	<tr>
 		<th style="width: 25%">Do not cache:</th>
-		<td style="width: 75%">{{if .DoNotCache}}yes{{else}}no{{end}}</td>
+		<td style="width: 75%">{{if .Action.DoNotCache}}yes{{else}}no{{end}}</td>
 	</tr>
-	{{with .Platform}}
+	{{with .Action.Platform}}
 		<tr>
 			<th style="width: 25%">Platform properties:</th>
 			<td style="width: 75%">
 				{{range .Properties}}
 					<span class="badge bg-primary text-nowrap">{{.Name}}={{.Value | printf "%#v"}}</span>
 				{{end}}
+			</td>
+		</tr>
+	{{end}}
+	{{if and .Command .InputRoot}}
+		<tr>
+			<th style="width: 25%">How to run locally:</th>
+			<td class="font-monospace text-nowrap" style="width: 75%; overflow-x: scroll">
+				<b>rsync</b> --delete --link-dest {{.InputRoot.BBClientdPath}}/ --progress --recursive {{.InputRoot.BBClientdPath}}/ ~/bb_clientd/scratch/{{.ActionDigest.GetHashString}}-{{.ActionDigest.GetSizeBytes}}<br/>
+				<b>cd</b> ~/bb_clientd/scratch/{{.ActionDigest.GetHashString}}-{{.ActionDigest.GetSizeBytes}}<br/>
+				{{.Command.BBClientdPath}}
 			</td>
 		</tr>
 	{{end}}
