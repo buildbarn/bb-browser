@@ -68,9 +68,12 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to apply global configuration options: ", err)
 	}
+	terminationContext, terminationGroup := global.InstallGracefulTerminationHandler()
 
 	// Storage access.
 	contentAddressableStorage, actionCache, err := blobstore_configuration.NewCASAndACBlobAccessFromConfiguration(
+		terminationContext,
+		terminationGroup,
 		configuration.Blobstore,
 		grpcClientFactory,
 		int(configuration.MaximumMessageSizeBytes))
@@ -93,6 +96,8 @@ func main() {
 		initialSizeClassCache = blobstore.NewErrorBlobAccess(status.Error(codes.NotFound, "No Initial Size Class Cache configured"))
 	} else {
 		info, err := blobstore_configuration.NewBlobAccessFromConfiguration(
+			terminationContext,
+			terminationGroup,
 			configuration.InitialSizeClassCache,
 			blobstore_configuration.NewISCCBlobAccessCreator(
 				grpcClientFactory,
