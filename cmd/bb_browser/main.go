@@ -20,6 +20,7 @@ import (
 	blobstore_configuration "github.com/buildbarn/bb-storage/pkg/blobstore/configuration"
 	"github.com/buildbarn/bb-storage/pkg/digest"
 	"github.com/buildbarn/bb-storage/pkg/global"
+	auth_pb "github.com/buildbarn/bb-storage/pkg/proto/auth"
 	"github.com/buildbarn/bb-storage/pkg/proto/iscc"
 	"github.com/buildbarn/bb-storage/pkg/util"
 	"github.com/dustin/go-humanize"
@@ -28,6 +29,7 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -130,7 +132,15 @@ func main() {
 		"inc": func(n int) int {
 			return n + 1
 		},
-		"stylesheet": func() template.CSS { return stylesheet },
+		"proto_to_json": protojson.MarshalOptions{}.Format,
+		"stylesheet":    func() template.CSS { return stylesheet },
+		"to_authentication_metadata": func(any *anypb.Any) *auth_pb.AuthenticationMetadata {
+			var pb auth_pb.AuthenticationMetadata
+			if err := any.UnmarshalTo(&pb); err != nil {
+				return nil
+			}
+			return &pb
+		},
 		"to_outcome_failed": func(previousExecution *iscc.PreviousExecution) bool {
 			_, ok := previousExecution.Outcome.(*iscc.PreviousExecution_Failed)
 			return ok
