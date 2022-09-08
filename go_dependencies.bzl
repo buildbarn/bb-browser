@@ -1133,7 +1133,6 @@ def go_dependencies():
         sum = "h1:pkl1Ko5DrhA4ezwKwdnmO7H1sKmMy9qLuYKRjS7SlmE=",
         version = "v0.0.0-20220722155223-a9213eeb770e",
     )
-
     go_repository(
         name = "org_golang_x_image",
         importpath = "golang.org/x/image",
