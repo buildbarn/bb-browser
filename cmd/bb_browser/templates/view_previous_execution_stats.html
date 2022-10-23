@@ -22,10 +22,12 @@
 			</td>
 		</tr>
 	{{end}}
-	<tr>
-		<th style="width: 25%">Scatter plot of outcomes:</th>
-		<td style="width: 75%">{{.ScatterPlot}}</td>
-	</tr>
+	{{with .ScatterPlot}}
+		<tr>
+			<th style="width: 25%">Scatter plot of outcomes:</th>
+			<td style="width: 75%">{{.}}</td>
+		</tr>
+	{{end}}
 	{{with timestamp_proto_rfc3339 .Stats.LastSeenFailure}}
 		<tr>
 			<th style="width: 25%">Last seen failure:</th>

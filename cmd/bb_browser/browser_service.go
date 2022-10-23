@@ -674,87 +674,92 @@ func (s *BrowserService) getPreviousExecutionStatsInfo(ctx context.Context, redu
 	}
 	sort.Sort(sizeClasses)
 
-	// Convert outcomes into samples of a scatter plot. Add some
-	// jitter on the X axis to make it easier to tell individual
-	// outcomes apart.
-	rng := rand.New(rand.NewSource(0x4630324434464134))
-	var successes, timeouts, failures plotter.XYs
-	for idx, sizeClass := range sizeClasses {
-		perSizeClassStats := previousExecutionStats.SizeClasses[sizeClass]
-		for _, previousExecution := range perSizeClassStats.PreviousExecutions {
-			switch outcome := previousExecution.Outcome.(type) {
-			case *iscc.PreviousExecution_Succeeded:
-				successes = append(successes, plotter.XY{
-					X: float64(idx) + (rng.Float64()-0.5)/3,
-					Y: outcome.Succeeded.AsDuration().Seconds(),
-				})
-			case *iscc.PreviousExecution_TimedOut:
-				timeouts = append(timeouts, plotter.XY{
-					X: float64(idx) + (rng.Float64()-0.5)/3,
-					Y: outcome.TimedOut.AsDuration().Seconds(),
-				})
-			case *iscc.PreviousExecution_Failed:
-				failures = append(failures, plotter.XY{
-					X: float64(idx) + (rng.Float64()-0.5)/3,
-				})
+	// Convert outcomes into samples of a scatter plot, if data is
+	// available.
+	var scatterPlot template.HTML
+	if len(sizeClasses) > 0 {
+		// Add some jitter on the X axis to make it easier to
+		// tell individual outcomes apart.
+		rng := rand.New(rand.NewSource(0x4630324434464134))
+		var successes, timeouts, failures plotter.XYs
+		for idx, sizeClass := range sizeClasses {
+			perSizeClassStats := previousExecutionStats.SizeClasses[sizeClass]
+			for _, previousExecution := range perSizeClassStats.PreviousExecutions {
+				switch outcome := previousExecution.Outcome.(type) {
+				case *iscc.PreviousExecution_Succeeded:
+					successes = append(successes, plotter.XY{
+						X: float64(idx) + (rng.Float64()-0.5)/3,
+						Y: outcome.Succeeded.AsDuration().Seconds(),
+					})
+				case *iscc.PreviousExecution_TimedOut:
+					timeouts = append(timeouts, plotter.XY{
+						X: float64(idx) + (rng.Float64()-0.5)/3,
+						Y: outcome.TimedOut.AsDuration().Seconds(),
+					})
+				case *iscc.PreviousExecution_Failed:
+					failures = append(failures, plotter.XY{
+						X: float64(idx) + (rng.Float64()-0.5)/3,
+					})
+				}
 			}
 		}
-	}
 
-	// Place all three groups of samples in the scatter plot.
-	p := plot.New()
-	p.X.Min = -0.5
-	p.X.Max = float64(len(sizeClasses)) - 0.5
-	p.Y.Label.Text = "Execution time (s)"
-	p.Y.Min = 0
+		// Place all three groups of samples in the scatter plot.
+		p := plot.New()
+		p.X.Min = -0.5
+		p.X.Max = float64(len(sizeClasses)) - 0.5
+		p.Y.Label.Text = "Execution time (s)"
+		p.Y.Min = 0
 
-	scatterSuccess, err := plotter.NewScatter(successes)
-	if err != nil {
-		return nil, err
-	}
-	scatterSuccess.Color = color.RGBA{R: 40, G: 167, B: 69, A: 255}
-	scatterSuccess.Radius = vg.Points(5)
-	scatterSuccess.Shape = draw.PlusGlyph{}
-	p.Add(scatterSuccess)
+		scatterSuccess, err := plotter.NewScatter(successes)
+		if err != nil {
+			return nil, err
+		}
+		scatterSuccess.Color = color.RGBA{R: 40, G: 167, B: 69, A: 255}
+		scatterSuccess.Radius = vg.Points(5)
+		scatterSuccess.Shape = draw.PlusGlyph{}
+		p.Add(scatterSuccess)
 
-	scatterTimeout, err := plotter.NewScatter(timeouts)
-	if err != nil {
-		return nil, err
-	}
-	scatterTimeout.Color = color.RGBA{R: 255, G: 193, B: 7, A: 255}
-	scatterTimeout.Radius = vg.Points(2.5)
-	scatterTimeout.Shape = draw.CircleGlyph{}
-	p.Add(scatterTimeout)
+		scatterTimeout, err := plotter.NewScatter(timeouts)
+		if err != nil {
+			return nil, err
+		}
+		scatterTimeout.Color = color.RGBA{R: 255, G: 193, B: 7, A: 255}
+		scatterTimeout.Radius = vg.Points(2.5)
+		scatterTimeout.Shape = draw.CircleGlyph{}
+		p.Add(scatterTimeout)
 
-	scatterFailed, err := plotter.NewScatter(failures)
-	if err != nil {
-		return nil, err
-	}
-	scatterFailed.Color = color.RGBA{R: 220, G: 53, B: 69, A: 255}
-	scatterFailed.Radius = vg.Points(5)
-	scatterFailed.Shape = draw.CrossGlyph{}
-	p.Add(scatterFailed)
+		scatterFailed, err := plotter.NewScatter(failures)
+		if err != nil {
+			return nil, err
+		}
+		scatterFailed.Color = color.RGBA{R: 220, G: 53, B: 69, A: 255}
+		scatterFailed.Radius = vg.Points(5)
+		scatterFailed.Shape = draw.CrossGlyph{}
+		p.Add(scatterFailed)
 
-	sizeClassLabels := make([]string, 0, len(sizeClasses))
-	for _, sizeClass := range sizeClasses {
-		sizeClassLabels = append(sizeClassLabels, fmt.Sprintf("Size class %d", sizeClass))
-	}
-	p.NominalX(sizeClassLabels...)
+		sizeClassLabels := make([]string, 0, len(sizeClasses))
+		for _, sizeClass := range sizeClasses {
+			sizeClassLabels = append(sizeClassLabels, fmt.Sprintf("Size class %d", sizeClass))
+		}
+		p.NominalX(sizeClassLabels...)
 
-	// Convert the resulting scatter plot to SVG.
-	var graph strings.Builder
-	writerTo, err := p.WriterTo(vg.Length(len(sizeClasses)+1)*3*vg.Centimeter, 10*vg.Centimeter, "svg")
-	if err != nil {
-		return nil, err
-	}
-	if _, err := writerTo.WriteTo(&graph); err != nil {
-		return nil, err
+		// Convert the resulting scatter plot to SVG.
+		var graph strings.Builder
+		writerTo, err := p.WriterTo(vg.Length(len(sizeClasses)+1)*3*vg.Centimeter, 10*vg.Centimeter, "svg")
+		if err != nil {
+			return nil, err
+		}
+		if _, err := writerTo.WriteTo(&graph); err != nil {
+			return nil, err
+		}
+		scatterPlot = template.HTML(graph.String())
 	}
 
 	return &previousExecutionStatsInfo{
 		ReducedActionDigest: reducedActionDigest,
 		Stats:               previousExecutionStats,
-		ScatterPlot:         template.HTML(graph.String()),
+		ScatterPlot:         scatterPlot,
 	}, nil
 }
 
