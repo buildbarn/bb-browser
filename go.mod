@@ -13,14 +13,14 @@ replace mvdan.cc/gofumpt => mvdan.cc/gofumpt v0.3.0
 
 require (
 	github.com/bazelbuild/remote-apis v0.0.0-20221109204407-3a21deee813d
-	github.com/buildbarn/bb-remote-execution v0.0.0-20221223045242-9de9f273bb78
-	github.com/buildbarn/bb-storage v0.0.0-20221221163740-08ce6e432da0
+	github.com/buildbarn/bb-remote-execution v0.0.0-20230120052324-efa3a7b40bf7
+	github.com/buildbarn/bb-storage v0.0.0-20230119153358-2d0d7ee15967
 	github.com/buildkite/terminal-to-html v3.2.0+incompatible
-	github.com/dustin/go-humanize v1.0.0
+	github.com/dustin/go-humanize v1.0.1
 	github.com/gorilla/mux v1.8.0
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	gonum.org/v1/plot v0.12.0
-	google.golang.org/grpc v1.51.0
+	google.golang.org/grpc v1.52.0
 	google.golang.org/protobuf v1.28.1
 )
 
@@ -84,13 +84,13 @@ require (
 	go.opentelemetry.io/otel/trace v1.11.2 // indirect
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
 	golang.org/x/image v0.0.0-20220902085622-e7cb96979f69 // indirect
-	golang.org/x/net v0.0.0-20221014081412-f15817d10f9b // indirect
+	golang.org/x/net v0.4.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.3.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/sys v0.4.0 // indirect
+	golang.org/x/text v0.5.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20221207170731-23e4bf6bdc37 // indirect
+	google.golang.org/genproto v0.0.0-20230119192704-9d59e20e5cd1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	sigs.k8s.io/yaml v1.1.0 // indirect
 )

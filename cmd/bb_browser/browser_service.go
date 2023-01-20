@@ -42,6 +42,14 @@ import (
 	"gonum.org/v1/plot/vg/draw"
 )
 
+var digestFunctionStrings = map[string]remoteexecution.DigestFunction_Value{}
+
+func init() {
+	for _, digestFunction := range digest.SupportedDigestFunctions {
+		digestFunctionStrings[strings.ToLower(digestFunction.String())] = digestFunction
+	}
+}
+
 func getDigestFromRequest(req *http.Request) (digest.Digest, error) {
 	vars := mux.Vars(req)
 	instanceNameStr := strings.TrimSuffix(vars["instanceName"], "/")
@@ -49,11 +57,20 @@ func getDigestFromRequest(req *http.Request) (digest.Digest, error) {
 	if err != nil {
 		return digest.BadDigest, util.StatusWrapf(err, "Invalid instance name %#v", instanceNameStr)
 	}
+	digestFunctionStr := vars["digestFunction"]
+	digestFunctionEnum, ok := digestFunctionStrings[digestFunctionStr]
+	if !ok {
+		return digest.BadDigest, status.Errorf(codes.InvalidArgument, "Unknown digest function %#v", digestFunctionStr)
+	}
+	digestFunction, err := instanceName.GetDigestFunction(digestFunctionEnum, 0)
+	if err != nil {
+		return digest.BadDigest, err
+	}
 	sizeBytes, err := strconv.ParseInt(vars["sizeBytes"], 10, 64)
 	if err != nil {
 		return digest.BadDigest, util.StatusWrapf(err, "Invalid blob size %#v", vars["sizeBytes"])
 	}
-	return instanceName.NewDigest(vars["hash"], sizeBytes)
+	return digestFunction.NewDigest(vars["hash"], sizeBytes)
 }
 
 // Generates a Context from an incoming HTTP request, forwarding any
@@ -93,13 +110,13 @@ func NewBrowserService(contentAddressableStorage, actionCache, initialSizeClassC
 		bbClientdInstanceNamePatcher: bbClientdInstanceNamePatcher,
 	}
 	router.HandleFunc("/", s.handleWelcome)
-	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/action/{hash}-{sizeBytes}/", s.handleAction)
-	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/command/{hash}-{sizeBytes}/", s.handleCommand)
-	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/directory/{hash}-{sizeBytes}/", s.handleDirectory)
-	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/file/{hash}-{sizeBytes}/{name}", s.handleFile)
-	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/previous_execution_stats/{hash}-{sizeBytes}/", s.handlePreviousExecutionStats)
-	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/tree/{hash}-{sizeBytes}/{subdirectory:(?:.*/)?}", s.handleTree)
-	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/historical_execute_response/{hash}-{sizeBytes}/", s.handleHistoricalExecuteResponse)
+	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/{digestFunction}/action/{hash}-{sizeBytes}/", s.handleAction)
+	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/{digestFunction}/command/{hash}-{sizeBytes}/", s.handleCommand)
+	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/{digestFunction}/directory/{hash}-{sizeBytes}/", s.handleDirectory)
+	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/{digestFunction}/file/{hash}-{sizeBytes}/{name}", s.handleFile)
+	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/{digestFunction}/previous_execution_stats/{hash}-{sizeBytes}/", s.handlePreviousExecutionStats)
+	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/{digestFunction}/tree/{hash}-{sizeBytes}/{subdirectory:(?:.*/)?}", s.handleTree)
+	router.HandleFunc("/{instanceName:(?:.*?/)?}blobs/{digestFunction}/historical_execute_response/{hash}-{sizeBytes}/", s.handleHistoricalExecuteResponse)
 	return s
 }
 
@@ -121,8 +138,8 @@ func (s *BrowserService) renderError(w http.ResponseWriter, err error) {
 }
 
 // getBBClientdBlobPath returns a relative path of the shape
-// "${instanceName}/blobs/${blobType}/${hash}-${sizeBytes}". This
-// corresponds to the pathname scheme that can be used to access
+// "${instanceName}/blobs/${digestFunction}/${blobType}/${hash}-${sizeBytes}".
+// This corresponds to the pathname scheme that can be used to access
 // individual objects in bb_clientd.
 func (s *BrowserService) getBBClientdBlobPath(blobDigest digest.Digest, blobType path.Component) *path.Trace {
 	// Convert the instance name to a pathname.
@@ -141,6 +158,7 @@ func (s *BrowserService) getBBClientdBlobPath(blobDigest digest.Digest, blobType
 	}
 	return fullPath.
 		Append(blobsDirectoryComponent).
+		Append(path.MustNewComponent(strings.ToLower(blobDigest.GetDigestFunction().GetEnumValue().String()))).
 		Append(blobType).
 		Append(path.MustNewComponent(fmt.Sprintf("%s-%d", externalDigest.GetHashString(), externalDigest.GetSizeBytes())))
 }
@@ -215,7 +233,7 @@ func (s *BrowserService) handleHistoricalExecuteResponse(w http.ResponseWriter, 
 		return
 	}
 	historicalExecuteResponse := m.(*cas_proto.HistoricalExecuteResponse)
-	actionDigest, err := digest.GetInstanceName().NewDigestFromProto(historicalExecuteResponse.ActionDigest)
+	actionDigest, err := digest.GetDigestFunction().NewDigestFromProto(historicalExecuteResponse.ActionDigest)
 	if err != nil {
 		s.renderError(w, err)
 		return
@@ -223,11 +241,11 @@ func (s *BrowserService) handleHistoricalExecuteResponse(w http.ResponseWriter, 
 	s.handleActionCommon(w, req, actionDigest, historicalExecuteResponse.ExecuteResponse, true)
 }
 
-func (s *BrowserService) getLogInfoFromActionResult(ctx context.Context, name string, instanceName digest.InstanceName, logDigest *remoteexecution.Digest, rawLogBody []byte) (*logInfo, error) {
+func (s *BrowserService) getLogInfoFromActionResult(ctx context.Context, name string, digestFunction digest.Function, logDigest *remoteexecution.Digest, rawLogBody []byte) (*logInfo, error) {
 	var blobDigest digest.Digest
 	if logDigest != nil {
 		var err error
-		blobDigest, err = instanceName.NewDigestFromProto(logDigest)
+		blobDigest, err = digestFunction.NewDigestFromProto(logDigest)
 		if err != nil {
 			return nil, err
 		}
@@ -281,7 +299,6 @@ func (s *BrowserService) getLogInfoForDigest(ctx context.Context, name string, d
 }
 
 func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Request, actionDigest digest.Digest, executeResponse *remoteexecution.ExecuteResponse, isHistoricalExecuteResponse bool) {
-	instanceName := actionDigest.GetInstanceName()
 	actionInfo := struct {
 		IsHistoricalExecuteResponse bool
 		ActionDigest                digest.Digest
@@ -310,18 +327,19 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 
 	ctx := extractContextFromRequest(req)
 	actionResult := executeResponse.GetResult()
+	digestFunction := actionDigest.GetDigestFunction()
 	if actionResult != nil {
 		actionInfo.OutputDirectories = actionResult.OutputDirectories
 		actionInfo.OutputSymlinks = actionResult.OutputFileSymlinks
 		actionInfo.OutputFiles = actionResult.OutputFiles
 
 		var err error
-		actionInfo.StdoutInfo, err = s.getLogInfoFromActionResult(ctx, "Standard output", instanceName, actionResult.StdoutDigest, actionResult.StdoutRaw)
+		actionInfo.StdoutInfo, err = s.getLogInfoFromActionResult(ctx, "Standard output", digestFunction, actionResult.StdoutDigest, actionResult.StdoutRaw)
 		if err != nil {
 			s.renderError(w, err)
 			return
 		}
-		actionInfo.StderrInfo, err = s.getLogInfoFromActionResult(ctx, "Standard error", instanceName, actionResult.StderrDigest, actionResult.StderrRaw)
+		actionInfo.StderrInfo, err = s.getLogInfoFromActionResult(ctx, "Standard error", digestFunction, actionResult.StderrDigest, actionResult.StderrRaw)
 		if err != nil {
 			s.renderError(w, err)
 			return
@@ -333,7 +351,7 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 		action := actionMessage.(*remoteexecution.Action)
 		actionInfo.Action = action
 
-		commandDigest, err := instanceName.NewDigestFromProto(action.CommandDigest)
+		commandDigest, err := digestFunction.NewDigestFromProto(action.CommandDigest)
 		if err != nil {
 			s.renderError(w, err)
 			return
@@ -373,7 +391,7 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 			return
 		}
 
-		inputRootDigest, err := instanceName.NewDigestFromProto(action.InputRootDigest)
+		inputRootDigest, err := digestFunction.NewDigestFromProto(action.InputRootDigest)
 		if err != nil {
 			s.renderError(w, err)
 			return
@@ -454,7 +472,7 @@ func (s *BrowserService) handleCommand(w http.ResponseWriter, req *http.Request)
 	}
 }
 
-func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Writer, instanceName digest.InstanceName, directory *remoteexecution.Directory, directoryPath *path.Trace, getDirectory func(context.Context, digest.Digest) (*remoteexecution.Directory, error), filesSeen map[string]string) error {
+func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Writer, digestFunction digest.Function, directory *remoteexecution.Directory, directoryPath *path.Trace, getDirectory func(context.Context, digest.Digest) (*remoteexecution.Directory, error), filesSeen map[string]string) error {
 	// Emit child directories.
 	for _, directoryNode := range directory.Directories {
 		childName, ok := path.NewComponent(directoryNode.Name)
@@ -470,7 +488,7 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 		}); err != nil {
 			return err
 		}
-		childDigest, err := instanceName.NewDigestFromProto(directoryNode.Digest)
+		childDigest, err := digestFunction.NewDigestFromProto(directoryNode.Digest)
 		if err != nil {
 			return err
 		}
@@ -478,7 +496,7 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 		if err != nil {
 			return err
 		}
-		if err := s.generateTarballDirectory(ctx, w, instanceName, childDirectory, childPath, getDirectory, filesSeen); err != nil {
+		if err := s.generateTarballDirectory(ctx, w, digestFunction, childDirectory, childPath, getDirectory, filesSeen); err != nil {
 			return err
 		}
 	}
@@ -510,7 +528,7 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 		childPath := directoryPath.Append(childName)
 		childPathString := childPath.String()
 
-		childDigest, err := instanceName.NewDigestFromProto(fileNode.Digest)
+		childDigest, err := digestFunction.NewDigestFromProto(fileNode.Digest)
 		if err != nil {
 			return err
 		}
@@ -570,7 +588,7 @@ func (s *BrowserService) generateTarball(ctx context.Context, w http.ResponseWri
 	gzipWriter := gzip.NewWriter(w)
 	tarWriter := tar.NewWriter(gzipWriter)
 	filesSeen := map[string]string{}
-	if err := s.generateTarballDirectory(ctx, tarWriter, digest.GetInstanceName(), directory, nil, getDirectory, filesSeen); err != nil {
+	if err := s.generateTarballDirectory(ctx, tarWriter, digest.GetDigestFunction(), directory, nil, getDirectory, filesSeen); err != nil {
 		// TODO(edsch): Any way to propagate this to the client?
 		log.Print(err)
 		panic(http.ErrAbortHandler)
@@ -810,7 +828,6 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	tree := treeMessage.(*remoteexecution.Tree)
-	instanceName := treeDigest.GetInstanceName()
 	treeInfo := struct {
 		Directory          *remoteexecution.Directory
 		HasParentDirectory bool
@@ -829,7 +846,7 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 			s.renderError(w, err)
 			return
 		}
-		digestGenerator := digestFunction.NewGenerator()
+		digestGenerator := digestFunction.NewGenerator(int64(len(data)))
 		if _, err := digestGenerator.Write(data); err != nil {
 			s.renderError(w, err)
 			return
@@ -872,7 +889,7 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// Find corresponding child directory message.
-		directoryDigest, err = instanceName.NewDigestFromProto(childNode.Digest)
+		directoryDigest, err = digestFunction.NewDigestFromProto(childNode.Digest)
 		if err != nil {
 			s.renderError(w, err)
 			return
