@@ -19,12 +19,15 @@ import (
 	"unicode/utf8"
 
 	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
+	"github.com/buildbarn/bb-browser/pkg/proto/query"
 	"github.com/buildbarn/bb-remote-execution/pkg/builder"
+	"github.com/buildbarn/bb-remote-execution/pkg/filesystem/access"
 	cas_proto "github.com/buildbarn/bb-remote-execution/pkg/proto/cas"
 	"github.com/buildbarn/bb-storage/pkg/blobstore"
 	"github.com/buildbarn/bb-storage/pkg/digest"
 	"github.com/buildbarn/bb-storage/pkg/filesystem/path"
 	bb_http "github.com/buildbarn/bb-storage/pkg/http"
+	"github.com/buildbarn/bb-storage/pkg/proto/fsac"
 	"github.com/buildbarn/bb-storage/pkg/proto/iscc"
 	"github.com/buildbarn/bb-storage/pkg/util"
 	"github.com/buildkite/terminal-to-html"
@@ -34,6 +37,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
 	"gonum.org/v1/plot"
@@ -93,6 +97,7 @@ type BrowserService struct {
 	contentAddressableStorage    blobstore.BlobAccess
 	actionCache                  blobstore.BlobAccess
 	initialSizeClassCache        blobstore.BlobAccess
+	fileSystemAccessCache        blobstore.BlobAccess
 	maximumMessageSizeBytes      int
 	templates                    *template.Template
 	bbClientdInstanceNamePatcher digest.InstanceNamePatcher
@@ -100,11 +105,12 @@ type BrowserService struct {
 
 // NewBrowserService constructs a BrowserService that accesses storage
 // through a set of handles.
-func NewBrowserService(contentAddressableStorage, actionCache, initialSizeClassCache blobstore.BlobAccess, maximumMessageSizeBytes int, templates *template.Template, bbClientdInstanceNamePatcher digest.InstanceNamePatcher, router *mux.Router) *BrowserService {
+func NewBrowserService(contentAddressableStorage, actionCache, initialSizeClassCache, fileSystemAccessCache blobstore.BlobAccess, maximumMessageSizeBytes int, templates *template.Template, bbClientdInstanceNamePatcher digest.InstanceNamePatcher, router *mux.Router) *BrowserService {
 	s := &BrowserService{
 		contentAddressableStorage:    contentAddressableStorage,
 		actionCache:                  actionCache,
 		initialSizeClassCache:        initialSizeClassCache,
+		fileSystemAccessCache:        fileSystemAccessCache,
 		maximumMessageSizeBytes:      maximumMessageSizeBytes,
 		templates:                    templates,
 		bbClientdInstanceNamePatcher: bbClientdInstanceNamePatcher,
@@ -184,9 +190,37 @@ type commandInfo struct {
 }
 
 type directoryInfo struct {
-	Digest        digest.Digest
-	Directory     *remoteexecution.Directory
-	BBClientdPath string
+	Digest                           digest.Digest
+	Directory                        *remoteexecution.Directory
+	BBClientdPath                    string
+	FileSystemAccessProfileReference *query.FileSystemAccessProfileReference
+	BloomFilter                      *access.BloomFilterReader
+}
+
+// GetChildPathHashes returns path hashes for a file or directory
+// contained in the current directory, for the purpose of checking
+// against the Bloom filter of the file system access profile.
+func (di *directoryInfo) GetChildPathHashes(filename string) *access.PathHashes {
+	if di.FileSystemAccessProfileReference == nil {
+		return nil
+	}
+	component, ok := path.NewComponent(filename)
+	if !ok {
+		return nil
+	}
+	pathHashes := access.NewPathHashesFromBaseHash(di.FileSystemAccessProfileReference.PathHashesBaseHash)
+	childPathHashes := pathHashes.AppendComponent(component)
+	return &childPathHashes
+}
+
+// GetChildFileSystemAccessProfileReference returns a reference to the
+// file system access profile, to be encoded in links to other
+// bb_browser pages.
+func (di *directoryInfo) GetChildFileSystemAccessProfileReference(pathHashes access.PathHashes) *query.FileSystemAccessProfileReference {
+	return &query.FileSystemAccessProfileReference{
+		Digest:             di.FileSystemAccessProfileReference.Digest,
+		PathHashesBaseHash: pathHashes.GetBaseHash(),
+	}
 }
 
 type logInfo struct {
@@ -396,20 +430,43 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 			s.renderError(w, err)
 			return
 		}
-		directoryMessage, err := s.contentAddressableStorage.Get(ctx, inputRootDigest).ToProto(&remoteexecution.Directory{}, s.maximumMessageSizeBytes)
-		if err == nil {
-			actionInfo.InputRoot = &directoryInfo{
-				Digest:        inputRootDigest,
-				Directory:     directoryMessage.(*remoteexecution.Directory),
-				BBClientdPath: formatBBClientdPath(s.getBBClientdBlobPath(inputRootDigest, directoryDirectoryComponent)),
-			}
-		} else if status.Code(err) != codes.NotFound {
+		reducedActionDigest, err := blobstore.GetReducedActionDigest(actionDigest.GetDigestFunction(), action)
+		if err != nil {
 			s.renderError(w, err)
 			return
 		}
+		directoryMessage, err := s.contentAddressableStorage.Get(ctx, inputRootDigest).ToProto(&remoteexecution.Directory{}, s.maximumMessageSizeBytes)
+		if err == nil {
+			// Check whether a file system access profile exists for
+			// the current action. If so, download it, so that we
+			// can display which files in the root directory are
+			// being accessed.
+			var fileSystemAccessProfileReference *query.FileSystemAccessProfileReference
+			var bloomFilter *access.BloomFilterReader
+			if profileMessage, err := s.fileSystemAccessCache.Get(ctx, reducedActionDigest).ToProto(&fsac.FileSystemAccessProfile{}, s.maximumMessageSizeBytes); err == nil {
+				profile := profileMessage.(*fsac.FileSystemAccessProfile)
+				if bloomFilterReader, err := access.NewBloomFilterReader(profile.BloomFilter, profile.BloomFilterHashFunctions); err == nil {
+					fileSystemAccessProfileReference = &query.FileSystemAccessProfileReference{
+						Digest:             reducedActionDigest.GetProto(),
+						PathHashesBaseHash: access.RootPathHashes.GetBaseHash(),
+					}
+					bloomFilter = bloomFilterReader
+				} else {
+					log.Printf("Cannot read Bloom filter for %s: %s", reducedActionDigest.String(), err)
+				}
+			} else if status.Code(err) != codes.NotFound {
+				s.renderError(w, err)
+				return
+			}
 
-		reducedActionDigest, err := blobstore.ISCCGetReducedActionDigest(actionDigest.GetDigestFunction(), action)
-		if err != nil {
+			actionInfo.InputRoot = &directoryInfo{
+				Digest:                           inputRootDigest,
+				Directory:                        directoryMessage.(*remoteexecution.Directory),
+				BBClientdPath:                    formatBBClientdPath(s.getBBClientdBlobPath(inputRootDigest, directoryDirectoryComponent)),
+				FileSystemAccessProfileReference: fileSystemAccessProfileReference,
+				BloomFilter:                      bloomFilter,
+			}
+		} else if status.Code(err) != codes.NotFound {
 			s.renderError(w, err)
 			return
 		}
@@ -627,10 +684,44 @@ func (s *BrowserService) handleDirectory(w http.ResponseWriter, req *http.Reques
 			return directoryMessage.(*remoteexecution.Directory), nil
 		})
 	} else {
-		if err := s.templates.ExecuteTemplate(w, "page_directory.html", directoryInfo{
-			Digest:        directoryDigest,
-			Directory:     directory,
-			BBClientdPath: formatBBClientdPath(s.getBBClientdBlobPath(directoryDigest, directoryDirectoryComponent)),
+		var fileSystemAccessProfileReference *query.FileSystemAccessProfileReference
+		var bloomFilter *access.BloomFilterReader
+		if profileReferenceJSON := req.URL.Query().Get("file_system_access_profile"); profileReferenceJSON != "" {
+			// A file system access profile reference is provided as
+			// part of the URL. Obtain the Bloom filter from the
+			// File System Access Cache (FSAC), so that we can
+			// display file usage for the current directory.
+			var profileReference query.FileSystemAccessProfileReference
+			if err := protojson.Unmarshal([]byte(profileReferenceJSON), &profileReference); err != nil {
+				s.renderError(w, err)
+				return
+			}
+			profileDigest, err := directoryDigest.GetDigestFunction().NewDigestFromProto(profileReference.Digest)
+			if err != nil {
+				s.renderError(w, err)
+				return
+			}
+			profileMessage, err := s.fileSystemAccessCache.Get(ctx, profileDigest).ToProto(&fsac.FileSystemAccessProfile{}, s.maximumMessageSizeBytes)
+			if err != nil {
+				s.renderError(w, err)
+				return
+			}
+			profile := profileMessage.(*fsac.FileSystemAccessProfile)
+			bloomFilterReader, err := access.NewBloomFilterReader(profile.BloomFilter, profile.BloomFilterHashFunctions)
+			if err != nil {
+				s.renderError(w, err)
+				return
+			}
+			fileSystemAccessProfileReference = &profileReference
+			bloomFilter = bloomFilterReader
+		}
+
+		if err := s.templates.ExecuteTemplate(w, "page_directory.html", &directoryInfo{
+			Digest:                           directoryDigest,
+			Directory:                        directory,
+			BBClientdPath:                    formatBBClientdPath(s.getBBClientdBlobPath(directoryDigest, directoryDirectoryComponent)),
+			FileSystemAccessProfileReference: fileSystemAccessProfileReference,
+			BloomFilter:                      bloomFilter,
 		}); err != nil {
 			log.Print(err)
 		}

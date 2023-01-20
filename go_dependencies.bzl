@@ -196,14 +196,14 @@ def go_dependencies():
     go_repository(
         name = "com_github_buildbarn_bb_remote_execution",
         importpath = "github.com/buildbarn/bb-remote-execution",
-        sum = "h1:n8PCD2O6cjdHQRiglcXOqvw7QYD5CATgkkwK9ZGSvHM=",
-        version = "v0.0.0-20230120052324-efa3a7b40bf7",
+        sum = "h1:bSLNvRzgZnSt4NNwRmy4oRzSylsyejlGkN0OhsyuICA=",
+        version = "v0.0.0-20230120142744-3024fca5b04b",
     )
     go_repository(
         name = "com_github_buildbarn_bb_storage",
         importpath = "github.com/buildbarn/bb-storage",
-        sum = "h1:ECMFWLCNXHqbdUV3ep/tWgrfD7lX5r9L7psPViSG+j4=",
-        version = "v0.0.0-20230119153358-2d0d7ee15967",
+        sum = "h1:8lAJzgIi2RZZZ6krt8FHgrwn9onvdvRZd07J20Xk+hQ=",
+        version = "v0.0.0-20230120132704-98063ef6edfa",
     )
     go_repository(
         name = "com_github_buildbarn_go_xdr",

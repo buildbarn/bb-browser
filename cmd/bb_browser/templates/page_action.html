@@ -96,7 +96,7 @@ The command of this action could not be found.
 The action result of this action could not be found.
 {{end}}
 
-<h2 class="my-4">Input files{{if .Action}}<sup><a class="text-decoration-none" href="../../directory/{{.Action.InputRootDigest.Hash}}-{{.Action.InputRootDigest.SizeBytes}}/">*</a></sup>{{end}}</h2>
+<h2 class="my-4">Input files{{if .Action}}<sup><a class="text-decoration-none" href="../../directory/{{.Action.InputRootDigest.Hash}}-{{.Action.InputRootDigest.SizeBytes}}/{{with .InputRoot.FileSystemAccessProfileReference}}?file_system_access_profile={{proto_to_json .}}{{end}}">*</a></sup>{{end}}</h2>
 
 {{if .InputRoot}}
 {{template "view_directory.html" .InputRoot}}

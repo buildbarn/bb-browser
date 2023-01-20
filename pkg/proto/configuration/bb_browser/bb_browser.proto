@@ -43,6 +43,16 @@ message ApplicationConfiguration {
   buildbarn.configuration.blobstore.BlobAccessConfiguration
       initial_size_class_cache = 6;
 
+  // The File System Access Cache (FSAC) where file system access
+  // profiles are stored. bb_browser is capable of displaying this
+  // information as part of input directory listings, showing which
+  // files are prefetched the next time the action executes.
+  //
+  // When this option is not set, no file system acces information will
+  // be shown.
+  buildbarn.configuration.blobstore.BlobAccessConfiguration
+      file_system_access_cache = 9;
+
   // Authorization requirements applied to objects read through the
   // web service from the Content Addressable Storage (CAS),
   // Action Cache (AC) and Initial Size Class Cache (ISCC).

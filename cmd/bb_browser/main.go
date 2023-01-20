@@ -110,6 +110,23 @@ func main() {
 		initialSizeClassCache = blobstore.NewAuthorizingBlobAccess(info.BlobAccess, authorizer, nil, nil)
 	}
 
+	var fileSystemAccessCache blobstore.BlobAccess
+	if configuration.FileSystemAccessCache == nil {
+		fileSystemAccessCache = blobstore.NewErrorBlobAccess(status.Error(codes.NotFound, "No File System Access Cache configured"))
+	} else {
+		info, err := blobstore_configuration.NewBlobAccessFromConfiguration(
+			terminationContext,
+			terminationGroup,
+			configuration.FileSystemAccessCache,
+			blobstore_configuration.NewFSACBlobAccessCreator(
+				grpcClientFactory,
+				int(configuration.MaximumMessageSizeBytes)))
+		if err != nil {
+			log.Fatal("Failed to create File System Access Cache: ", err)
+		}
+		fileSystemAccessCache = blobstore.NewAuthorizingBlobAccess(info.BlobAccess, authorizer, nil, nil)
+	}
+
 	routePrefix := path.Join("/", configuration.RoutePrefix)
 	if !strings.HasSuffix(routePrefix, "/") {
 		routePrefix += "/"
@@ -252,6 +269,7 @@ func main() {
 		contentAddressableStorage,
 		actionCache,
 		initialSizeClassCache,
+		fileSystemAccessCache,
 		int(configuration.MaximumMessageSizeBytes),
 		templates,
 		bbClientdInstanceNamePatcher,

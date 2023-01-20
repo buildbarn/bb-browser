@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package buildbarn.query;
+
+import "build/bazel/remote/execution/v2/remote_execution.proto";
+
+option go_package = "github.com/buildbarn/bb-browser/pkg/proto/query";
+
+// Reference to a certain directory contained in a
+// FileSystemAccessProfile, which is provided as part of bb_browser URL
+// query parameters when listing directories.
+message FileSystemAccessProfileReference {
+  // The digest of the profile stored in the File System Access Cache
+  // (FSAC).
+  build.bazel.remote.execution.v2.Digest digest = 1;
+
+  // The FNV-1a base hash value of the path hashes corresponding to the
+  // current directory.
+  uint64 path_hashes_base_hash = 2;
+}

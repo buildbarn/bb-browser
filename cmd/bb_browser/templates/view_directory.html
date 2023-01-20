@@ -6,11 +6,23 @@
 			<th scope="col" style="width: 100%">Filename</th>
 		</tr>
 	</thead>
+	{{$directoryInfo := .}}
 	{{range .Directory.Directories}}
 		<tr class="font-monospace">
 			<td class="text-nowrap">drwxr-xr-x</td>
 			<td class="text-end">{{.Digest.SizeBytes}}</td>
-			<td style="width: 100%"><a href="../../directory/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/">{{.Name}}</a>/</td>
+			<td style="width: 100%">
+				{{$pathHashes := $directoryInfo.GetChildPathHashes .Name}}
+				{{if $pathHashes}}
+					{{if $directoryInfo.BloomFilter.Contains $pathHashes}}
+						<a class="text-success" href="../../directory/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/?file_system_access_profile={{$directoryInfo.GetChildFileSystemAccessProfileReference $pathHashes | proto_to_json}}">{{.Name}}</a>/
+					{{else}}
+						<a class="text-danger" href="../../directory/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/">{{.Name}}</a>/
+					{{end}}
+				{{else}}
+					<a href="../../directory/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/">{{.Name}}</a>/
+				{{end}}
+			</td>
 		</tr>
 	{{end}}
 	{{range .Directory.Symlinks}}
@@ -24,10 +36,29 @@
 		<tr class="font-monospace">
 			<td class="text-nowrap">-r-{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}r-{{if .IsExecutable}}x{{else}}-{{end}}</td>
 			<td class="text-end">{{.Digest.SizeBytes}}</td>
-			<td style="width: 100%"><a href="../../file/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/{{.Name}}">{{.Name}}</a></td>
+			<td style="width: 100%">
+				{{$pathHashes := $directoryInfo.GetChildPathHashes .Name}}
+				{{if $pathHashes}}
+					{{if $directoryInfo.BloomFilter.Contains $pathHashes}}
+						<a class="text-success" href="../../file/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/{{.Name}}">{{.Name}}</a>
+					{{else}}
+						<a class="text-danger" href="../../file/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/{{.Name}}">{{.Name}}</a>
+					{{end}}
+				{{else}}
+					<a href="../../file/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/{{.Name}}">{{.Name}}</a>
+				{{end}}
+			</td>
 		</tr>
 	{{end}}
 </table>
+
+{{if .BloomFilter}}
+	<p class="my-3"><b>Note:</b> <span class="text-success">Green</span> and
+	<span class="text-danger">red</span> filenames above indicate which
+	files and directories will be prefetched the next time a similar action
+	executes. Though it is representative of what is actually accessed by
+	the action, it may contain false positives and negatives.</p>
+{{end}}
 
 <a class="btn btn-primary" href="javascript:navigator.clipboard.writeText(&quot;{{.BBClientdPath | js}}&quot;)" role="button">Copy bb_clientd path to clipboard</a>
 
