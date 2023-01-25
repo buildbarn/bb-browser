@@ -13,14 +13,14 @@ replace mvdan.cc/gofumpt => mvdan.cc/gofumpt v0.3.0
 
 require (
 	github.com/bazelbuild/remote-apis v0.0.0-20221109204407-3a21deee813d
-	github.com/buildbarn/bb-remote-execution v0.0.0-20230120142744-3024fca5b04b
-	github.com/buildbarn/bb-storage v0.0.0-20230120132704-98063ef6edfa
+	github.com/buildbarn/bb-remote-execution v0.0.0-20230125082650-47f8d1661ef6
+	github.com/buildbarn/bb-storage v0.0.0-20230124100847-756fc23c9924
 	github.com/buildkite/terminal-to-html v3.2.0+incompatible
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gorilla/mux v1.8.0
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	gonum.org/v1/plot v0.12.0
-	google.golang.org/grpc v1.52.0
+	google.golang.org/grpc v1.52.1
 	google.golang.org/protobuf v1.28.1
 )
 
@@ -90,7 +90,7 @@ require (
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/text v0.5.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20230119192704-9d59e20e5cd1 // indirect
+	google.golang.org/genproto v0.0.0-20230123190316-2c411cf9d197 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	sigs.k8s.io/yaml v1.1.0 // indirect
 )
