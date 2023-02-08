@@ -17,7 +17,7 @@
 					{{if $directoryInfo.BloomFilter.Contains $pathHashes}}
 						<a class="text-success" href="../../directory/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/?file_system_access_profile={{$directoryInfo.GetChildFileSystemAccessProfileReference $pathHashes | proto_to_json}}">{{.Name}}</a>/
 					{{else}}
-						<a class="text-danger" href="../../directory/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/">{{.Name}}</a>/
+						<a class="text-danger" href="../../directory/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/"><s>{{.Name}}</s></a>/
 					{{end}}
 				{{else}}
 					<a href="../../directory/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/">{{.Name}}</a>/
@@ -42,7 +42,7 @@
 					{{if $directoryInfo.BloomFilter.Contains $pathHashes}}
 						<a class="text-success" href="../../file/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/{{.Name}}">{{.Name}}</a>
 					{{else}}
-						<a class="text-danger" href="../../file/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/{{.Name}}">{{.Name}}</a>
+						<a class="text-danger" href="../../file/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/{{.Name}}"><s>{{.Name}}</s></a>
 					{{end}}
 				{{else}}
 					<a href="../../file/{{.Digest.Hash}}-{{.Digest.SizeBytes}}/{{.Name}}">{{.Name}}</a>
@@ -54,10 +54,10 @@
 
 {{if .BloomFilter}}
 	<p class="my-3"><b>Note:</b> <span class="text-success">Green</span> and
-	<span class="text-danger">red</span> filenames above indicate which
-	files and directories will be prefetched the next time a similar action
-	executes. Though it is representative of what is actually accessed by
-	the action, it may contain false positives and negatives.</p>
+	<s class="text-danger">red</s> filenames above indicate which files and
+	directories will be prefetched the next time a similar action executes.
+	Though it is representative of what is actually accessed by the action,
+	it may contain false positives and negatives.</p>
 {{end}}
 
 <a class="btn btn-primary" href="javascript:navigator.clipboard.writeText(&quot;{{.BBClientdPath | js}}&quot;)" role="button">Copy bb_clientd path to clipboard</a>
