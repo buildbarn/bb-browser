@@ -196,14 +196,14 @@ def go_dependencies():
     go_repository(
         name = "com_github_buildbarn_bb_remote_execution",
         importpath = "github.com/buildbarn/bb-remote-execution",
-        sum = "h1:yK+oU1cm61q6YHRYTJSUnJkOEjXk75XUC+AvECDoEA0=",
-        version = "v0.0.0-20230125082650-47f8d1661ef6",
+        sum = "h1:qMmmVxPRMA1rp8PkF8uBG0P9n4top9an5FBEeyhCgGY=",
+        version = "v0.0.0-20230223151703-ec4ab4dea9f8",
     )
     go_repository(
         name = "com_github_buildbarn_bb_storage",
         importpath = "github.com/buildbarn/bb-storage",
-        sum = "h1:X9SxM5jyz2queRiF3G1QnwzDBZN4Uq94YG2rLP2IPDE=",
-        version = "v0.0.0-20230124100847-756fc23c9924",
+        sum = "h1:t/QGNSFS3HEvapgbihPMn8xR4Xnhu3uVJ5knyfqcnbI=",
+        version = "v0.0.0-20230223115958-4f243ea90d39",
     )
     go_repository(
         name = "com_github_buildbarn_go_xdr",
@@ -506,7 +506,6 @@ def go_dependencies():
         name = "com_github_google_go_jsonnet",
         build_file_generation = "on",
         importpath = "github.com/google/go-jsonnet",
-        patches = ["@com_github_buildbarn_bb_storage//:patches/com_github_google_go_jsonnet/astgen.diff"],
         sum = "h1:MORxkrG0elylUqh36R4AcSPX0oZQa9hvI3lroN+kDhs=",
         version = "v0.19.1",
     )
@@ -525,8 +524,8 @@ def go_dependencies():
     go_repository(
         name = "com_github_google_martian_v3",
         importpath = "github.com/google/martian/v3",
-        sum = "h1:pMen7vLs8nvgEYhywH3KDWJIJTeEr2ULsVWHWYHQyBs=",
-        version = "v3.0.0",
+        sum = "h1:d8MncMlErDFTwQGBK1xhv026j9kqhvw1Qv9IbWT1VLQ=",
+        version = "v3.2.1",
     )
     go_repository(
         name = "com_github_google_pprof",
@@ -1534,8 +1533,8 @@ def go_dependencies():
     go_repository(
         name = "com_google_cloud_go_storage",
         importpath = "cloud.google.com/go/storage",
-        sum = "h1:STgFzyU5/8miMl0//zKh2aQeTyeaUH3WN9bSUiJ09bA=",
-        version = "v1.10.0",
+        sum = "h1:YOO045NZI9RKfCj1c5A/ZtuuENUc8OAW+gHdGnDgyMQ=",
+        version = "v1.27.0",
     )
     go_repository(
         name = "com_google_cloud_go_storagetransfer",
@@ -1916,8 +1915,8 @@ def go_dependencies():
     go_repository(
         name = "org_golang_x_xerrors",
         importpath = "golang.org/x/xerrors",
-        sum = "h1:go1bK/D/BFZV2I8cIQd1NKEZ+0owSTG1fDTci4IqFcE=",
-        version = "v0.0.0-20200804184101-5ec99f83aff1",
+        sum = "h1:H2TDz8ibqkAF6YGhCdN3jS9O0/s90v0rJh3X/OLHEUk=",
+        version = "v0.0.0-20220907171357-04be3eba64a2",
     )
     go_repository(
         name = "org_gonum_v1_gonum",
