@@ -47,29 +47,22 @@ container image and push it into the Docker daemon running on the
 current system:
 
 ```
-$ bazel run //cmd/bb_browser:bb_browser_container
+$ bazel run //cmd/bb_browser:bb_browser_container -- --norun
 ...
 Tagging ... as bazel/cmd/bb_browser:bb_browser_container
 ```
 
-This container image can then be launched using Docker as follows:
+This container image can then be launched, with the
+[example configuration](https://github.com/buildbarn/bb-browser/blob/master/browser-example.jsonnet),
+using Docker as follows:
 
 ```
-$ cat config/blobstore.conf
-content_addressable_storage {
-  grpc {
-    endpoint: "bb-storage:8980"
-  }
-}
-action_cache {
-  grpc {
-    endpoint: "bb-storage:8980"
-  }
-}
 $ docker run \
+      --rm \
       -p 80:80 \
       -v $(pwd)/config:/config \
-      bazel/cmd/bb_browser:bb_browser_container
+      bazel/cmd/bb_browser:bb_browser_container \
+      /config/browser.jsonnet
 ```
 
 Buildbarn Browser uses the same storage layer as
