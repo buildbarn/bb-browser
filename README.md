@@ -53,7 +53,7 @@ Tagging ... as bazel/cmd/bb_browser:bb_browser_container
 ```
 
 This container image can then be launched, with the
-[example configuration](https://github.com/buildbarn/bb-browser/blob/master/browser-example.jsonnet),
+[example configuration](https://github.com/buildbarn/bb-browser/blob/master/config/browser.jsonnet),
 using Docker as follows:
 
 ```
