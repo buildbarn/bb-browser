@@ -74,6 +74,6 @@ gRPC service `bb-storage:8980`.  Please refer to
 for more information on how storage access may be configured.
 
 Prebuilt container images of Buildbarn Browser may be found on
-[Docker Hub](https://hub.docker.com/r/buildbarn/bb-browser). More
-examples of how Buildbarn Browser may be deployed can be found in
+[the GitHub Packages page](https://github.com/orgs/buildbarn/packages).
+More examples of how Buildbarn Browser may be deployed can be found in
 [the Buildbarn deployments repository](https://github.com/buildbarn/bb-deployments).
