@@ -1,6 +1,7 @@
 load("@com_github_buildbarn_bb_storage//tools:container.bzl", "container_push_official")
 load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@npm//:purgecss/package_json.bzl", purgecss_bin = "bin")
 
 go_library(
     name = "bb_browser_lib",
@@ -72,6 +73,11 @@ filegroup(
     srcs = glob(["templates/*.html"]),
 )
 
+purgecss_bin.purgecss_binary(
+    name = "purgecss",
+    tags = ["manual"],
+)
+
 # Create a copy of Bootstrap that only contains the style attributes
 # used by the HTML templates. Also include the classes needed by
 # terminal-to-html.
@@ -84,10 +90,10 @@ genrule(
     ],
     outs = ["stylesheet.css"],
     cmd = " && ".join([
-        "$(location @npm//purgecss/bin:purgecss) --css $(location @com_github_twbs_bootstrap//:css/bootstrap.min.css) --content $(locations templates) --output $@ --safelist bg-secondary",
+        "BAZEL_BINDIR=$(BINDIR) $(location :purgecss) --css $${PWD}/$(location @com_github_twbs_bootstrap//:css/bootstrap.min.css) --content $${PWD}/$(locations templates) --output $${PWD}/$@ --safelist bg-secondary",
         "cat $(location @com_github_buildkite_terminal_to_html//assets:terminal.css) >> $@",
     ]),
-    tools = ["@npm//purgecss/bin:purgecss"],
+    tools = [":purgecss"],
 )
 
 go_binary(

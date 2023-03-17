@@ -13,8 +13,8 @@ replace mvdan.cc/gofumpt => mvdan.cc/gofumpt v0.3.0
 
 require (
 	github.com/bazelbuild/remote-apis v0.0.0-20230315170832-8f539af4b407
-	github.com/buildbarn/bb-remote-execution v0.0.0-20230316090020-39817d8c75e8
-	github.com/buildbarn/bb-storage v0.0.0-20230316084204-3f0856f59214
+	github.com/buildbarn/bb-remote-execution v0.0.0-20230317073405-cc53bcef4f91
+	github.com/buildbarn/bb-storage v0.0.0-20230317062200-2cbf9f602b09
 	github.com/buildkite/terminal-to-html v3.2.0+incompatible
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gorilla/mux v1.8.0
