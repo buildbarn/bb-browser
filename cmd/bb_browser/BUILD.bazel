@@ -90,7 +90,7 @@ genrule(
     ],
     outs = ["stylesheet.css"],
     cmd = " && ".join([
-        "BAZEL_BINDIR=$(BINDIR) $(location :purgecss) --css $${PWD}/$(location @com_github_twbs_bootstrap//:css/bootstrap.min.css) --content $${PWD}/$(locations templates) --output $${PWD}/$@ --safelist bg-secondary",
+        "BAZEL_BINDIR=$(BINDIR) $(location :purgecss) --css $${PWD}/$(location @com_github_twbs_bootstrap//:css/bootstrap.min.css) --content $$(for i in $(locations templates); do echo $${PWD}/$${i}; done) --output $${PWD}/$@ --safelist bg-secondary",
         "cat $(location @com_github_buildkite_terminal_to_html//assets:terminal.css) >> $@",
     ]),
     tools = [":purgecss"],
