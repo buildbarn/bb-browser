@@ -346,11 +346,10 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 
 		InputRoot *directoryInfo
 
-		OutputDirectories  []*remoteexecution.OutputDirectory
-		OutputSymlinks     []*remoteexecution.OutputSymlink
-		OutputFiles        []*remoteexecution.OutputFile
-		MissingDirectories []string
-		MissingFiles       []string
+		OutputDirectories []*remoteexecution.OutputDirectory
+		OutputSymlinks    []*remoteexecution.OutputSymlink
+		OutputFiles       []*remoteexecution.OutputFile
+		MissingPaths      []string
 
 		PreviousExecutionStats *previousExecutionStatsInfo
 	}{
@@ -364,7 +363,13 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 	digestFunction := actionDigest.GetDigestFunction()
 	if actionResult != nil {
 		actionInfo.OutputDirectories = actionResult.OutputDirectories
-		actionInfo.OutputSymlinks = actionResult.OutputFileSymlinks
+		if len(actionResult.OutputSymlinks) > 0 {
+			// REv2.1 uses 'output_symlinks'.
+			actionInfo.OutputSymlinks = actionResult.OutputSymlinks
+		} else {
+			// REv2.0 uses 'output_{directory,file}_symlinks'.
+			actionInfo.OutputSymlinks = append(append([]*remoteexecution.OutputSymlink(nil), actionResult.OutputDirectorySymlinks...), actionResult.OutputFileSymlinks...)
+		}
 		actionInfo.OutputFiles = actionResult.OutputFiles
 
 		var err error
@@ -399,25 +404,34 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 				BBClientdPath: formatBBClientdPath(s.getBBClientdBlobPath(commandDigest, commandDirectoryComponent)),
 			}
 
-			foundDirectories := map[string]bool{}
+			foundPaths := map[string]struct{}{}
 			for _, outputDirectory := range actionInfo.OutputDirectories {
-				foundDirectories[outputDirectory.Path] = true
+				foundPaths[outputDirectory.Path] = struct{}{}
 			}
-			for _, outputDirectory := range command.OutputDirectories {
-				if _, ok := foundDirectories[outputDirectory]; !ok {
-					actionInfo.MissingDirectories = append(actionInfo.MissingDirectories, outputDirectory)
-				}
-			}
-			foundFiles := map[string]bool{}
 			for _, outputSymlinks := range actionInfo.OutputSymlinks {
-				foundFiles[outputSymlinks.Path] = true
+				foundPaths[outputSymlinks.Path] = struct{}{}
 			}
 			for _, outputFiles := range actionInfo.OutputFiles {
-				foundFiles[outputFiles.Path] = true
+				foundPaths[outputFiles.Path] = struct{}{}
 			}
-			for _, outputFile := range command.OutputFiles {
-				if _, ok := foundFiles[outputFile]; !ok {
-					actionInfo.MissingFiles = append(actionInfo.MissingFiles, outputFile)
+			if len(command.OutputPaths) > 0 {
+				// REv2.1 uses output_paths.
+				for _, outputPath := range command.OutputPaths {
+					if _, ok := foundPaths[outputPath]; !ok {
+						actionInfo.MissingPaths = append(actionInfo.MissingPaths, outputPath)
+					}
+				}
+			} else {
+				// REv2.0 uses output_{directories,files}.
+				for _, outputDirectory := range command.OutputDirectories {
+					if _, ok := foundPaths[outputDirectory]; !ok {
+						actionInfo.MissingPaths = append(actionInfo.MissingPaths, outputDirectory)
+					}
+				}
+				for _, outputFile := range command.OutputFiles {
+					if _, ok := foundPaths[outputFile]; !ok {
+						actionInfo.MissingPaths = append(actionInfo.MissingPaths, outputFile)
+					}
 				}
 			}
 		} else if status.Code(err) != codes.NotFound {
