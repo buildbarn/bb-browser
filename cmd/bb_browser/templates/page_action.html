@@ -77,17 +77,33 @@ The command of this action could not be found.
 			<td style="width: 75%">Code {{$status.GetCode}}: {{$status.Message}}</td>
 		</tr>
 	{{else}}
-		<tr>
-			<th style="width: 25%">Exit code:</th>
-			<td style="width: 75%">
-				{{$actionResult.ExitCode}}
-				{{if eq $actionResult.ExitCode 0}}
-					<span class="badge badge-success">Success</span>
-				{{else}}
-					<span class="badge badge-danger">Failure</span>
+		{{$showExitCode := true}}
+		{{with $actionResult.GetExecutionMetadata}}
+			{{range .AuxiliaryMetadata}}
+				{{with to_posix_resource_usage .}}
+					{{with .TerminationSignal}}
+						{{$showExitCode = false}}
+						<tr>
+							<th style="width: 25%">Termination signal:</th>
+							<td style="width: 75%"><span class="badge bg-danger">SIG{{.}}</span></td>
+						</tr>
+					{{end}}
 				{{end}}
-			</td>
-		</tr>
+			{{end}}
+		{{end}}
+		{{if $showExitCode}}
+			<tr>
+				<th style="width: 25%">Exit code:</th>
+				<td style="width: 75%">
+					{{$actionResult.ExitCode}}
+					{{if eq $actionResult.ExitCode 0}}
+						<span class="badge bg-success">Success</span>
+					{{else}}
+						<span class="badge bg-danger">Failure</span>
+					{{end}}
+				</td>
+			</tr>
+		{{end}}
 	{{end}}
 	{{template "view_log.html" .StdoutInfo}}
 	{{template "view_log.html" .StderrInfo}}
