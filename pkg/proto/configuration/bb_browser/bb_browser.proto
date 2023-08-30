@@ -5,6 +5,7 @@ package buildbarn.configuration.bb_browser;
 import "pkg/proto/configuration/auth/auth.proto";
 import "pkg/proto/configuration/blobstore/blobstore.proto";
 import "pkg/proto/configuration/global/global.proto";
+import "pkg/proto/configuration/http/http.proto";
 
 option go_package = "github.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browser";
 
@@ -15,8 +16,12 @@ message ApplicationConfiguration {
   // Maximum Protobuf message size to unmarshal.
   int64 maximum_message_size_bytes = 2;
 
-  // Address on which to listen to expose the web service.
-  string listen_address = 3;
+  // Was 'listen_address'. The listen address of the HTTP server can now
+  // be configured through 'http_servers'.
+  reserved 3;
+
+  // Configuration for HTTP servers that expose the web UI.
+  repeated buildbarn.configuration.http.ServerConfiguration http_servers = 10;
 
   // The path under which the web service needs to be exposed. When left
   // empty, the web service will be exposed at "/".

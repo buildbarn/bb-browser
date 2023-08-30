@@ -10,6 +10,7 @@ proto_library(
         "@com_github_buildbarn_bb_storage//pkg/proto/configuration/auth:auth_proto",
         "@com_github_buildbarn_bb_storage//pkg/proto/configuration/blobstore:blobstore_proto",
         "@com_github_buildbarn_bb_storage//pkg/proto/configuration/global:global_proto",
+        "@com_github_buildbarn_bb_storage//pkg/proto/configuration/http:http_proto",
     ],
 )
 
@@ -22,6 +23,7 @@ go_proto_library(
         "@com_github_buildbarn_bb_storage//pkg/proto/configuration/auth",
         "@com_github_buildbarn_bb_storage//pkg/proto/configuration/blobstore",
         "@com_github_buildbarn_bb_storage//pkg/proto/configuration/global",
+        "@com_github_buildbarn_bb_storage//pkg/proto/configuration/http",
     ],
 )
 

@@ -15,7 +15,10 @@
     },
   },
   maximumMessageSizeBytes: 16777216,
-  listenAddress: ':80',
+  httpServers: [{
+    listenAddresses: [':80'],
+    authenticationPolicy: { allow: {} },
+  }],
   authorizer: {
     allow: {},
   },

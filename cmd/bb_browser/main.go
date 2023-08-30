@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"html/template"
-	"net/http"
 	"os"
 	"path"
 	"strings"
@@ -20,7 +19,7 @@ import (
 	blobstore_configuration "github.com/buildbarn/bb-storage/pkg/blobstore/configuration"
 	"github.com/buildbarn/bb-storage/pkg/digest"
 	"github.com/buildbarn/bb-storage/pkg/global"
-	bb_http "github.com/buildbarn/bb-storage/pkg/http"
+	"github.com/buildbarn/bb-storage/pkg/http"
 	"github.com/buildbarn/bb-storage/pkg/program"
 	auth_pb "github.com/buildbarn/bb-storage/pkg/proto/auth"
 	"github.com/buildbarn/bb-storage/pkg/proto/iscc"
@@ -273,10 +272,9 @@ func main() {
 			templates,
 			bbClientdInstanceNamePatcher,
 			subrouter)
-		bb_http.LaunchServer(&http.Server{
-			Addr:    configuration.ListenAddress,
-			Handler: router,
-		}, siblingsGroup)
+		if err := http.NewServersFromConfigurationAndServe(configuration.HttpServers, router, siblingsGroup); err != nil {
+			return util.StatusWrap(err, "Failed to create HTTP servers")
+		}
 
 		lifecycleState.MarkReadyAndWait(siblingsGroup)
 		return nil
