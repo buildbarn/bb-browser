@@ -292,6 +292,20 @@ The input root of this action could not be found.
 			</table>
 		{{end}}
 
+		{{with to_input_root_resource_usage .}}
+			<h3 class="my-4">Input root resource usage</h3>
+			<table class="table" style="table-layout: fixed">
+				<tr>
+					<th style="width: 25%">Directories:</th>
+					<td style="width: 75%">{{.DirectoriesResolved}} resolved, {{.DirectoriesRead}} read</td>
+				</tr>
+				<tr>
+					<th style="width: 25%">Files:</th>
+					<td style="width: 75%">{{.FilesRead}} read</td>
+				</tr>
+			</table>
+		{{end}}
+
 		{{with to_posix_resource_usage .}}
 			<h3 class="my-4">POSIX resource usage</h3>
 			<table class="table" style="table-layout: fixed">

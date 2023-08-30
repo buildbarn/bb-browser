@@ -192,6 +192,13 @@ func main() {
 				}
 				return &pb
 			},
+			"to_input_root_resource_usage": func(any *anypb.Any) *resourceusage.InputRootResourceUsage {
+				var pb resourceusage.InputRootResourceUsage
+				if any.UnmarshalTo(&pb) != nil {
+					return nil
+				}
+				return &pb
+			},
 			"to_posix_resource_usage": func(any *anypb.Any) *resourceusage.POSIXResourceUsage {
 				var pb resourceusage.POSIXResourceUsage
 				if any.UnmarshalTo(&pb) != nil {
