@@ -279,7 +279,11 @@ func main() {
 			templates,
 			bbClientdInstanceNamePatcher,
 			subrouter)
-		if err := http.NewServersFromConfigurationAndServe(configuration.HttpServers, router, siblingsGroup); err != nil {
+		if err := http.NewServersFromConfigurationAndServe(
+			configuration.HttpServers,
+			http.NewMetricsHandler(router, "BrowserUI"),
+			siblingsGroup,
+		); err != nil {
 			return util.StatusWrap(err, "Failed to create HTTP servers")
 		}
 
