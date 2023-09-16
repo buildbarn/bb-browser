@@ -130,7 +130,7 @@ func main() {
 			routePrefix += "/"
 		}
 
-		faviconURL := template.URL("data:image/png;base64," + base64.URLEncoding.EncodeToString(favicon))
+		faviconURL := template.URL("data:image/png;base64," + base64.StdEncoding.EncodeToString(favicon))
 		templates, err := template.New("templates").Funcs(template.FuncMap{
 			"basename":    path.Base,
 			"favicon_url": func() template.URL { return faviconURL },
