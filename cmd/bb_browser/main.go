@@ -20,6 +20,7 @@ import (
 	"github.com/buildbarn/bb-storage/pkg/digest"
 	"github.com/buildbarn/bb-storage/pkg/global"
 	"github.com/buildbarn/bb-storage/pkg/http"
+	"github.com/buildbarn/bb-storage/pkg/logo"
 	"github.com/buildbarn/bb-storage/pkg/program"
 	auth_pb "github.com/buildbarn/bb-storage/pkg/proto/auth"
 	"github.com/buildbarn/bb-storage/pkg/proto/iscc"
@@ -55,8 +56,6 @@ var (
 	templatesFS embed.FS
 	//go:embed stylesheet.css
 	stylesheet template.CSS
-	//go:embed favicon.png
-	favicon []byte
 )
 
 func main() {
@@ -130,7 +129,7 @@ func main() {
 			routePrefix += "/"
 		}
 
-		faviconURL := template.URL("data:image/png;base64," + base64.StdEncoding.EncodeToString(favicon))
+		faviconURL := template.URL("data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString(logo.FaviconSvg))
 		templates, err := template.New("templates").Funcs(template.FuncMap{
 			"basename":    path.Base,
 			"favicon_url": func() template.URL { return faviconURL },
