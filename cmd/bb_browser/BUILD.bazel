@@ -10,7 +10,6 @@ go_library(
         "main.go",
     ],
     embedsrcs = [
-        "favicon.png",
         "stylesheet.css",
         "templates/error.html",
         "templates/footer.html",
@@ -45,6 +44,7 @@ go_library(
         "@com_github_buildbarn_bb_storage//pkg/filesystem/path",
         "@com_github_buildbarn_bb_storage//pkg/global",
         "@com_github_buildbarn_bb_storage//pkg/http",
+        "@com_github_buildbarn_bb_storage//pkg/logo",
         "@com_github_buildbarn_bb_storage//pkg/program",
         "@com_github_buildbarn_bb_storage//pkg/proto/auth",
         "@com_github_buildbarn_bb_storage//pkg/proto/fsac",
