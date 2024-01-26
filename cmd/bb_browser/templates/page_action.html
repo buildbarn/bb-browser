@@ -128,8 +128,14 @@ The input root of this action could not be found.
 	{{range .OutputDirectories}}
 		<tr class="font-monospace">
 			<td style="white-space: nowrap">drwxr-xr-x</td>
-			<td style="text-align: right">{{.TreeDigest.SizeBytes}}</td>
-			<td style="width: 100%; word-break: break-all"><a class="text-success" href="../../tree/{{.TreeDigest.Hash}}-{{.TreeDigest.SizeBytes}}/">{{.Path}}</a>/</td>
+			{{$path := .Path}}
+			{{with .RootDirectoryDigest}}
+				<td style="text-align: right">{{.SizeBytes}}</td>
+				<td style="width: 100%; word-break: break-all"><a class="text-success" href="../../directory/{{.Hash}}-{{.SizeBytes}}/">{{$path}}</a>/</td>
+			{{else}}
+				<td style="text-align: right">{{.TreeDigest.SizeBytes}}</td>
+				<td style="width: 100%; word-break: break-all"><a class="text-success" href="../../tree/{{.TreeDigest.Hash}}-{{.TreeDigest.SizeBytes}}/">{{$path}}</a>/</td>
+			{{end}}
 		</tr>
 	{{end}}
 	{{range .OutputSymlinks}}
