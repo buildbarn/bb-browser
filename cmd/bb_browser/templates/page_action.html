@@ -157,6 +157,27 @@ The input root of this action could not be found.
 	{{end}}
 </table>
 
+{{with .ExecuteResponse.ServerLogs}}
+	<h2 class="my-4">Server logs</h2>
+
+	<table class="table">
+		<thead>
+			<tr>
+				<th scope="col">Mode</th>
+				<th scope="col">Size</th>
+				<th scope="col" style="width: 100%">Filename</th>
+			</tr>
+		</thead>
+		{{range $name, $logFile := .}}
+			<tr class="font-monospace">
+				<td style="white-space: nowrap">-rw-r--r--</td>
+				<td style="text-align: right">{{$logFile.Digest.SizeBytes}}</td>
+				<td style="width: 100%; word-break: break-all"><a href="../../file/{{$logFile.Digest.Hash}}-{{$logFile.Digest.SizeBytes}}/{{basename $name}}">{{$name}}</a></td>
+			</tr>
+		{{end}}
+	</table>
+{{end}}
+
 {{with $actionResult.GetExecutionMetadata}}
 	<h2 class="my-4">Execution metadata</h2>
 
