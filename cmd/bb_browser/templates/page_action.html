@@ -44,17 +44,12 @@
 			</td>
 		</tr>
 	{{end}}
-	{{if and .Command .InputRoot}}
-		<tr>
-			<th style="width: 25%">How to run locally:</th>
-			<td class="font-monospace text-nowrap" style="width: 75%; overflow-x: scroll">
-				<b>rsync</b> --delete --link-dest {{.InputRoot.BBClientdPath}}/ --progress --recursive {{.InputRoot.BBClientdPath}}/ ~/bb_clientd/scratch/{{.ActionDigest.GetHashString}}-{{.ActionDigest.GetSizeBytes}}<br/>
-				<b>cd</b> ~/bb_clientd/scratch/{{.ActionDigest.GetHashString}}-{{.ActionDigest.GetSizeBytes}}<br/>
-				{{.Command.BBClientdPath}}
-			</td>
-		</tr>
-	{{end}}
 </table>
+
+{{if and .Command .InputRoot}}
+<a class="btn btn-primary" href="javascript:navigator.clipboard.writeText(&quot;rsync \\\n    --delete \\\n    --link-dest {{.InputRoot.BBClientdPath | js}}/ \\\n    --progress \\\n    --recursive \\\n    {{.InputRoot.BBClientdPath | js}}/ \\\n    ~/bb_clientd/scratch/{{.ActionDigest.GetHashString | js}}-{{.ActionDigest.GetSizeBytes}} &&\ncd ~/bb_clientd/scratch/{{.ActionDigest.GetHashString | js}}-{{.ActionDigest.GetSizeBytes}} &&\n{{.Command.BBClientdPath | js}}&quot;)" role="button">Copy bb_clientd command for running action locally to clipboard</a>
+{{end}}
+
 {{else}}
 This action could not be found.
 {{end}}
