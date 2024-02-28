@@ -290,6 +290,10 @@ The input root of this action could not be found.
 					</tr>
 				{{end}}
 			</table>
+
+			{{range $label, $url := request_metadata_links .}}
+				<a class="btn btn-primary" href="{{$url}}">{{$label}}</a>
+			{{end}}
 		{{end}}
 
 		{{with to_file_pool_resource_usage .}}

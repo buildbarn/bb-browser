@@ -26,6 +26,7 @@ import (
 	"github.com/buildbarn/bb-storage/pkg/util"
 	"github.com/dustin/go-humanize"
 	"github.com/gorilla/mux"
+	"github.com/jmespath/go-jmespath"
 	"github.com/kballard/go-shellquote"
 
 	"google.golang.org/grpc/codes"
@@ -130,6 +131,11 @@ func main() {
 			routePrefix += "/"
 		}
 
+		requestMetadataLinksJmespathExpression, err := jmespath.Compile(configuration.RequestMetadataLinksJmespathExpression)
+		if err != nil {
+			return util.StatusWrap(err, "Failed to compile request metadata links JMESPath expression")
+		}
+
 		faviconURL := template.URL("data:image/png;base64," + base64.StdEncoding.EncodeToString(favicon))
 		templates, err := template.New("templates").Funcs(template.FuncMap{
 			"basename":    path.Base,
@@ -148,7 +154,30 @@ func main() {
 				return n + 1
 			},
 			"proto_to_json": protojson.MarshalOptions{}.Format,
-			"stylesheet":    func() template.CSS { return stylesheet },
+			"request_metadata_links": func(requestMetadata *remoteexecution.RequestMetadata) (map[string]string, error) {
+				marshaledRequestMetadata, err := protojson.Marshal(requestMetadata)
+				if err != nil {
+					return nil, util.StatusWrap(err, "Failed to marshal request metadata")
+				}
+				var rawRequestMetadata any
+				if err := json.Unmarshal(marshaledRequestMetadata, &rawRequestMetadata); err != nil {
+					return nil, util.StatusWrap(err, "Failed to unmarshal request metadata")
+				}
+				rawLinks, err := requestMetadataLinksJmespathExpression.Search(rawRequestMetadata)
+				if err != nil {
+					return nil, util.StatusWrap(err, "Failed to evaluate request metadata links JMESPath expression")
+				}
+				links := map[string]string{}
+				if rawObject, ok := rawLinks.(map[string]any); ok {
+					for label, rawURL := range rawObject {
+						if url, ok := rawURL.(string); ok {
+							links[label] = url
+						}
+					}
+				}
+				return links, nil
+			},
+			"stylesheet": func() template.CSS { return stylesheet },
 			"to_authentication_metadata": func(any *anypb.Any) *auth_pb.AuthenticationMetadata {
 				var pb auth_pb.AuthenticationMetadata
 				if err := any.UnmarshalTo(&pb); err != nil {

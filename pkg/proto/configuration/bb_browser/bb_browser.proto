@@ -62,4 +62,30 @@ message ApplicationConfiguration {
   // web service from the Content Addressable Storage (CAS),
   // Action Cache (AC) and Initial Size Class Cache (ISCC).
   buildbarn.configuration.auth.AuthorizerConfiguration authorizer = 8;
+
+  // JMESPath expression to convert REv2 RequestMetadata to a set of
+  // links of external services that provide additional context to the
+  // action being built.
+  //
+  // The expression must yield a map of strings. Keys correspond to the
+  // labels of buttons to display in the web UI, while values correspond
+  // to URLs to which the buttons should link. The expression receives
+  // the REv2 RequestMetadata message as its argument.
+  //
+  // Example expression:
+  //
+  // {
+  //   "View build results": join('', [
+  //       'https://buildeventsviewer.com/',
+  //       toolInvocationId
+  //   ]),
+  //   "Search for target": join('', [
+  //       'https://codesearch.com/?q=',
+  //       targetId
+  //   ])
+  // }
+  //
+  // If no links to external services need to be provided, you may use
+  // expression `{}` (including the backticks).
+  string request_metadata_links_jmespath_expression = 11;
 }
