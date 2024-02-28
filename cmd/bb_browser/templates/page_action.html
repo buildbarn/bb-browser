@@ -253,18 +253,16 @@ The input root of this action could not be found.
 						<td style="width: 75%">{{.ToolName}} {{.ToolVersion}}</td>
 					</tr>
 				{{end}}
-				<tr>
-					<th style="width: 25%">Tool invocation ID:</th>
-					<td class="font-monospace" style="width: 75%">{{.ToolInvocationId}}</td>
-				</tr>
-				<tr>
-					<th style="width: 25%">Correlated invocations ID:</th>
-					<td class="font-monospace" style="width: 75%">{{.CorrelatedInvocationsId}}</td>
-				</tr>
-				{{with .ActionMnemonic}}
+				{{with .ToolInvocationId}}
 					<tr>
-						<th style="width: 25%">Action mnemonic:</th>
-						<td style="width: 75%">{{.}}</td>
+						<th style="width: 25%">Tool invocation ID:</th>
+						<td class="font-monospace" style="width: 75%">{{.}}</td>
+					</tr>
+				{{end}}
+				{{with .CorrelatedInvocationsId}}
+					<tr>
+						<th style="width: 25%">Correlated invocations ID:</th>
+						<td class="font-monospace" style="width: 75%">{{.}}</td>
 					</tr>
 				{{end}}
 				{{with .TargetId}}
@@ -273,10 +271,22 @@ The input root of this action could not be found.
 						<td style="width: 75%; word-break: break-all">{{.}}</td>
 					</tr>
 				{{end}}
+				{{with .ActionMnemonic}}
+					<tr>
+						<th style="width: 25%">Action mnemonic:</th>
+						<td style="width: 75%">{{.}}</td>
+					</tr>
+				{{end}}
+				{{with .ActionId}}
+					<tr>
+						<th style="width: 25%">Action ID:</th>
+						<td class="font-monospace" style="width: 75%">{{.}}</td>
+					</tr>
+				{{end}}
 				{{with .ConfigurationId}}
 					<tr>
 						<th style="width: 25%">Configuration ID:</th>
-						<td style="width: 75%">{{.}}</td>
+						<td class="font-monospace" style="width: 75%">{{.}}</td>
 					</tr>
 				{{end}}
 			</table>
