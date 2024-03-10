@@ -174,7 +174,7 @@ func (s *BrowserService) getBBClientdBlobPath(blobDigest digest.Digest, blobType
 // pasted into a shell. It assumes that bb_clientd's FUSE file system is
 // mounted at ~/bb_clientd, the default.
 func formatBBClientdPath(p *path.Trace) string {
-	return "~/bb_clientd/cas/" + shellquote.Join(p.String())
+	return "~/bb_clientd/cas/" + shellquote.Join(p.GetUNIXString())
 }
 
 func (s *BrowserService) handleWelcome(w http.ResponseWriter, req *http.Request) {
@@ -548,13 +548,13 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 	for _, directoryNode := range directory.Directories {
 		childName, ok := path.NewComponent(directoryNode.Name)
 		if !ok {
-			return status.Errorf(codes.InvalidArgument, "Directory %#v in directory %#v has an invalid name", directoryNode.Name, directoryPath.String())
+			return status.Errorf(codes.InvalidArgument, "Directory %#v in directory %#v has an invalid name", directoryNode.Name, directoryPath.GetUNIXString())
 		}
 		childPath := directoryPath.Append(childName)
 
 		if err := w.WriteHeader(&tar.Header{
 			Typeflag: tar.TypeDir,
-			Name:     childPath.String(),
+			Name:     childPath.GetUNIXString(),
 			Mode:     0o777,
 		}); err != nil {
 			return err
@@ -576,13 +576,13 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 	for _, symlinkNode := range directory.Symlinks {
 		childName, ok := path.NewComponent(symlinkNode.Name)
 		if !ok {
-			return status.Errorf(codes.InvalidArgument, "Symbolic link %#v in directory %#v has an invalid name", symlinkNode.Name, directoryPath.String())
+			return status.Errorf(codes.InvalidArgument, "Symbolic link %#v in directory %#v has an invalid name", symlinkNode.Name, directoryPath.GetUNIXString())
 		}
 		childPath := directoryPath.Append(childName)
 
 		if err := w.WriteHeader(&tar.Header{
 			Typeflag: tar.TypeSymlink,
-			Name:     childPath.String(),
+			Name:     childPath.GetUNIXString(),
 			Linkname: symlinkNode.Target,
 			Mode:     0o777,
 		}); err != nil {
@@ -594,10 +594,10 @@ func (s *BrowserService) generateTarballDirectory(ctx context.Context, w *tar.Wr
 	for _, fileNode := range directory.Files {
 		childName, ok := path.NewComponent(fileNode.Name)
 		if !ok {
-			return status.Errorf(codes.InvalidArgument, "File %#v in directory %#v has an invalid name", fileNode.Name, directoryPath.String())
+			return status.Errorf(codes.InvalidArgument, "File %#v in directory %#v has an invalid name", fileNode.Name, directoryPath.GetUNIXString())
 		}
 		childPath := directoryPath.Append(childName)
-		childPathString := childPath.String()
+		childPathString := childPath.GetUNIXString()
 
 		childDigest, err := digestFunction.NewDigestFromProto(fileNode.Digest)
 		if err != nil {
@@ -967,7 +967,7 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 	bbClientdPath := s.getBBClientdBlobPath(treeDigest, treeDirectoryComponent)
 	directoryDigest := treeDigest
 	rootDirectory, scopeWalker := path.EmptyBuilder.Join(path.VoidScopeWalker)
-	rootDirectoryWalker, _ := scopeWalker.OnScope(false)
+	rootDirectoryWalker, _ := scopeWalker.OnRelative()
 	for _, component := range strings.FieldsFunc(
 		mux.Vars(req)["subdirectory"],
 		func(r rune) bool { return r == '/' }) {
@@ -1008,7 +1008,7 @@ func (s *BrowserService) handleTree(w http.ResponseWriter, req *http.Request) {
 		treeInfo.Directory = childDirectory
 	}
 	treeInfo.BBClientdPath = formatBBClientdPath(bbClientdPath)
-	treeInfo.RootDirectory = rootDirectory.String()
+	treeInfo.RootDirectory = rootDirectory.GetUNIXString()
 
 	if req.URL.Query().Get("format") == "tar" {
 		s.generateTarball(
