@@ -65,10 +65,14 @@ github.com/buildbarn/bb-remote-execution v0.0.0-20240222085313-f5b199467dd6 h1:d
 github.com/buildbarn/bb-remote-execution v0.0.0-20240222085313-f5b199467dd6/go.mod h1:qwNvc1PxPWzRzcKiQ/Hq1MQmxB8fjWQ+Lv0h9r8aysU=
 github.com/buildbarn/bb-remote-execution v0.0.0-20240310090416-28dbdbb0a6b0 h1:wcGel3yU3FAENqRLzgZkg7xzuwlaY9H+Lphd46u5tyI=
 github.com/buildbarn/bb-remote-execution v0.0.0-20240310090416-28dbdbb0a6b0/go.mod h1:q3TGK8PD/HoADYpaOU0lup48IOusUuCoP0ilLi+BX7A=
+github.com/buildbarn/bb-remote-execution v0.0.0-20240327120038-7bcf9b5f081f h1:rFKH1HdOh6t2qqnYr/EWbP9Md4OuqiyUySPoYbgVkkg=
+github.com/buildbarn/bb-remote-execution v0.0.0-20240327120038-7bcf9b5f081f/go.mod h1:k4EPiIu814IXfvkXH89AQMyDZmFOcpt4KwihDNA4shs=
 github.com/buildbarn/bb-storage v0.0.0-20240227100204-0aa40dfdbead h1:fHapKnQQLgJaMxGiBAUCPVHNfD5vV1LDfXqmyClJ6Lc=
 github.com/buildbarn/bb-storage v0.0.0-20240227100204-0aa40dfdbead/go.mod h1:gHT0PInDFOV/JZjeeNwvqmn33MKHHyk3V18e4/Cs/jM=
 github.com/buildbarn/bb-storage v0.0.0-20240310075825-20598f43e294 h1:Gs3nP150dcZ7Utk7OrYPpoV9/7oGZ9y1It0BGPonDnk=
 github.com/buildbarn/bb-storage v0.0.0-20240310075825-20598f43e294/go.mod h1:0uISGKJD6Owt29w2sUlK0TeLtYdLWtBiC43yVHdgMAY=
+github.com/buildbarn/bb-storage v0.0.0-20240326045855-53c12526d34e h1:9akyMjvUsqodoCvKKdUlN5i+GxfYa9OeZnNuenPBLfE=
+github.com/buildbarn/bb-storage v0.0.0-20240326045855-53c12526d34e/go.mod h1:0uISGKJD6Owt29w2sUlK0TeLtYdLWtBiC43yVHdgMAY=
 github.com/buildkite/terminal-to-html v3.2.0+incompatible h1:WdXzl7ZmYzCAz4pElZosPaUlRTW+qwVx/SkQSCa1jXs=
 github.com/buildkite/terminal-to-html v3.2.0+incompatible/go.mod h1:BFFdFecOxCgjdcarqI+8izs6v85CU/1RA/4Bqh4GR7E=
 github.com/campoy/embedmd v1.0.0 h1:V4kI2qTJJLf4J29RzI/MAt2c3Bl4dQSYPuflzwFH2hY=

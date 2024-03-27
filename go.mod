@@ -7,8 +7,8 @@ replace github.com/grpc-ecosystem/grpc-gateway/v2 => github.com/grpc-ecosystem/g
 
 require (
 	github.com/bazelbuild/remote-apis v0.0.0-20240215191509-9ff14cecffe5
-	github.com/buildbarn/bb-remote-execution v0.0.0-20240310090416-28dbdbb0a6b0
-	github.com/buildbarn/bb-storage v0.0.0-20240310075825-20598f43e294
+	github.com/buildbarn/bb-remote-execution v0.0.0-20240327120038-7bcf9b5f081f
+	github.com/buildbarn/bb-storage v0.0.0-20240326045855-53c12526d34e
 	github.com/buildkite/terminal-to-html v3.2.0+incompatible
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gorilla/mux v1.8.1
