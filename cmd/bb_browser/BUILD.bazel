@@ -1,5 +1,4 @@
-load("@com_github_buildbarn_bb_storage//tools:container.bzl", "container_push_official")
-load("@io_bazel_rules_docker//go:image.bzl", "go_image")
+load("@com_github_buildbarn_bb_storage//tools:container.bzl", "container_push_official", "multiarch_go_image")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("@npm//:purgecss/package_json.bzl", purgecss_bin = "bin")
 
@@ -104,11 +103,9 @@ go_binary(
     visibility = ["//visibility:public"],
 )
 
-go_image(
+multiarch_go_image(
     name = "bb_browser_container",
-    embed = [":bb_browser_lib"],
-    pure = "on",
-    visibility = ["//visibility:public"],
+    binary = ":bb_browser",
 )
 
 container_push_official(
