@@ -1,5 +1,7 @@
-load("@bazel_gazelle//:def.bzl", "gazelle")
+load("@com_github_buildbarn_bb_browser_npm//:defs.bzl", "npm_link_all_packages")
+load("@gazelle//:def.bzl", "gazelle")
 
+# gazelle:go_naming_convention_external import
 # gazelle:prefix github.com/buildbarn/bb-browser
 # gazelle:resolve proto build/bazel/remote/execution/v2/remote_execution.proto @com_github_bazelbuild_remote_apis//build/bazel/remote/execution/v2:remote_execution_proto
 # gazelle:resolve proto go build/bazel/remote/execution/v2/remote_execution.proto @com_github_bazelbuild_remote_apis//build/bazel/remote/execution/v2:execution
@@ -13,4 +15,8 @@ load("@bazel_gazelle//:def.bzl", "gazelle")
 # gazelle:resolve proto go pkg/proto/configuration/http/http.proto @com_github_buildbarn_bb_storage//pkg/proto/configuration/http
 gazelle(
     name = "gazelle",
+)
+
+npm_link_all_packages(
+    name = "node_modules",
 )
