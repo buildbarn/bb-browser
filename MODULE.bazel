@@ -12,13 +12,13 @@ bazel_dep(name = "toolchains_llvm", version = "1.0.0")
 
 git_override(
     module_name = "com_github_buildbarn_bb_remote_execution",
-    commit = "efa691334b0c8b47c6fedd73c6ad434ba166c647",
+    commit = "f84a2c0f72119f6d3b157905a00163d0f167a73e",
     remote = "https://github.com/buildbarn/bb-remote-execution.git",
 )
 
 git_override(
     module_name = "com_github_buildbarn_bb_storage",
-    commit = "00c3edab9fbee741613670dc3c20404910b9076f",
+    commit = "914e53aad8cd16fc4c1ecd7f706149e8440ea24a",
     remote = "https://github.com/buildbarn/bb-storage.git",
 )
 
@@ -67,6 +67,7 @@ go_deps_dev = use_extension("@gazelle//:extensions.bzl", "go_deps", dev_dependen
 go_deps_dev.gazelle_override(
     build_file_generation = "on",
     directives = [
+        "gazelle:go_grpc_compilers @io_bazel_rules_go//proto:go_proto,@io_bazel_rules_go//proto:go_grpc_v2",
         "gazelle:resolve proto go build/bazel/semver/semver.proto //build/bazel/semver",
         "gazelle:resolve proto go google/api/annotations.proto @org_golang_google_genproto_googleapis_api//annotations",
         "gazelle:resolve proto go google/longrunning/operations.proto @com_google_cloud_go_longrunning//autogen/longrunningpb",
@@ -80,10 +81,6 @@ go_deps_dev.gazelle_override(
 go_deps_dev.module_override(
     patches = ["//:patches/com_github_buildkite_terminal_to_html/assets.diff"],
     path = "github.com/buildkite/terminal-to-html",
-)
-go_deps_dev.module_override(
-    patches = ["@com_github_buildbarn_bb_storage//:patches/com_github_golang_protobuf/service-registrar.diff"],
-    path = "github.com/golang/protobuf",
 )
 go_deps_dev.module_override(
     patches = ["@com_github_buildbarn_bb_storage//:patches/com_github_grpc_ecosystem_go_grpc_prometheus/client-metrics-prevent-handled-twice.diff"],
