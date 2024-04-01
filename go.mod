@@ -8,8 +8,8 @@ replace google.golang.org/protobuf => google.golang.org/protobuf v1.32.0
 require (
 	github.com/bazelbuild/buildtools v0.0.0-20240313121412-66c605173954
 	github.com/bazelbuild/remote-apis v0.0.0-20240319211552-96942a2107c7
-	github.com/buildbarn/bb-remote-execution v0.0.0-20240331151324-f84a2c0f7211
-	github.com/buildbarn/bb-storage v0.0.0-20240331131648-914e53aad8cd
+	github.com/buildbarn/bb-remote-execution v0.0.0-20240401130706-ea22f37f62b8
+	github.com/buildbarn/bb-storage v0.0.0-20240401072224-dee7e428a0bd
 	github.com/buildkite/terminal-to-html v3.2.0+incompatible
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gorilla/mux v1.8.1
@@ -105,9 +105,9 @@ require (
 	golang.org/x/tools v0.19.0 // indirect
 	google.golang.org/api v0.172.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto v0.0.0-20240325203815-454cdb8f5daa // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240325203815-454cdb8f5daa // indirect
-	google.golang.org/genproto/googleapis/bytestream v0.0.0-20240325203815-454cdb8f5daa // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240325203815-454cdb8f5daa // indirect
+	google.golang.org/genproto v0.0.0-20240401170217-c3f982113cda // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240401170217-c3f982113cda // indirect
+	google.golang.org/genproto/googleapis/bytestream v0.0.0-20240401170217-c3f982113cda // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240401170217-c3f982113cda // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
