@@ -9,7 +9,7 @@ require (
 	github.com/bazelbuild/buildtools v0.0.0-20240313121412-66c605173954
 	github.com/bazelbuild/remote-apis v0.0.0-20240319211552-96942a2107c7
 	github.com/buildbarn/bb-remote-execution v0.0.0-20240401130706-ea22f37f62b8
-	github.com/buildbarn/bb-storage v0.0.0-20240401072224-dee7e428a0bd
+	github.com/buildbarn/bb-storage v0.0.0-20240612173029-118cb9ca2a7d
 	github.com/buildkite/terminal-to-html v3.2.0+incompatible
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gorilla/mux v1.8.1
