@@ -69,6 +69,8 @@ github.com/buildbarn/bb-remote-execution v0.0.0-20240401130706-ea22f37f62b8 h1:5
 github.com/buildbarn/bb-remote-execution v0.0.0-20240401130706-ea22f37f62b8/go.mod h1:znbMNc0OwrbMXLddJSfZaVSVhHfjVja05/ourZA30eo=
 github.com/buildbarn/bb-storage v0.0.0-20240401072224-dee7e428a0bd h1:6GeYkbQurtcCfPjzCHux3iPo4eby72CxsE1QrDSJBAg=
 github.com/buildbarn/bb-storage v0.0.0-20240401072224-dee7e428a0bd/go.mod h1:C4+j4QJ0gapWsJ9xBkktZJBcLUDuvTacOGlSardmAnc=
+github.com/buildbarn/bb-storage v0.0.0-20240612173029-118cb9ca2a7d h1:CS5Fqi4ZL8MswhQJOhZBCRRCfklDGDdLACB/mjgAk+I=
+github.com/buildbarn/bb-storage v0.0.0-20240612173029-118cb9ca2a7d/go.mod h1:C4+j4QJ0gapWsJ9xBkktZJBcLUDuvTacOGlSardmAnc=
 github.com/buildkite/terminal-to-html v3.2.0+incompatible h1:WdXzl7ZmYzCAz4pElZosPaUlRTW+qwVx/SkQSCa1jXs=
 github.com/buildkite/terminal-to-html v3.2.0+incompatible/go.mod h1:BFFdFecOxCgjdcarqI+8izs6v85CU/1RA/4Bqh4GR7E=
 github.com/campoy/embedmd v1.0.0 h1:V4kI2qTJJLf4J29RzI/MAt2c3Bl4dQSYPuflzwFH2hY=
