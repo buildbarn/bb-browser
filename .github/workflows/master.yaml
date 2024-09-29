@@ -25,7 +25,7 @@
             },
             {
                "name": "Gofmt",
-               "run": "bazel run @cc_mvdan_gofumpt//:gofumpt -- -lang 1.19 -w -extra $(pwd)"
+               "run": "bazel run @cc_mvdan_gofumpt//:gofumpt -- -w -extra $(pwd)"
             },
             {
                "name": "Clang format",
@@ -37,11 +37,11 @@
             },
             {
                "name": "Protobuf generation",
-               "run": "find . bazel-bin/pkg/proto -name '*.pb.go' -delete || true\nbazel build $(bazel query --output=label 'kind(\"go_proto_library\", //...)')\nfind bazel-bin/pkg/proto -name '*.pb.go' | while read f; do\n  cat $f > $(echo $f | sed -e 's|.*/pkg/proto/|pkg/proto/|')\ndone\n"
+               "run": "if [ -d bazel-bin/pkg/proto ]; then\n  find . bazel-bin/pkg/proto -name '*.pb.go' -delete || true\n  bazel build $(bazel query --output=label 'kind(\"go_proto_library\", //...)')\n  find bazel-bin/pkg/proto -name '*.pb.go' | while read f; do\n    cat $f > $(echo $f | sed -e 's|.*/pkg/proto/|pkg/proto/|')\n  done\nfi\n"
             },
             {
                "name": "Embedded asset generation",
-               "run": "bazel build $(git grep '^[[:space:]]*//go:embed ' | sed -e 's|\\(.*\\)/.*//go:embed |//\\1:|' | sort -u)\ngit grep '^[[:space:]]*//go:embed ' | sed -e 's|\\(.*\\)/.*//go:embed |\\1/|' | while read o; do\n  if [ -e \"bazel-bin/$o\" ]; then\n    rm -rf \"$o\"\n    cp -r \"bazel-bin/$o\" \"$o\"\n    find \"$o\" -type f -exec chmod -x {} +\n  fi\ndone\n"
+               "run": "bazel build $(git grep '^[[:space:]]*//go:embed ' | sed -e 's|\\(.*\\)/.*//go:embed |//\\1:|; s|\"||g; s| .*||' | sort -u)\ngit grep '^[[:space:]]*//go:embed ' | sed -e 's|\\(.*\\)/.*//go:embed |\\1/|' | while read o; do\n  if [ -e \"bazel-bin/$o\" ]; then\n    rm -rf \"$o\"\n    cp -r \"bazel-bin/$o\" \"$o\"\n    find \"$o\" -type f -exec chmod -x {} +\n  fi\ndone\n"
             },
             {
                "name": "Test style conformance",
@@ -61,7 +61,7 @@
             },
             {
                "name": "linux_amd64: upload bb_browser",
-               "uses": "actions/upload-artifact@v2-preview",
+               "uses": "actions/upload-artifact@v4",
                "with": {
                   "name": "bb_browser.linux_amd64",
                   "path": "bb_browser"
@@ -77,7 +77,7 @@
             },
             {
                "name": "linux_386: upload bb_browser",
-               "uses": "actions/upload-artifact@v2-preview",
+               "uses": "actions/upload-artifact@v4",
                "with": {
                   "name": "bb_browser.linux_386",
                   "path": "bb_browser"
@@ -93,7 +93,7 @@
             },
             {
                "name": "linux_arm: upload bb_browser",
-               "uses": "actions/upload-artifact@v2-preview",
+               "uses": "actions/upload-artifact@v4",
                "with": {
                   "name": "bb_browser.linux_arm",
                   "path": "bb_browser"
@@ -109,7 +109,7 @@
             },
             {
                "name": "linux_arm64: upload bb_browser",
-               "uses": "actions/upload-artifact@v2-preview",
+               "uses": "actions/upload-artifact@v4",
                "with": {
                   "name": "bb_browser.linux_arm64",
                   "path": "bb_browser"
@@ -125,7 +125,7 @@
             },
             {
                "name": "darwin_amd64: upload bb_browser",
-               "uses": "actions/upload-artifact@v2-preview",
+               "uses": "actions/upload-artifact@v4",
                "with": {
                   "name": "bb_browser.darwin_amd64",
                   "path": "bb_browser"
@@ -141,7 +141,7 @@
             },
             {
                "name": "darwin_arm64: upload bb_browser",
-               "uses": "actions/upload-artifact@v2-preview",
+               "uses": "actions/upload-artifact@v4",
                "with": {
                   "name": "bb_browser.darwin_arm64",
                   "path": "bb_browser"
@@ -157,7 +157,7 @@
             },
             {
                "name": "freebsd_amd64: upload bb_browser",
-               "uses": "actions/upload-artifact@v2-preview",
+               "uses": "actions/upload-artifact@v4",
                "with": {
                   "name": "bb_browser.freebsd_amd64",
                   "path": "bb_browser"
@@ -173,7 +173,7 @@
             },
             {
                "name": "windows_amd64: upload bb_browser",
-               "uses": "actions/upload-artifact@v2-preview",
+               "uses": "actions/upload-artifact@v4",
                "with": {
                   "name": "bb_browser.windows_amd64",
                   "path": "bb_browser.exe"
@@ -197,6 +197,7 @@
    "on": {
       "push": {
          "branches": [
+            "main",
             "master"
          ]
       }

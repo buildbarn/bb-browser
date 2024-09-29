@@ -32,7 +32,7 @@ go_library(
     deps = [
         "//pkg/proto/configuration/bb_browser",
         "//pkg/proto/query",
-        "@com_github_bazelbuild_remote_apis//build/bazel/remote/execution/v2:execution",
+        "@bazel_remote_apis//build/bazel/remote/execution/v2:remote_execution_go_proto",
         "@com_github_buildbarn_bb_remote_execution//pkg/builder",
         "@com_github_buildbarn_bb_remote_execution//pkg/filesystem/access",
         "@com_github_buildbarn_bb_remote_execution//pkg/proto/cas",
