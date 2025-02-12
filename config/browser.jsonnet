@@ -22,4 +22,5 @@
   authorizer: {
     allow: {},
   },
+  requestMetadataLinksJmespathExpression: '`{}`',
 }
