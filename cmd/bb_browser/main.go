@@ -14,7 +14,7 @@ import (
 	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
 	"github.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browser"
 	"github.com/buildbarn/bb-remote-execution/pkg/proto/resourceusage"
-	"github.com/buildbarn/bb-storage/pkg/auth"
+	auth_configuration "github.com/buildbarn/bb-storage/pkg/auth/configuration"
 	"github.com/buildbarn/bb-storage/pkg/blobstore"
 	blobstore_configuration "github.com/buildbarn/bb-storage/pkg/blobstore/configuration"
 	"github.com/buildbarn/bb-storage/pkg/digest"
@@ -84,8 +84,8 @@ func main() {
 			return err
 		}
 
-		authorizerFactory := auth.DefaultAuthorizerFactory
-		authorizer, err := authorizerFactory.NewAuthorizerFromConfiguration(configuration.Authorizer)
+		authorizerFactory := auth_configuration.DefaultAuthorizerFactory
+		authorizer, err := authorizerFactory.NewAuthorizerFromConfiguration(configuration.Authorizer, grpcClientFactory)
 		if err != nil {
 			return util.StatusWrap(err, "Failed to create authorizer")
 		}
@@ -312,6 +312,7 @@ func main() {
 			configuration.HttpServers,
 			http.NewMetricsHandler(router, "BrowserUI"),
 			siblingsGroup,
+			grpcClientFactory,
 		)
 
 		lifecycleState.MarkReadyAndWait(siblingsGroup)

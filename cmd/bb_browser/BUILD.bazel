@@ -37,7 +37,7 @@ go_library(
         "@com_github_buildbarn_bb_remote_execution//pkg/filesystem/access",
         "@com_github_buildbarn_bb_remote_execution//pkg/proto/cas",
         "@com_github_buildbarn_bb_remote_execution//pkg/proto/resourceusage",
-        "@com_github_buildbarn_bb_storage//pkg/auth",
+        "@com_github_buildbarn_bb_storage//pkg/auth/configuration",
         "@com_github_buildbarn_bb_storage//pkg/blobstore",
         "@com_github_buildbarn_bb_storage//pkg/blobstore/configuration",
         "@com_github_buildbarn_bb_storage//pkg/digest",
