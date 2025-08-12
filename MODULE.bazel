@@ -20,13 +20,13 @@ git_override(
 
 git_override(
     module_name = "com_github_buildbarn_bb_remote_execution",
-    commit = "1c726bdc27e7793c685d8788913f8f91f59bc887",
+    commit = "5b4f5a6879e1c5fac56a426f26b4416cb8f38e81",
     remote = "https://github.com/buildbarn/bb-remote-execution.git",
 )
 
 git_override(
     module_name = "com_github_buildbarn_bb_storage",
-    commit = "1d733a37487a01416bda38eff6f61eb78103c7f0",
+    commit = "03f721aa0976b265f0ba1141da155b8f9a7bfd6e",
     remote = "https://github.com/buildbarn/bb-storage.git",
 )
 
