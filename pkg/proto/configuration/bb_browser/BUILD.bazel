@@ -11,6 +11,7 @@ proto_library(
         "@com_github_buildbarn_bb_storage//pkg/proto/configuration/blobstore:blobstore_proto",
         "@com_github_buildbarn_bb_storage//pkg/proto/configuration/global:global_proto",
         "@com_github_buildbarn_bb_storage//pkg/proto/configuration/http:http_proto",
+        "@com_github_buildbarn_bb_storage//pkg/proto/configuration/jmespath:jmespath_proto",
     ],
 )
 
@@ -24,6 +25,7 @@ go_proto_library(
         "@com_github_buildbarn_bb_storage//pkg/proto/configuration/blobstore",
         "@com_github_buildbarn_bb_storage//pkg/proto/configuration/global",
         "@com_github_buildbarn_bb_storage//pkg/proto/configuration/http",
+        "@com_github_buildbarn_bb_storage//pkg/proto/configuration/jmespath",
     ],
 )
 

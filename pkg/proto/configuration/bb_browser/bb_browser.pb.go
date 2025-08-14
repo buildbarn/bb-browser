@@ -11,6 +11,7 @@ import (
 	blobstore "github.com/buildbarn/bb-storage/pkg/proto/configuration/blobstore"
 	global "github.com/buildbarn/bb-storage/pkg/proto/configuration/global"
 	http "github.com/buildbarn/bb-storage/pkg/proto/configuration/http"
+	jmespath "github.com/buildbarn/bb-storage/pkg/proto/configuration/jmespath"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -36,7 +37,7 @@ type ApplicationConfiguration struct {
 	InitialSizeClassCache                  *blobstore.BlobAccessConfiguration `protobuf:"bytes,6,opt,name=initial_size_class_cache,json=initialSizeClassCache,proto3" json:"initial_size_class_cache,omitempty"`
 	FileSystemAccessCache                  *blobstore.BlobAccessConfiguration `protobuf:"bytes,9,opt,name=file_system_access_cache,json=fileSystemAccessCache,proto3" json:"file_system_access_cache,omitempty"`
 	Authorizer                             *auth.AuthorizerConfiguration      `protobuf:"bytes,8,opt,name=authorizer,proto3" json:"authorizer,omitempty"`
-	RequestMetadataLinksJmespathExpression string                             `protobuf:"bytes,11,opt,name=request_metadata_links_jmespath_expression,json=requestMetadataLinksJmespathExpression,proto3" json:"request_metadata_links_jmespath_expression,omitempty"`
+	RequestMetadataLinksJmespathExpression *jmespath.Expression               `protobuf:"bytes,11,opt,name=request_metadata_links_jmespath_expression,json=requestMetadataLinksJmespathExpression,proto3" json:"request_metadata_links_jmespath_expression,omitempty"`
 	unknownFields                          protoimpl.UnknownFields
 	sizeCache                              protoimpl.SizeCache
 }
@@ -134,18 +135,18 @@ func (x *ApplicationConfiguration) GetAuthorizer() *auth.AuthorizerConfiguration
 	return nil
 }
 
-func (x *ApplicationConfiguration) GetRequestMetadataLinksJmespathExpression() string {
+func (x *ApplicationConfiguration) GetRequestMetadataLinksJmespathExpression() *jmespath.Expression {
 	if x != nil {
 		return x.RequestMetadataLinksJmespathExpression
 	}
-	return ""
+	return nil
 }
 
 var File_pkg_proto_configuration_bb_browser_bb_browser_proto protoreflect.FileDescriptor
 
 const file_pkg_proto_configuration_bb_browser_bb_browser_proto_rawDesc = "" +
 	"\n" +
-	"3pkg/proto/configuration/bb_browser/bb_browser.proto\x12\"buildbarn.configuration.bb_browser\x1a'pkg/proto/configuration/auth/auth.proto\x1a1pkg/proto/configuration/blobstore/blobstore.proto\x1a+pkg/proto/configuration/global/global.proto\x1a'pkg/proto/configuration/http/http.proto\"\xd9\x06\n" +
+	"3pkg/proto/configuration/bb_browser/bb_browser.proto\x12\"buildbarn.configuration.bb_browser\x1a'pkg/proto/configuration/auth/auth.proto\x1a1pkg/proto/configuration/blobstore/blobstore.proto\x1a+pkg/proto/configuration/global/global.proto\x1a'pkg/proto/configuration/http/http.proto\x1a/pkg/proto/configuration/jmespath/jmespath.proto\"\x88\a\n" +
 	"\x18ApplicationConfiguration\x12W\n" +
 	"\tblobstore\x18\x01 \x01(\v29.buildbarn.configuration.blobstore.BlobstoreConfigurationR\tblobstore\x12;\n" +
 	"\x1amaximum_message_size_bytes\x18\x02 \x01(\x03R\x17maximumMessageSizeBytes\x12T\n" +
@@ -158,8 +159,8 @@ const file_pkg_proto_configuration_bb_browser_bb_browser_proto_rawDesc = "" +
 	"\x18file_system_access_cache\x18\t \x01(\v2:.buildbarn.configuration.blobstore.BlobAccessConfigurationR\x15fileSystemAccessCache\x12U\n" +
 	"\n" +
 	"authorizer\x18\b \x01(\v25.buildbarn.configuration.auth.AuthorizerConfigurationR\n" +
-	"authorizer\x12Z\n" +
-	"*request_metadata_links_jmespath_expression\x18\v \x01(\tR&requestMetadataLinksJmespathExpressionJ\x04\b\x03\x10\x04BDZBgithub.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browserb\x06proto3"
+	"authorizer\x12\x88\x01\n" +
+	"*request_metadata_links_jmespath_expression\x18\v \x01(\v2,.buildbarn.configuration.jmespath.ExpressionR&requestMetadataLinksJmespathExpressionJ\x04\b\x03\x10\x04BDZBgithub.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browserb\x06proto3"
 
 var (
 	file_pkg_proto_configuration_bb_browser_bb_browser_proto_rawDescOnce sync.Once
@@ -181,6 +182,7 @@ var file_pkg_proto_configuration_bb_browser_bb_browser_proto_goTypes = []any{
 	(*global.Configuration)(nil),              // 3: buildbarn.configuration.global.Configuration
 	(*blobstore.BlobAccessConfiguration)(nil), // 4: buildbarn.configuration.blobstore.BlobAccessConfiguration
 	(*auth.AuthorizerConfiguration)(nil),      // 5: buildbarn.configuration.auth.AuthorizerConfiguration
+	(*jmespath.Expression)(nil),               // 6: buildbarn.configuration.jmespath.Expression
 }
 var file_pkg_proto_configuration_bb_browser_bb_browser_proto_depIdxs = []int32{
 	1, // 0: buildbarn.configuration.bb_browser.ApplicationConfiguration.blobstore:type_name -> buildbarn.configuration.blobstore.BlobstoreConfiguration
@@ -189,11 +191,12 @@ var file_pkg_proto_configuration_bb_browser_bb_browser_proto_depIdxs = []int32{
 	4, // 3: buildbarn.configuration.bb_browser.ApplicationConfiguration.initial_size_class_cache:type_name -> buildbarn.configuration.blobstore.BlobAccessConfiguration
 	4, // 4: buildbarn.configuration.bb_browser.ApplicationConfiguration.file_system_access_cache:type_name -> buildbarn.configuration.blobstore.BlobAccessConfiguration
 	5, // 5: buildbarn.configuration.bb_browser.ApplicationConfiguration.authorizer:type_name -> buildbarn.configuration.auth.AuthorizerConfiguration
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	6, // 6: buildbarn.configuration.bb_browser.ApplicationConfiguration.request_metadata_links_jmespath_expression:type_name -> buildbarn.configuration.jmespath.Expression
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_pkg_proto_configuration_bb_browser_bb_browser_proto_init() }

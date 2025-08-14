@@ -17,16 +17,17 @@ import (
 	auth_configuration "github.com/buildbarn/bb-storage/pkg/auth/configuration"
 	"github.com/buildbarn/bb-storage/pkg/blobstore"
 	blobstore_configuration "github.com/buildbarn/bb-storage/pkg/blobstore/configuration"
+	"github.com/buildbarn/bb-storage/pkg/clock"
 	"github.com/buildbarn/bb-storage/pkg/digest"
 	"github.com/buildbarn/bb-storage/pkg/global"
 	"github.com/buildbarn/bb-storage/pkg/http"
+	"github.com/buildbarn/bb-storage/pkg/jmespath"
 	"github.com/buildbarn/bb-storage/pkg/program"
 	auth_pb "github.com/buildbarn/bb-storage/pkg/proto/auth"
 	"github.com/buildbarn/bb-storage/pkg/proto/iscc"
 	"github.com/buildbarn/bb-storage/pkg/util"
 	"github.com/dustin/go-humanize"
 	"github.com/gorilla/mux"
-	"github.com/jmespath/go-jmespath"
 	"github.com/kballard/go-shellquote"
 
 	"google.golang.org/grpc/codes"
@@ -131,7 +132,11 @@ func main() {
 			routePrefix += "/"
 		}
 
-		requestMetadataLinksJmespathExpression, err := jmespath.Compile(configuration.RequestMetadataLinksJmespathExpression)
+		requestMetadataLinksJmespathExpression, err := jmespath.NewExpressionFromConfiguration(
+			configuration.RequestMetadataLinksJmespathExpression,
+			dependenciesGroup,
+			clock.SystemClock,
+		)
 		if err != nil {
 			return util.StatusWrap(err, "Failed to compile request metadata links JMESPath expression")
 		}
@@ -159,7 +164,7 @@ func main() {
 				if err != nil {
 					return nil, util.StatusWrap(err, "Failed to marshal request metadata")
 				}
-				var rawRequestMetadata any
+				var rawRequestMetadata map[string]any
 				if err := json.Unmarshal(marshaledRequestMetadata, &rawRequestMetadata); err != nil {
 					return nil, util.StatusWrap(err, "Failed to unmarshal request metadata")
 				}

@@ -15,6 +15,8 @@ load("@gazelle//:def.bzl", "gazelle")
 # gazelle:resolve proto go pkg/proto/configuration/global/global.proto @com_github_buildbarn_bb_storage//pkg/proto/configuration/global
 # gazelle:resolve proto pkg/proto/configuration/http/http.proto @com_github_buildbarn_bb_storage//pkg/proto/configuration/http:http_proto
 # gazelle:resolve proto go pkg/proto/configuration/http/http.proto @com_github_buildbarn_bb_storage//pkg/proto/configuration/http
+# gazelle:resolve proto pkg/proto/configuration/jmespath/jmespath.proto @com_github_buildbarn_bb_storage//pkg/proto/configuration/jmespath:jmespath_proto
+# gazelle:resolve proto go pkg/proto/configuration/jmespath/jmespath.proto @com_github_buildbarn_bb_storage//pkg/proto/configuration/jmespath
 gazelle(
     name = "gazelle",
 )
