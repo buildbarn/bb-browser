@@ -1,3 +1,5 @@
+load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
+load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
 load("@com_github_buildbarn_bb_browser_npm//:purgecss/package_json.bzl", purgecss_bin = "bin")
 load("@com_github_buildbarn_bb_storage//tools:container.bzl", "container_push_official", "multiarch_go_image")
 load("@rules_go//go:def.bzl", "go_binary", "go_library")
@@ -8,9 +10,10 @@ go_library(
         "browser_service.go",
         "main.go",
     ],
+    # keep
     embedsrcs = [
+        ":stylesheet",
         "favicon.png",
-        "stylesheet.css",
         "templates/error.html",
         "templates/footer.html",
         "templates/header.html",
@@ -69,9 +72,11 @@ go_library(
     ],
 )
 
+templates = glob(["templates/*.html"])
+
 filegroup(
     name = "templates",
-    srcs = glob(["templates/*.html"]),
+    srcs = templates,
 )
 
 purgecss_bin.purgecss_binary(
@@ -82,19 +87,48 @@ purgecss_bin.purgecss_binary(
 # Create a copy of Bootstrap that only contains the style attributes
 # used by the HTML templates. Also include the classes needed by
 # terminal-to-html.
+js_run_binary(
+    name = "bootstrap_stylesheet_platform",
+    srcs = [
+        "@com_github_twbs_bootstrap//:css/bootstrap.min.css",
+    ] + templates,
+    outs = ["bootstrap_stylesheet.css"],
+    args = [
+        # js_run_binary runs in the output dir;
+        # see https://github.com/aspect-build/rules_js/blob/main/docs/migrate.md#account-for-change-to-working-directory
+        "--css",
+        "../../../$(location @com_github_twbs_bootstrap//:css/bootstrap.min.css)",
+        "--safelist",
+        "bg-secondary",
+        "--output",
+        "../../../$(location bootstrap_stylesheet.css)",
+        "--content",
+    ] + [
+        "../../../$(location %s)" % f
+        for f in templates
+    ],
+    copy_srcs_to_bin = False,
+    tags = ["manual"],
+    tool = ":purgecss",
+)
+
+# Work around https://github.com/aspect-build/rules_js/issues/2121 by always
+# building the stylesheet for the host platform, even if we are cross
+# compiling.
+platform_transition_filegroup(
+    name = "bootstrap_stylesheet",
+    srcs = [":bootstrap_stylesheet_platform"],
+    target_platform = "@platforms//host",
+)
+
 genrule(
     name = "stylesheet",
     srcs = [
+        ":bootstrap_stylesheet",
         "@com_github_buildkite_terminal_to_html//assets:terminal.css",
-        "@com_github_twbs_bootstrap//:css/bootstrap.min.css",
-        ":templates",
     ],
     outs = ["stylesheet.css"],
-    cmd = " && ".join([
-        "BAZEL_BINDIR=$(BINDIR) $(location :purgecss) --css $${PWD}/$(location @com_github_twbs_bootstrap//:css/bootstrap.min.css) --content $$(for i in $(locations templates); do echo $${PWD}/$${i}; done) --output $${PWD}/$@ --safelist bg-secondary",
-        "cat $(location @com_github_buildkite_terminal_to_html//assets:terminal.css) >> $@",
-    ]),
-    tools = [":purgecss"],
+    cmd = "cat $(SRCS) > $@",
 )
 
 go_binary(
