@@ -1,11 +1,14 @@
 module(name = "com_github_buildbarn_bb_browser")
 
+bazel_dep(name = "aspect_bazel_lib", version = "2.20.0")
 bazel_dep(name = "aspect_rules_js", version = "2.4.2")
 bazel_dep(name = "bazel_remote_apis", version = "0.0.0")
 bazel_dep(name = "com_github_buildbarn_bb_remote_execution")
 bazel_dep(name = "com_github_buildbarn_bb_storage")
 bazel_dep(name = "com_github_buildbarn_go_xdr")
 bazel_dep(name = "gazelle", version = "0.45.0")
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "toolchains_protoc", version = "0.4.3")  # must come BEFORE protobuf so the toolchain registration wins
 bazel_dep(name = "protobuf", version = "31.1")
 bazel_dep(name = "rules_go", version = "0.56.1")
 bazel_dep(name = "rules_jsonnet", version = "0.7.2")
@@ -20,13 +23,13 @@ git_override(
 
 git_override(
     module_name = "com_github_buildbarn_bb_remote_execution",
-    commit = "5b4f5a6879e1c5fac56a426f26b4416cb8f38e81",
+    commit = "efef252cdf4f97cc0154ea02976ed1322587e599",
     remote = "https://github.com/buildbarn/bb-remote-execution.git",
 )
 
 git_override(
     module_name = "com_github_buildbarn_bb_storage",
-    commit = "7bb781bdf07d77d62083e916275567a6f9fa64e4",
+    commit = "5bae58446505a87d0f3249a5d97accb9b47f3c88",
     remote = "https://github.com/buildbarn/bb-storage.git",
 )
 
@@ -51,6 +54,10 @@ single_version_override(
     patches = ["//:patches/jsonnet/bazel-8.diff"],
 )
 
+# Match protobuf above, until it ships a pre-built binary toolchain itself
+protoc = use_extension("@toolchains_protoc//protoc:extensions.bzl", "protoc")
+protoc.toolchain(version = "v31.1")
+
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
 go_deps.from_file(go_mod = "//:go.mod")
 use_repo(
@@ -60,7 +67,6 @@ use_repo(
     "com_github_buildkite_terminal_to_html",
     "com_github_dustin_go_humanize",
     "com_github_gorilla_mux",
-    "com_github_jmespath_go_jmespath",
     "com_github_kballard_go_shellquote",
     "org_golang_google_grpc",
     "org_golang_google_protobuf",
