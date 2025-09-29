@@ -1,19 +1,19 @@
 module(name = "com_github_buildbarn_bb_browser")
 
-bazel_dep(name = "aspect_bazel_lib", version = "2.20.0")
-bazel_dep(name = "aspect_rules_js", version = "2.4.2")
+bazel_dep(name = "aspect_bazel_lib", version = "2.21.2")
+bazel_dep(name = "aspect_rules_js", version = "2.6.0")
 bazel_dep(name = "bazel_remote_apis", version = "0.0.0")
 bazel_dep(name = "com_github_buildbarn_bb_remote_execution")
 bazel_dep(name = "com_github_buildbarn_bb_storage")
 bazel_dep(name = "com_github_buildbarn_go_xdr")
 bazel_dep(name = "gazelle", version = "0.45.0")
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "toolchains_protoc", version = "0.4.3")  # must come BEFORE protobuf so the toolchain registration wins
+bazel_dep(name = "toolchains_protoc", version = "0.5.0")  # must come BEFORE protobuf so the toolchain registration wins
 bazel_dep(name = "protobuf", version = "31.1")
-bazel_dep(name = "rules_go", version = "0.56.1")
+bazel_dep(name = "rules_go", version = "0.57.0")
 bazel_dep(name = "rules_jsonnet", version = "0.7.2")
 bazel_dep(name = "rules_proto", version = "7.1.0")
-bazel_dep(name = "toolchains_llvm", version = "1.4.0")
+bazel_dep(name = "toolchains_llvm", version = "1.5.0")
 
 git_override(
     module_name = "bazel_remote_apis",
@@ -23,13 +23,13 @@ git_override(
 
 git_override(
     module_name = "com_github_buildbarn_bb_remote_execution",
-    commit = "efef252cdf4f97cc0154ea02976ed1322587e599",
+    commit = "78a187fdbd351f57e3db9e31e3f59161eca26b17",
     remote = "https://github.com/buildbarn/bb-remote-execution.git",
 )
 
 git_override(
     module_name = "com_github_buildbarn_bb_storage",
-    commit = "5bae58446505a87d0f3249a5d97accb9b47f3c88",
+    commit = "1170df56abab658861ba90c0e57b58ed14b721a2",
     remote = "https://github.com/buildbarn/bb-storage.git",
 )
 

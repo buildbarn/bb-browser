@@ -2,11 +2,11 @@ syntax = "proto3";
 
 package buildbarn.configuration.bb_browser;
 
-import "pkg/proto/configuration/auth/auth.proto";
-import "pkg/proto/configuration/blobstore/blobstore.proto";
-import "pkg/proto/configuration/global/global.proto";
-import "pkg/proto/configuration/http/http.proto";
-import "pkg/proto/configuration/jmespath/jmespath.proto";
+import "github.com/buildbarn/bb-storage/pkg/proto/configuration/auth/auth.proto";
+import "github.com/buildbarn/bb-storage/pkg/proto/configuration/blobstore/blobstore.proto";
+import "github.com/buildbarn/bb-storage/pkg/proto/configuration/global/global.proto";
+import "github.com/buildbarn/bb-storage/pkg/proto/configuration/http/server/server.proto";
+import "github.com/buildbarn/bb-storage/pkg/proto/configuration/jmespath/jmespath.proto";
 
 option go_package = "github.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browser";
 
@@ -22,7 +22,7 @@ message ApplicationConfiguration {
   reserved 3;
 
   // Configuration for HTTP servers that expose the web UI.
-  repeated buildbarn.configuration.http.ServerConfiguration http_servers = 10;
+  repeated buildbarn.configuration.http.server.Configuration http_servers = 10;
 
   // The path under which the web service needs to be exposed. When left
   // empty, the web service will be exposed at "/".
