@@ -3,20 +3,13 @@ load("@gazelle//:def.bzl", "gazelle")
 
 # gazelle:go_naming_convention_external import
 # gazelle:prefix github.com/buildbarn/bb-browser
+# gazelle:proto_import_prefix github.com/buildbarn/bb-browser
 # gazelle:resolve go github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2 @bazel_remote_apis//build/bazel/remote/execution/v2:remote_execution_go_proto
 # gazelle:resolve go github.com/bazelbuild/remote-apis/build/bazel/semver @bazel_remote_apis//build/bazel/semver:semver_go_proto
 # gazelle:resolve proto build/bazel/remote/execution/v2/remote_execution.proto @bazel_remote_apis//build/bazel/remote/execution/v2:remote_execution_proto
 # gazelle:resolve proto go build/bazel/remote/execution/v2/remote_execution.proto @bazel_remote_apis//build/bazel/remote/execution/v2:remote_execution_go_proto
-# gazelle:resolve proto pkg/proto/configuration/auth/auth.proto @com_github_buildbarn_bb_storage//pkg/proto/configuration/auth:auth_proto
-# gazelle:resolve proto go pkg/proto/configuration/auth/auth.proto @com_github_buildbarn_bb_storage//pkg/proto/configuration/auth
-# gazelle:resolve proto pkg/proto/configuration/blobstore/blobstore.proto @com_github_buildbarn_bb_storage//pkg/proto/configuration/blobstore:blobstore_proto
-# gazelle:resolve proto go pkg/proto/configuration/blobstore/blobstore.proto @com_github_buildbarn_bb_storage//pkg/proto/configuration/blobstore
-# gazelle:resolve proto pkg/proto/configuration/global/global.proto @com_github_buildbarn_bb_storage//pkg/proto/configuration/global:global_proto
-# gazelle:resolve proto go pkg/proto/configuration/global/global.proto @com_github_buildbarn_bb_storage//pkg/proto/configuration/global
-# gazelle:resolve proto pkg/proto/configuration/http/http.proto @com_github_buildbarn_bb_storage//pkg/proto/configuration/http:http_proto
-# gazelle:resolve proto go pkg/proto/configuration/http/http.proto @com_github_buildbarn_bb_storage//pkg/proto/configuration/http
-# gazelle:resolve proto pkg/proto/configuration/jmespath/jmespath.proto @com_github_buildbarn_bb_storage//pkg/proto/configuration/jmespath:jmespath_proto
-# gazelle:resolve proto go pkg/proto/configuration/jmespath/jmespath.proto @com_github_buildbarn_bb_storage//pkg/proto/configuration/jmespath
+# gazelle:resolve_regexp proto github.com/buildbarn/bb-storage/(.*)/(.*)\.proto @com_github_buildbarn_bb_storage//$1:${2}_proto
+# gazelle:resolve_regexp proto go github.com/buildbarn/bb-storage/(.*)/(.*)\.proto @com_github_buildbarn_bb_storage//$1:$2
 gazelle(
     name = "gazelle",
 )

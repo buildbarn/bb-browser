@@ -26,7 +26,7 @@ import (
 	"github.com/buildbarn/bb-storage/pkg/blobstore"
 	"github.com/buildbarn/bb-storage/pkg/digest"
 	"github.com/buildbarn/bb-storage/pkg/filesystem/path"
-	bb_http "github.com/buildbarn/bb-storage/pkg/http"
+	http_server "github.com/buildbarn/bb-storage/pkg/http/server"
 	"github.com/buildbarn/bb-storage/pkg/proto/fsac"
 	"github.com/buildbarn/bb-storage/pkg/proto/iscc"
 	"github.com/buildbarn/bb-storage/pkg/util"
@@ -136,7 +136,7 @@ var (
 
 func (s *BrowserService) renderError(w http.ResponseWriter, err error) {
 	st := status.Convert(err)
-	w.WriteHeader(bb_http.StatusCodeFromGRPCCode(st.Code()))
+	w.WriteHeader(http_server.StatusCodeFromGRPCCode(st.Code()))
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	if err := s.templates.ExecuteTemplate(w, "error.html", st); err != nil {
 		log.Print(err)

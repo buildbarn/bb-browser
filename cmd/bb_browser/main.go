@@ -20,7 +20,7 @@ import (
 	"github.com/buildbarn/bb-storage/pkg/clock"
 	"github.com/buildbarn/bb-storage/pkg/digest"
 	"github.com/buildbarn/bb-storage/pkg/global"
-	"github.com/buildbarn/bb-storage/pkg/http"
+	http_server "github.com/buildbarn/bb-storage/pkg/http/server"
 	"github.com/buildbarn/bb-storage/pkg/jmespath"
 	"github.com/buildbarn/bb-storage/pkg/program"
 	auth_pb "github.com/buildbarn/bb-storage/pkg/proto/auth"
@@ -313,9 +313,9 @@ func main() {
 			templates,
 			bbClientdInstanceNamePatcher,
 			subrouter)
-		http.NewServersFromConfigurationAndServe(
+		http_server.NewServersFromConfigurationAndServe(
 			configuration.HttpServers,
-			http.NewMetricsHandler(router, "BrowserUI"),
+			http_server.NewMetricsHandler(router, "BrowserUI"),
 			siblingsGroup,
 			grpcClientFactory,
 		)
