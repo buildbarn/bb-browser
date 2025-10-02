@@ -1,6 +1,5 @@
 # See https://docs.aspect.build/workflows/configuration
 tasks:
-  - buildifier
-  - test
+  - test:
 notifications:
   github: {}
