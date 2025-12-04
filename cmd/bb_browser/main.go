@@ -304,12 +304,17 @@ func main() {
 
 		router := mux.NewRouter()
 		subrouter := router.PathPrefix(routePrefix).Subrouter()
+		maximumLogSizeBytes := int(configuration.MaximumLogSizeBytes)
+		if maximumLogSizeBytes == 0 {
+			maximumLogSizeBytes = 100000
+		}
 		NewBrowserService(
 			contentAddressableStorage,
 			actionCache,
 			initialSizeClassCache,
 			fileSystemAccessCache,
 			int(configuration.MaximumMessageSizeBytes),
+			maximumLogSizeBytes,
 			templates,
 			bbClientdInstanceNamePatcher,
 			subrouter)

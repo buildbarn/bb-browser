@@ -90,4 +90,9 @@ message ApplicationConfiguration {
   // expression `{}` (including the backticks).
   buildbarn.configuration.jmespath.Expression
       request_metadata_links_jmespath_expression = 11;
+
+  // Maximum log size to display inline in the web UI. Logs larger than
+  // this will show a link to download instead of displaying inline.
+  // Defaults to 100000 bytes if not specified.
+  int64 maximum_log_size_bytes = 12;
 }

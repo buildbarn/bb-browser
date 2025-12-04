@@ -99,19 +99,21 @@ type BrowserService struct {
 	initialSizeClassCache        blobstore.BlobAccess
 	fileSystemAccessCache        blobstore.BlobAccess
 	maximumMessageSizeBytes      int
+	maximumLogSizeBytes          int
 	templates                    *template.Template
 	bbClientdInstanceNamePatcher digest.InstanceNamePatcher
 }
 
 // NewBrowserService constructs a BrowserService that accesses storage
 // through a set of handles.
-func NewBrowserService(contentAddressableStorage, actionCache, initialSizeClassCache, fileSystemAccessCache blobstore.BlobAccess, maximumMessageSizeBytes int, templates *template.Template, bbClientdInstanceNamePatcher digest.InstanceNamePatcher, router *mux.Router) *BrowserService {
+func NewBrowserService(contentAddressableStorage, actionCache, initialSizeClassCache, fileSystemAccessCache blobstore.BlobAccess, maximumMessageSizeBytes int, maximumLogSizeBytes int, templates *template.Template, bbClientdInstanceNamePatcher digest.InstanceNamePatcher, router *mux.Router) *BrowserService {
 	s := &BrowserService{
 		contentAddressableStorage:    contentAddressableStorage,
 		actionCache:                  actionCache,
 		initialSizeClassCache:        initialSizeClassCache,
 		fileSystemAccessCache:        fileSystemAccessCache,
 		maximumMessageSizeBytes:      maximumMessageSizeBytes,
+		maximumLogSizeBytes:          maximumLogSizeBytes,
 		templates:                    templates,
 		bbClientdInstanceNamePatcher: bbClientdInstanceNamePatcher,
 	}
@@ -300,7 +302,7 @@ func (s *BrowserService) getLogInfoFromActionResult(ctx context.Context, name st
 }
 
 func (s *BrowserService) getLogInfoForDigest(ctx context.Context, name string, digest digest.Digest) (*logInfo, error) {
-	maximumLogSizeBytes := 100000
+	maximumLogSizeBytes := s.maximumLogSizeBytes
 	if size := digest.GetSizeBytes(); size == 0 {
 		// No log file present.
 		return nil, nil
