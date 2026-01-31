@@ -1,35 +1,35 @@
 module(name = "com_github_buildbarn_bb_browser")
 
-bazel_dep(name = "aspect_bazel_lib", version = "2.21.2")
-bazel_dep(name = "aspect_rules_js", version = "2.6.0")
+bazel_dep(name = "aspect_bazel_lib", version = "2.22.5")
+bazel_dep(name = "aspect_rules_js", version = "2.9.2")
 bazel_dep(name = "bazel_remote_apis", version = "0.0.0")
 bazel_dep(name = "com_github_buildbarn_bb_remote_execution")
 bazel_dep(name = "com_github_buildbarn_bb_storage")
 bazel_dep(name = "com_github_buildbarn_go_xdr")
-bazel_dep(name = "gazelle", version = "0.45.0")
+bazel_dep(name = "cel-spec", version = "0.25.1")
+bazel_dep(name = "gazelle", version = "0.47.0")
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "toolchains_protoc", version = "0.5.0")  # must come BEFORE protobuf so the toolchain registration wins
-bazel_dep(name = "protobuf", version = "31.1")
-bazel_dep(name = "rules_go", version = "0.57.0")
+bazel_dep(name = "protobuf", version = "33.4")
+bazel_dep(name = "rules_go", version = "0.59.0")
 bazel_dep(name = "rules_jsonnet", version = "0.7.2")
 bazel_dep(name = "rules_proto", version = "7.1.0")
-bazel_dep(name = "toolchains_llvm", version = "1.5.0")
+bazel_dep(name = "toolchains_llvm", version = "1.6.0")
 
 git_override(
     module_name = "bazel_remote_apis",
-    commit = "536ec595e1df0064bb37aecc95332a661b8c79b2",
+    commit = "b02e15a6d354e2fb553216132ccec79f3f5b39cb",
     remote = "https://github.com/bazelbuild/remote-apis.git",
 )
 
 git_override(
     module_name = "com_github_buildbarn_bb_remote_execution",
-    commit = "78a187fdbd351f57e3db9e31e3f59161eca26b17",
+    commit = "749fb408bd300672b8f13860253d07fdc26c49ff",
     remote = "https://github.com/buildbarn/bb-remote-execution.git",
 )
 
 git_override(
     module_name = "com_github_buildbarn_bb_storage",
-    commit = "1170df56abab658861ba90c0e57b58ed14b721a2",
+    commit = "7c615f65d679ba471470babec66fccfa3c98917d",
     remote = "https://github.com/buildbarn/bb-storage.git",
 )
 
@@ -37,6 +37,11 @@ git_override(
     module_name = "com_github_buildbarn_go_xdr",
     commit = "236788cf9e8948a1e8875c7dd243e2be180cdfd7",
     remote = "https://github.com/buildbarn/go-xdr.git",
+)
+
+single_version_override(
+    module_name = "jsonnet_go",
+    patches = ["//:patches/jsonnet_go/bazel-9.diff"],
 )
 
 git_override(
@@ -50,13 +55,9 @@ git_override(
 )
 
 single_version_override(
-    module_name = "jsonnet",
-    patches = ["//:patches/jsonnet/bazel-8.diff"],
+    module_name = "toolchains_llvm",
+    patches = ["//:patches/toolchains_llvm/non-root.diff"],
 )
-
-# Match protobuf above, until it ships a pre-built binary toolchain itself
-protoc = use_extension("@toolchains_protoc//protoc:extensions.bzl", "protoc")
-protoc.toolchain(version = "v31.1")
 
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
 go_deps.from_file(go_mod = "//:go.mod")
@@ -104,7 +105,7 @@ http_archive(
 
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm", dev_dependency = True)
 llvm.toolchain(
-    llvm_version = "14.0.0",
+    llvm_version = "17.0.6",
 )
 use_repo(llvm, "llvm_toolchain_llvm")
 
