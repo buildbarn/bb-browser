@@ -363,13 +363,7 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 	digestFunction := actionDigest.GetDigestFunction()
 	if actionResult != nil {
 		actionInfo.OutputDirectories = actionResult.OutputDirectories
-		if len(actionResult.OutputSymlinks) > 0 {
-			// REv2.1 uses 'output_symlinks'.
-			actionInfo.OutputSymlinks = actionResult.OutputSymlinks
-		} else {
-			// REv2.0 uses 'output_{directory,file}_symlinks'.
-			actionInfo.OutputSymlinks = append(append([]*remoteexecution.OutputSymlink(nil), actionResult.OutputDirectorySymlinks...), actionResult.OutputFileSymlinks...)
-		}
+		actionInfo.OutputSymlinks = actionResult.OutputSymlinks
 		actionInfo.OutputFiles = actionResult.OutputFiles
 
 		var err error
@@ -414,24 +408,9 @@ func (s *BrowserService) handleActionCommon(w http.ResponseWriter, req *http.Req
 			for _, outputFiles := range actionInfo.OutputFiles {
 				foundPaths[outputFiles.Path] = struct{}{}
 			}
-			if len(command.OutputPaths) > 0 {
-				// REv2.1 uses output_paths.
-				for _, outputPath := range command.OutputPaths {
-					if _, ok := foundPaths[outputPath]; !ok {
-						actionInfo.MissingPaths = append(actionInfo.MissingPaths, outputPath)
-					}
-				}
-			} else {
-				// REv2.0 uses output_{directories,files}.
-				for _, outputDirectory := range command.OutputDirectories {
-					if _, ok := foundPaths[outputDirectory]; !ok {
-						actionInfo.MissingPaths = append(actionInfo.MissingPaths, outputDirectory)
-					}
-				}
-				for _, outputFile := range command.OutputFiles {
-					if _, ok := foundPaths[outputFile]; !ok {
-						actionInfo.MissingPaths = append(actionInfo.MissingPaths, outputFile)
-					}
+			for _, outputPath := range command.OutputPaths {
+				if _, ok := foundPaths[outputPath]; !ok {
+					actionInfo.MissingPaths = append(actionInfo.MissingPaths, outputPath)
 				}
 			}
 		} else if status.Code(err) != codes.NotFound {

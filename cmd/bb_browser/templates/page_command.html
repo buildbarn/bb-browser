@@ -14,29 +14,12 @@
 			<th scope="col" style="width: 100%">Filename</th>
 		</tr>
 	</thead>
-	{{with .Command.OutputPaths}}
-		{{range .}}
-			<tr class="font-monospace">
-				<td></td>
-				<td></td>
-				<td style="width: 100%; word-break: break-all">{{.}}</td>
-			</tr>
-		{{end}}
-	{{else}}
-		{{range .Command.OutputDirectories}}
-			<tr class="font-monospace">
-				<td></td>
-				<td></td>
-				<td style="width: 100%; word-break: break-all">{{.}}/</td>
-			</tr>
-		{{end}}
-		{{range .Command.OutputFiles}}
-			<tr class="font-monospace">
-				<td></td>
-				<td></td>
-				<td style="width: 100%; word-break: break-all">{{.}}</td>
-			</tr>
-		{{end}}
+	{{range .Command.OutputPaths}}
+		<tr class="font-monospace">
+			<td></td>
+			<td></td>
+			<td style="width: 100%; word-break: break-all">{{.}}</td>
+		</tr>
 	{{end}}
 </table>
 
