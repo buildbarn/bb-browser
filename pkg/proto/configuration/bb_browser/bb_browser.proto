@@ -7,6 +7,7 @@ import "github.com/buildbarn/bb-storage/pkg/proto/configuration/blobstore/blobst
 import "github.com/buildbarn/bb-storage/pkg/proto/configuration/global/global.proto";
 import "github.com/buildbarn/bb-storage/pkg/proto/configuration/http/server/server.proto";
 import "github.com/buildbarn/bb-storage/pkg/proto/configuration/jmespath/jmespath.proto";
+import "github.com/buildbarn/bb-storage/pkg/proto/configuration/zstd/zstd.proto";
 
 option go_package = "github.com/buildbarn/bb-browser/pkg/proto/configuration/bb_browser";
 
@@ -90,4 +91,9 @@ message ApplicationConfiguration {
   // expression `{}` (including the backticks).
   buildbarn.configuration.jmespath.Expression
       request_metadata_links_jmespath_expression = 11;
+
+  // ZSTD encoder/decoder pool configuration. When set, creates a
+  // process-wide pool shared by all gRPC CAS clients and the
+  // ByteStream server.
+  buildbarn.configuration.zstd.PoolConfiguration zstd_pool = 12;
 }

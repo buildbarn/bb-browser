@@ -26,6 +26,7 @@ import (
 	auth_pb "github.com/buildbarn/bb-storage/pkg/proto/auth"
 	"github.com/buildbarn/bb-storage/pkg/proto/iscc"
 	"github.com/buildbarn/bb-storage/pkg/util"
+	"github.com/buildbarn/bb-storage/pkg/zstd"
 	"github.com/dustin/go-humanize"
 	"github.com/gorilla/mux"
 	"github.com/kballard/go-shellquote"
@@ -76,11 +77,14 @@ func main() {
 		}
 
 		// Storage access.
+		zstdPool := zstd.NewPoolFromConfiguration(configuration.ZstdPool)
 		contentAddressableStorage, actionCache, err := blobstore_configuration.NewCASAndACBlobAccessFromConfiguration(
 			dependenciesGroup,
 			configuration.Blobstore,
 			grpcClientFactory,
-			int(configuration.MaximumMessageSizeBytes))
+			int(configuration.MaximumMessageSizeBytes),
+			zstdPool,
+		)
 		if err != nil {
 			return err
 		}
