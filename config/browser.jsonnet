@@ -5,12 +5,12 @@
   blobstore: {
     actionCache: {
       grpc: {
-        address: 'bb-storage:8980',
+        client: { address: 'bb-storage:8980' },
       },
     },
     contentAddressableStorage: {
       grpc: {
-        address: 'bb-storage:8980',
+        client: { address: 'bb-storage:8980' },
       },
     },
   },
