@@ -26,7 +26,7 @@
             {
                "if": "matrix.host.upload",
                "name": "linux_amd64: copy bb_browser",
-               "run": "rm -f bb_browser && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:linux_amd64 //cmd/bb_browser $(pwd)/bb_browser"
+               "run": "rm -f bb_browser.linux_amd64 && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:linux_amd64 //cmd/bb_browser $(pwd)/bb_browser.linux_amd64"
             },
             {
                "if": "matrix.host.upload",
@@ -34,7 +34,7 @@
                "uses": "actions/upload-artifact@v4",
                "with": {
                   "name": "bb_browser.linux_amd64",
-                  "path": "bb_browser"
+                  "path": "bb_browser.linux_amd64"
                }
             },
             {
@@ -45,7 +45,7 @@
             {
                "if": "matrix.host.upload",
                "name": "linux_amd64_v3: copy bb_browser",
-               "run": "rm -f bb_browser && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:linux_amd64_v3 //cmd/bb_browser $(pwd)/bb_browser"
+               "run": "rm -f bb_browser.linux_amd64_v3 && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:linux_amd64_v3 //cmd/bb_browser $(pwd)/bb_browser.linux_amd64_v3"
             },
             {
                "if": "matrix.host.upload",
@@ -53,7 +53,7 @@
                "uses": "actions/upload-artifact@v4",
                "with": {
                   "name": "bb_browser.linux_amd64_v3",
-                  "path": "bb_browser"
+                  "path": "bb_browser.linux_amd64_v3"
                }
             },
             {
@@ -64,7 +64,7 @@
             {
                "if": "matrix.host.upload",
                "name": "linux_386: copy bb_browser",
-               "run": "rm -f bb_browser && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:linux_386 //cmd/bb_browser $(pwd)/bb_browser"
+               "run": "rm -f bb_browser.linux_386 && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:linux_386 //cmd/bb_browser $(pwd)/bb_browser.linux_386"
             },
             {
                "if": "matrix.host.upload",
@@ -72,7 +72,7 @@
                "uses": "actions/upload-artifact@v4",
                "with": {
                   "name": "bb_browser.linux_386",
-                  "path": "bb_browser"
+                  "path": "bb_browser.linux_386"
                }
             },
             {
@@ -83,7 +83,7 @@
             {
                "if": "matrix.host.upload",
                "name": "linux_arm: copy bb_browser",
-               "run": "rm -f bb_browser && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:linux_arm //cmd/bb_browser $(pwd)/bb_browser"
+               "run": "rm -f bb_browser.linux_arm && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:linux_arm //cmd/bb_browser $(pwd)/bb_browser.linux_arm"
             },
             {
                "if": "matrix.host.upload",
@@ -91,7 +91,7 @@
                "uses": "actions/upload-artifact@v4",
                "with": {
                   "name": "bb_browser.linux_arm",
-                  "path": "bb_browser"
+                  "path": "bb_browser.linux_arm"
                }
             },
             {
@@ -102,7 +102,7 @@
             {
                "if": "matrix.host.upload",
                "name": "linux_arm64: copy bb_browser",
-               "run": "rm -f bb_browser && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:linux_arm64 //cmd/bb_browser $(pwd)/bb_browser"
+               "run": "rm -f bb_browser.linux_arm64 && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:linux_arm64 //cmd/bb_browser $(pwd)/bb_browser.linux_arm64"
             },
             {
                "if": "matrix.host.upload",
@@ -110,7 +110,7 @@
                "uses": "actions/upload-artifact@v4",
                "with": {
                   "name": "bb_browser.linux_arm64",
-                  "path": "bb_browser"
+                  "path": "bb_browser.linux_arm64"
                }
             },
             {
@@ -121,7 +121,7 @@
             {
                "if": "matrix.host.upload",
                "name": "darwin_amd64: copy bb_browser",
-               "run": "rm -f bb_browser && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:darwin_amd64 //cmd/bb_browser $(pwd)/bb_browser"
+               "run": "rm -f bb_browser.darwin_amd64 && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:darwin_amd64 //cmd/bb_browser $(pwd)/bb_browser.darwin_amd64"
             },
             {
                "if": "matrix.host.upload",
@@ -129,7 +129,7 @@
                "uses": "actions/upload-artifact@v4",
                "with": {
                   "name": "bb_browser.darwin_amd64",
-                  "path": "bb_browser"
+                  "path": "bb_browser.darwin_amd64"
                }
             },
             {
@@ -140,7 +140,7 @@
             {
                "if": "matrix.host.upload",
                "name": "darwin_arm64: copy bb_browser",
-               "run": "rm -f bb_browser && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:darwin_arm64 //cmd/bb_browser $(pwd)/bb_browser"
+               "run": "rm -f bb_browser.darwin_arm64 && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:darwin_arm64 //cmd/bb_browser $(pwd)/bb_browser.darwin_arm64"
             },
             {
                "if": "matrix.host.upload",
@@ -148,7 +148,7 @@
                "uses": "actions/upload-artifact@v4",
                "with": {
                   "name": "bb_browser.darwin_arm64",
-                  "path": "bb_browser"
+                  "path": "bb_browser.darwin_arm64"
                }
             },
             {
@@ -159,7 +159,7 @@
             {
                "if": "matrix.host.upload",
                "name": "freebsd_amd64: copy bb_browser",
-               "run": "rm -f bb_browser && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:freebsd_amd64 //cmd/bb_browser $(pwd)/bb_browser"
+               "run": "rm -f bb_browser.freebsd_amd64 && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:freebsd_amd64 //cmd/bb_browser $(pwd)/bb_browser.freebsd_amd64"
             },
             {
                "if": "matrix.host.upload",
@@ -167,7 +167,7 @@
                "uses": "actions/upload-artifact@v4",
                "with": {
                   "name": "bb_browser.freebsd_amd64",
-                  "path": "bb_browser"
+                  "path": "bb_browser.freebsd_amd64"
                }
             },
             {
@@ -178,7 +178,7 @@
             {
                "if": "matrix.host.upload",
                "name": "windows_amd64: copy bb_browser",
-               "run": "rm -f bb_browser.exe && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:windows_amd64 //cmd/bb_browser $(pwd)/bb_browser.exe"
+               "run": "rm -f bb_browser.windows_amd64.exe && bazel run --run_under cp --platforms=@com_github_buildbarn_bb_storage//tools/platforms:windows_amd64 //cmd/bb_browser $(pwd)/bb_browser.windows_amd64.exe"
             },
             {
                "if": "matrix.host.upload",
@@ -186,7 +186,7 @@
                "uses": "actions/upload-artifact@v4",
                "with": {
                   "name": "bb_browser.windows_amd64",
-                  "path": "bb_browser.exe"
+                  "path": "bb_browser.windows_amd64.exe"
                }
             },
             {
@@ -253,6 +253,49 @@
             {
                "name": "Golint",
                "run": "bazel run @org_golang_x_lint//golint -- -set_exit_status $(pwd)/..."
+            }
+         ]
+      },
+      "publish": {
+         "name": "publish",
+         "needs": [
+            "build_and_test"
+         ],
+         "runs-on": "ubuntu-latest",
+         "steps": [
+            {
+               "name": "Checkout the repository",
+               "uses": "actions/checkout@v4 "
+            },
+            {
+               "name": "Download release artifacts",
+               "uses": "actions/download-artifact@v4",
+               "with": {
+                  "merge-multiple": true,
+                  "path": "assets"
+               }
+            },
+            {
+               "name": "Calculate shasum",
+               "run": "shasum -a 256 assets/* > sha256"
+            },
+            {
+               "name": "Set release Git user",
+               "run": "git config --global user.email \"41898282+github-actions[bot]@users.noreply.github.com\"\ngit config --global user.name \"github-actions[bot]\"\n"
+            },
+            {
+               "id": "create_tag",
+               "name": "Generate tag",
+               "run": "BUILD_SCM_REVISION=$(git rev-parse --short HEAD)\nBUILD_SCM_TIMESTAMP=$(TZ=UTC date --date \"@$(git show -s --format=%ct HEAD)\" +%Y%m%dT%H%M%SZ)\nRELEASE_TAG=\"${BUILD_SCM_TIMESTAMP}-${BUILD_SCM_REVISION}\"\ngit tag $RELEASE_TAG\ngit push --follow-tags\necho \"release_tag=$RELEASE_TAG\" >> $GITHUB_OUTPUT\n"
+            },
+            {
+               "name": "Create GitHub release and upload artifacts",
+               "uses": "softprops/action-gh-release@v2",
+               "with": {
+                  "files": "assets/*\nsha256\n",
+                  "make_latest": true,
+                  "tag_name": "${{ steps.create_tag.outputs.release_tag }}"
+               }
             }
          ]
       }
