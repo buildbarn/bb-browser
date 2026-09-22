@@ -1,3 +1,9 @@
+# DEPRECATION NOTICE
+
+This project has been deprecated and will be archived on 2027-01-01. See [BB
+Portal](https://github.com/buildbarn/bb-portal) which includes a drop-in
+replacement.
+
 # Buildbarn Browser [![Build status](https://github.com/buildbarn/bb-browser/workflows/master/badge.svg)](https://github.com/buildbarn/bb-browser/actions) [![PkgGoDev](https://pkg.go.dev/badge/github.com/buildbarn/bb-browser)](https://pkg.go.dev/github.com/buildbarn/bb-browser) [![Go Report Card](https://goreportcard.com/badge/github.com/buildbarn/bb-browser)](https://goreportcard.com/report/github.com/buildbarn/bb-browser)
 
 Buildbarn Browser is a simple web service written in Go that can display
